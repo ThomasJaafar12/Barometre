@@ -1,0 +1,2105 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Baromètre territorial Urssaf</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08131c;
+      --bg-soft: #0d1b27;
+      --panel: rgba(8, 19, 28, 0.52);
+      --panel-strong: rgba(8, 19, 28, 0.74);
+      --panel-faint: rgba(255, 255, 255, 0.06);
+      --line: rgba(255, 255, 255, 0.1);
+      --line-strong: rgba(255, 255, 255, 0.18);
+      --text: #eef7ff;
+      --muted: rgba(238, 247, 255, 0.7);
+      --muted-soft: rgba(238, 247, 255, 0.48);
+      --shadow: 0 40px 120px rgba(0, 0, 0, 0.35);
+      --radius-xl: 36px;
+      --radius-lg: 26px;
+      --radius-md: 20px;
+      --accent: #78eccb;
+      --accent-deep: #189b7f;
+      --accent-secondary: #8db8ff;
+      --accent-glow: rgba(120, 236, 203, 0.26);
+      --danger: #ff9783;
+      --warning: #ffd37a;
+      --neutral: rgba(255, 255, 255, 0.12);
+      --shell-width: min(calc(100% - 28px), 1520px);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: "Manrope", sans-serif;
+      background:
+        radial-gradient(circle at 10% 10%, rgba(125, 210, 255, 0.16), transparent 28%),
+        radial-gradient(circle at 84% 16%, rgba(128, 255, 210, 0.16), transparent 24%),
+        radial-gradient(circle at 50% 100%, rgba(255, 177, 121, 0.08), transparent 30%),
+        linear-gradient(180deg, #071018 0%, #091722 36%, #08131c 100%);
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,0.9), transparent 94%);
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: -20%;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(123, 215, 255, 0.1), transparent 20%),
+        radial-gradient(circle at 80% 22%, rgba(122, 241, 203, 0.14), transparent 26%),
+        radial-gradient(circle at 55% 78%, rgba(255, 214, 143, 0.08), transparent 20%);
+      filter: blur(42px);
+      opacity: 0.7;
+    }
+
+    .page {
+      width: var(--shell-width);
+      margin: 18px auto 46px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .glass {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05));
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(20px) saturate(140%);
+      -webkit-backdrop-filter: blur(20px) saturate(140%);
+    }
+    .glass::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(115deg, rgba(255,255,255,0.28), transparent 28%),
+        radial-gradient(circle at top right, rgba(255,255,255,0.16), transparent 36%);
+      mix-blend-mode: screen;
+      opacity: 0.9;
+    }
+    .shell {
+      border-radius: 44px;
+      padding: 18px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)),
+        rgba(6, 13, 20, 0.84);
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 45px 120px rgba(0, 0, 0, 0.45);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 18px;
+      border-radius: 28px;
+      margin-bottom: 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(14px);
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+    .brand img {
+      width: 130px;
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 12px 28px rgba(0,0,0,0.22));
+    }
+    .brand-meta {
+      min-width: 0;
+      display: grid;
+      gap: 3px;
+    }
+    .mono {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted-soft);
+    }
+    .brand strong {
+      font-size: 0.98rem;
+      letter-spacing: 0.01em;
+      color: var(--text);
+    }
+
+    .hero-action {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.14);
+      background:
+        linear-gradient(145deg, rgba(123, 215, 255, 0.18), rgba(122, 241, 203, 0.12)),
+        rgba(255,255,255,0.07);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 14px 18px;
+      font: 700 0.92rem "Manrope", sans-serif;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 16px 36px rgba(0,0,0,0.22);
+      transition: transform 220ms ease, background 220ms ease, border-color 220ms ease;
+    }
+    .hero-action:hover,
+    .hero-action:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,0.24);
+    }
+
+    .stage-shell {
+      position: relative;
+      min-height: 86vh;
+      border-radius: 38px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 20% 24%, rgba(126, 211, 255, 0.16), transparent 22%),
+        radial-gradient(circle at 78% 24%, rgba(122, 241, 203, 0.14), transparent 22%),
+        linear-gradient(180deg, rgba(7, 15, 22, 0.64), rgba(7, 15, 22, 0.88));
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .stage-shell::before,
+    .stage-shell::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(18px);
+      pointer-events: none;
+    }
+    .stage-shell::before {
+      width: 340px;
+      height: 340px;
+      background: rgba(123, 215, 255, 0.18);
+      top: -120px;
+      left: -90px;
+    }
+    .stage-shell::after {
+      width: 380px;
+      height: 380px;
+      background: rgba(122, 241, 203, 0.12);
+      right: -80px;
+      bottom: -160px;
+    }
+
+    .stage-media {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    .stage-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 520ms ease;
+      filter: saturate(120%) contrast(108%) brightness(0.78);
+    }
+    .video-glow {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(8, 19, 28, 0.12), rgba(8, 19, 28, 0.84)),
+        radial-gradient(circle at 75% 18%, rgba(255,255,255,0.1), transparent 18%);
+      opacity: 0;
+      transition: opacity 520ms ease;
+      pointer-events: none;
+    }
+    .stage-shell[data-phase="region"] .stage-video,
+    .stage-shell[data-phase="region"] .video-glow {
+      opacity: 1;
+    }
+    .stage-shell[data-phase="national"] .stage-video {
+      opacity: 0.14;
+    }
+    .stage-shell[data-phase="national"] .video-glow {
+      opacity: 0.22;
+    }
+
+    .map-stage {
+      position: absolute;
+      inset: 0;
+      padding: 24px;
+      transition: opacity 460ms ease;
+    }
+    .map-stage svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .map-stage.is-muted {
+      opacity: 0.24;
+    }
+    .map-stage.is-hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .stage-copy {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 430px);
+      gap: 22px;
+      padding: 28px;
+      min-height: 86vh;
+      align-items: end;
+      pointer-events: none;
+    }
+    .stage-copy > * { pointer-events: auto; }
+    .landing-panel,
+    .hero-panel {
+      align-self: end;
+      border-radius: 32px;
+      padding: 24px;
+      background: linear-gradient(180deg, rgba(7, 14, 22, 0.44), rgba(7, 14, 22, 0.2));
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(22px);
+      opacity: 1;
+      transition: opacity 420ms ease, transform 420ms ease;
+    }
+    .landing-panel {
+      max-width: 540px;
+      display: grid;
+      gap: 14px;
+      box-shadow: 0 28px 76px rgba(0,0,0,0.22);
+    }
+    .landing-panel h1,
+    .hero-panel h1 {
+      margin: 0;
+      font-family: "Syne", sans-serif;
+      font-size: clamp(3.3rem, 7vw, 6.8rem);
+      line-height: 0.9;
+      letter-spacing: -0.06em;
+      max-width: 10ch;
+    }
+    .landing-panel p,
+    .hero-panel p,
+    .kpi-card p,
+    .section-note,
+    .ranking-item span,
+    .sparkline-value,
+    .empty-state p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+    .hero-panel {
+      display: grid;
+      gap: 18px;
+      justify-self: end;
+      max-width: 460px;
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    .stage-shell[data-phase="region"] .hero-panel,
+    .stage-shell[data-phase="national"] .hero-panel {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .stage-shell[data-phase="region"] .landing-panel,
+    .stage-shell[data-phase="national"] .landing-panel {
+      opacity: 0;
+      transform: translateY(-16px);
+      pointer-events: none;
+    }
+
+    .intro-chips,
+    .hero-chip-row,
+    .subject-nav,
+    .control-row,
+    .metric-switch {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .intro-chip,
+    .subject-link,
+    .chip-pill,
+    .metric-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.09);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      font: 700 0.88rem "Manrope", sans-serif;
+      text-decoration: none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+    .subject-link,
+    .metric-button,
+    .chip-pill {
+      cursor: pointer;
+      appearance: none;
+    }
+    .subject-link.is-active,
+    .metric-button.is-active,
+    .chip-pill.is-active {
+      border-color: rgba(255,255,255,0.18);
+      background:
+        linear-gradient(145deg, rgba(123, 215, 255, 0.2), rgba(122, 241, 203, 0.16)),
+        rgba(255,255,255,0.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.26), 0 14px 30px rgba(0,0,0,0.18);
+    }
+
+    .hero-title-block {
+      display: grid;
+      gap: 10px;
+    }
+    .hero-title-block h1 {
+      max-width: 8ch;
+      font-size: clamp(2.8rem, 6vw, 5.4rem);
+    }
+    .hero-chip-row {
+      gap: 8px;
+    }
+    .hero-chip {
+      border-radius: 999px;
+      padding: 8px 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      font: 500 12px "IBM Plex Mono", monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .hero-kpis {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .kpi-card {
+      border-radius: 24px;
+      padding: 18px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.05)),
+        rgba(8, 19, 28, 0.3);
+      border: 1px solid rgba(255,255,255,0.12);
+      min-height: 122px;
+      display: grid;
+      align-content: start;
+      gap: 10px;
+    }
+    .kpi-card strong {
+      font-family: "Syne", sans-serif;
+      font-size: clamp(1.6rem, 3vw, 2.6rem);
+      line-height: 0.95;
+      letter-spacing: -0.05em;
+      overflow-wrap: anywhere;
+    }
+    .kpi-card strong.is-textual {
+      font-size: clamp(1.55rem, 2.4vw, 2.2rem);
+      line-height: 0.88;
+      letter-spacing: -0.04em;
+    }
+    .kpi-card .label {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+      color: var(--muted-soft);
+    }
+    .kpi-card .meta {
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+
+    .switch-rail {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 0 6px;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 420ms ease, transform 420ms ease;
+      pointer-events: none;
+    }
+    .switch-rail.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .liquid-button {
+      position: relative;
+      overflow: hidden;
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.05);
+      font: 700 0.9rem "Manrope", sans-serif;
+      cursor: pointer;
+      transition: transform 220ms ease, border-color 220ms ease, background 220ms ease;
+    }
+    .liquid-button::before {
+      content: "";
+      position: absolute;
+      inset: -20% -30%;
+      background: linear-gradient(120deg, transparent 10%, rgba(255,255,255,0.25), transparent 52%);
+      transform: translateX(-80%) rotate(8deg);
+      transition: transform 520ms ease;
+      pointer-events: none;
+    }
+    .liquid-button:hover::before,
+    .liquid-button:focus-visible::before {
+      transform: translateX(76%) rotate(8deg);
+    }
+    .liquid-button:hover,
+    .liquid-button:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,0.22);
+    }
+    .liquid-button.is-active {
+      background:
+        linear-gradient(140deg, rgba(123, 215, 255, 0.2), rgba(122, 241, 203, 0.15)),
+        rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.18);
+      box-shadow: 0 18px 36px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+
+    .story {
+      margin-top: 0;
+      display: none;
+      gap: 18px;
+      opacity: 0;
+      transform: translateY(22px);
+      pointer-events: none;
+    }
+    .story.is-visible {
+      display: grid;
+      margin-top: 20px;
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+      animation: story-enter 480ms ease both;
+    }
+    .subject-nav {
+      padding: 0 6px;
+    }
+
+    .section-card {
+      border-radius: 34px;
+      padding: 24px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04)),
+        rgba(7, 15, 22, 0.56);
+      border: 1px solid rgba(255,255,255,0.09);
+      box-shadow: 0 32px 80px rgba(0,0,0,0.26);
+      backdrop-filter: blur(20px);
+    }
+    .section-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .section-title {
+      display: grid;
+      gap: 10px;
+      max-width: 720px;
+    }
+    .section-title h2 {
+      margin: 0;
+      font-family: "Syne", sans-serif;
+      font-size: clamp(2rem, 4vw, 3.6rem);
+      line-height: 0.92;
+      letter-spacing: -0.05em;
+    }
+    .section-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+      gap: 18px;
+    }
+
+    .viz-panel {
+      border-radius: 28px;
+      padding: 18px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)),
+        rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      min-height: 360px;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+    .viz-panel canvas,
+    .viz-panel svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .viz-title {
+      display: grid;
+      gap: 6px;
+    }
+    .viz-title strong {
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
+    }
+    .viz-title span,
+    .legend-row,
+    .ranking-item small,
+    .mini-stat small,
+    .map-legend span,
+    .map-empty {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 0.9rem;
+    }
+
+    .legend-row,
+    .map-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+    }
+    .legend-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    .legend-dot,
+    .legend-line {
+      display: inline-block;
+      flex: 0 0 auto;
+      border-radius: 999px;
+    }
+    .legend-dot { width: 12px; height: 12px; }
+    .legend-line { width: 22px; height: 0; border-top: 3px solid currentColor; }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .mini-stat {
+      border-radius: 22px;
+      padding: 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      min-height: 112px;
+      display: grid;
+      gap: 8px;
+    }
+    .mini-stat strong {
+      font-family: "Syne", sans-serif;
+      font-size: 1.75rem;
+      line-height: 0.95;
+      letter-spacing: -0.05em;
+    }
+    .mini-stat small,
+    .map-empty,
+    .tooltip {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .ranking-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .ranking-item,
+    .sparkline-row {
+      display: grid;
+      gap: 4px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .ranking-item strong,
+    .sparkline-row strong {
+      font-size: 0.97rem;
+      letter-spacing: -0.02em;
+    }
+    .ranking-item .topline,
+    .sparkline-row .topline {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+    }
+    .sparkline-stack {
+      display: grid;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .sparkline-canvas {
+      width: 100%;
+      height: 44px;
+    }
+    .sparkline-value {
+      font-size: 0.86rem;
+    }
+
+    .select-wrap {
+      position: relative;
+      min-width: 260px;
+    }
+    .select-wrap select {
+      width: 100%;
+      appearance: none;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.09);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)),
+        rgba(255,255,255,0.04);
+      color: var(--text);
+      padding: 12px 44px 12px 16px;
+      font: 700 0.92rem "Manrope", sans-serif;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.14);
+    }
+    .select-wrap::after {
+      content: "▾";
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .map-card {
+      min-height: 400px;
+    }
+    .map-card svg {
+      min-height: 320px;
+    }
+    .empty-state {
+      min-height: 260px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      gap: 10px;
+      color: var(--muted);
+    }
+    .empty-state strong {
+      font-family: "Syne", sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: -0.04em;
+    }
+
+    .tooltip {
+      position: fixed;
+      z-index: 12;
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: rgba(5, 10, 16, 0.92);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 22px 48px rgba(0,0,0,0.34);
+      backdrop-filter: blur(16px);
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(-50%, calc(-100% - 10px));
+      transition: opacity 160ms ease;
+      max-width: 280px;
+    }
+    .tooltip.is-visible {
+      opacity: 1;
+    }
+    .tooltip strong {
+      display: block;
+      color: var(--text);
+      font-family: "Manrope", sans-serif;
+      font-size: 0.96rem;
+      letter-spacing: 0;
+      text-transform: none;
+      margin-top: 6px;
+    }
+    .footer {
+      margin-top: 16px;
+      padding: 0 6px;
+      color: var(--muted-soft);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      font: 500 11px "IBM Plex Mono", monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .path-region,
+    .path-department {
+      stroke: rgba(255,255,255,0.16);
+      stroke-width: 1.3px;
+      transition: fill 220ms ease, opacity 220ms ease, stroke 220ms ease;
+      cursor: pointer;
+    }
+    .path-region.is-unavailable,
+    .path-department.is-unavailable {
+      fill: rgba(255,255,255,0.08) !important;
+      opacity: 0.48;
+    }
+    .path-region:hover,
+    .path-department:hover {
+      stroke: rgba(255,255,255,0.28);
+    }
+    .path-region.is-selected,
+    .path-department.is-selected {
+      stroke: rgba(255,255,255,0.42);
+      stroke-width: 2.1px;
+      filter: drop-shadow(0 0 22px rgba(255,255,255,0.22));
+    }
+    .inset-card {
+      fill: rgba(255,255,255,0.04);
+      stroke: rgba(255,255,255,0.12);
+      stroke-width: 1;
+    }
+    .inset-label {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      fill: rgba(238,247,255,0.7);
+    }
+    .focus-path {
+      fill: rgba(255,255,255,0.02);
+      stroke: rgba(255,255,255,0.76);
+      stroke-width: 2.6px;
+      stroke-linejoin: round;
+      filter: drop-shadow(0 0 18px rgba(255,255,255,0.18));
+    }
+    .ripple-ring {
+      fill: none;
+      stroke: rgba(255,255,255,0.25);
+      stroke-width: 1.5px;
+    }
+
+    @keyframes story-enter {
+      from {
+        opacity: 0;
+        transform: translateY(22px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 1240px) {
+      .stage-copy,
+      .section-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero-panel {
+        justify-self: stretch;
+        max-width: none;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .page {
+        width: min(calc(100% - 16px), 1520px);
+        margin: 8px auto 28px;
+      }
+      .shell {
+        padding: 10px;
+        border-radius: 28px;
+      }
+      .topbar {
+        padding: 12px 14px;
+        border-radius: 22px;
+      }
+      .brand img {
+        width: 110px;
+      }
+      .stage-shell {
+        min-height: auto;
+      }
+      .stage-copy {
+        min-height: 760px;
+        padding: 18px;
+      }
+      .landing-panel,
+      .hero-panel,
+      .section-card {
+        border-radius: 24px;
+      }
+      .hero-kpis,
+      .mini-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero-panel h1 {
+        max-width: none;
+      }
+      .section-card {
+        padding: 18px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *,
+      *::before,
+      *::after {
+        animation: none !important;
+        transition-duration: 0.01ms !important;
+        transition-delay: 0ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <img id="brandLogo" src="__LOGO_PATH__" alt="Urssaf">
+          <div class="brand-meta">
+            <span class="mono">Baromètre territorial</span>
+            <strong>Urssaf / données CSV / narration statique</strong>
+          </div>
+        </div>
+        <button class="hero-action" id="franceButton" type="button">France entière</button>
+      </header>
+
+      <section class="stage-shell" id="stageShell" data-phase="landing">
+        <div class="stage-media">
+          <video class="stage-video" id="stageVideo" playsinline muted loop preload="metadata"></video>
+          <div class="video-glow"></div>
+          <div class="map-stage" id="mapStage">
+            <svg id="landingMap" viewBox="0 0 1200 860" role="img" aria-labelledby="mapTitle mapDesc">
+              <title id="mapTitle">Carte des régions françaises</title>
+              <desc id="mapDesc">Carte interactive avec régions métropolitaines et encarts ultramarins.</desc>
+            </svg>
+          </div>
+        </div>
+
+        <div class="stage-copy">
+          <div class="landing-panel glass" id="landingPanel">
+            <span class="mono">Territoires / emploi / masse salariale / recouvrement</span>
+            <h1>Choisir un territoire.</h1>
+            <p>18 entrées. Une carte. Une descente cinématique vers la donnée.</p>
+            <div class="intro-chips" id="landingChips">
+              <span class="intro-chip">17 régions documentées</span>
+              <span class="intro-chip">DOM en encarts</span>
+              <span class="intro-chip">4 sujets</span>
+            </div>
+          </div>
+
+          <div class="hero-panel glass" id="heroPanel">
+            <div class="hero-title-block">
+              <span class="mono" id="heroEyebrow">Sélection</span>
+              <h1 id="heroTitle">France entière</h1>
+              <p id="heroLead">Masse salariale, emploi privé, auto-entrepreneurs et pression de recouvrement.</p>
+              <div class="hero-chip-row" id="heroDates"></div>
+            </div>
+            <div class="hero-kpis" id="heroKpis"></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="switch-rail" id="switchRail"></div>
+
+      <main class="story" id="story">
+        <nav class="subject-nav" id="subjectNav"></nav>
+
+        <section class="section-card" id="module-sector">
+          <div class="section-head">
+            <div class="section-title">
+              <span class="mono">01 / Effectifs et masse salariale</span>
+              <h2>Secteurs qui donnent le ton.</h2>
+              <p class="section-note" id="sectorSubtitle"></p>
+            </div>
+            <div class="control-row">
+              <div class="metric-switch" id="sectorMetricSwitch"></div>
+            </div>
+          </div>
+          <div class="section-grid">
+            <div class="viz-panel">
+              <div class="viz-title">
+                <strong>Top secteurs</strong>
+                <span id="sectorRankingMeta"></span>
+              </div>
+              <svg id="sectorRankingSvg" viewBox="0 0 640 520"></svg>
+            </div>
+            <div class="viz-panel">
+              <div class="viz-title">
+                <strong id="sectorSeriesTitle">Trajectoire</strong>
+                <span id="sectorSeriesMeta"></span>
+              </div>
+              <svg id="sectorSeriesSvg" viewBox="0 0 640 520"></svg>
+              <div class="legend-row">
+                <span class="legend-chip"><i class="legend-line" style="color: var(--accent-secondary)"></i>Série sélectionnée</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section-card" id="module-payroll">
+          <div class="section-head">
+            <div class="section-title">
+              <span class="mono">02 / Masse salariale & chômage partiel</span>
+              <h2>Le flux mensuel.</h2>
+              <p class="section-note" id="payrollSubtitle"></p>
+            </div>
+          </div>
+          <div class="section-grid">
+            <div class="viz-panel">
+              <div class="viz-title">
+                <strong>Évolution récente</strong>
+                <span id="payrollChartMeta"></span>
+              </div>
+              <svg id="payrollSvg" viewBox="0 0 760 420"></svg>
+              <div class="legend-row">
+                <span class="legend-chip"><i class="legend-dot" style="background: var(--accent)"></i>Masse salariale</span>
+                <span class="legend-chip"><i class="legend-line" style="color: var(--warning)"></i>Part chômage partiel</span>
+              </div>
+            </div>
+            <div class="viz-panel">
+              <div class="viz-title">
+                <strong>Dernier point</strong>
+                <span id="payrollStatsMeta"></span>
+              </div>
+              <div class="mini-grid" id="payrollStats"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section-card" id="module-auto">
+          <div class="section-head">
+            <div class="section-title">
+              <span class="mono">03 / Auto-entrepreneurs</span>
+              <h2>Départements sous tension douce.</h2>
+              <p class="section-note" id="autoSubtitle"></p>
+            </div>
+            <div class="control-row">
+              <div class="select-wrap">
+                <select id="autoSectorSelect" aria-label="Secteur auto-entrepreneurs"></select>
+              </div>
+              <div class="metric-switch" id="autoMetricSwitch"></div>
+            </div>
+          </div>
+          <div class="section-grid">
+            <div class="viz-panel map-card" id="autoMapPanel">
+              <div class="viz-title">
+                <strong>Carte départementale</strong>
+                <span id="autoMapMeta"></span>
+              </div>
+              <svg id="autoMapSvg" viewBox="0 0 900 620"></svg>
+              <div class="map-legend" id="autoLegend"></div>
+            </div>
+            <div class="viz-panel">
+              <div class="viz-title">
+                <strong>Classement</strong>
+                <span id="autoRankingMeta"></span>
+              </div>
+              <div class="ranking-list" id="autoRanking"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section-card" id="module-rar">
+          <div class="section-head">
+            <div class="section-title">
+              <span class="mono">04 / RAR / HORSTO</span>
+              <h2>Le relief du risque.</h2>
+              <p class="section-note" id="rarSubtitle"></p>
+            </div>
+            <div class="control-row">
+              <div class="metric-switch" id="rarMetricSwitch"></div>
+            </div>
+          </div>
+          <div class="section-grid" id="rarGrid">
+            <div class="viz-panel" id="rarPrimaryPanel">
+              <div class="viz-title">
+                <strong id="rarPrimaryTitle">Courbes mensuelles</strong>
+                <span id="rarPrimaryMeta"></span>
+              </div>
+              <svg id="rarPrimarySvg" viewBox="0 0 760 420"></svg>
+            </div>
+            <div class="viz-panel" id="rarSecondaryPanel">
+              <div class="viz-title">
+                <strong id="rarSecondaryTitle">Lecture complémentaire</strong>
+                <span id="rarSecondaryMeta"></span>
+              </div>
+              <div id="rarSecondaryBody"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <span id="footerTimestamp">Généré à partir des CSV locaux</span>
+        <span>Données Urssaf / rendu statique HTML / JS</span>
+      </footer>
+    </div>
+  </div>
+
+  <div class="tooltip" id="tooltip">
+    <div class="mono" id="tooltipLabel"></div>
+    <strong id="tooltipValue"></strong>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script>
+    window.BAROMETRE_DATA = __DATA_JSON__;
+  </script>
+  <script>
+    (() => {
+      const DATA = window.BAROMETRE_DATA;
+      const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const regionOrder = DATA.meta.experienceRegionCodes;
+      const domCodes = new Set(DATA.meta.domRegionCodes);
+      const mapLayout = DATA.meta.mapLayout;
+      const regionsByCode = new Map(DATA.regions.map((region) => [region.code, region]));
+      const stageShell = document.getElementById("stageShell");
+      const stageVideo = document.getElementById("stageVideo");
+      const mapStage = document.getElementById("mapStage");
+      const story = document.getElementById("story");
+      const switchRail = document.getElementById("switchRail");
+      const subjectNav = document.getElementById("subjectNav");
+      const tooltip = document.getElementById("tooltip");
+      const tooltipLabel = document.getElementById("tooltipLabel");
+      const tooltipValue = document.getElementById("tooltipValue");
+      const landingMapSvg = d3.select("#landingMap");
+
+      const state = {
+        phase: "landing",
+        selectedRegion: "11",
+        sectorMetric: "effectifs_cvs",
+        sectorKey: DATA.modules.sector.national.defaultSector,
+        autoMetric: "economically_active",
+        autoSector: DATA.modules.auto.defaultSector,
+        rarMetric: "rar_90",
+      };
+
+      const chartRefs = {
+        regionMap: { cameraGroup: null, focusGroup: null, pathByCode: new Map(), rootGroup: null, pathGeneratorByCode: new Map() },
+      };
+      let storyRenderHandle = null;
+      let scrollRevealMounted = false;
+
+      gsap.registerPlugin(ScrollTrigger);
+
+      function setTheme(regionCode) {
+        const region = regionsByCode.get(regionCode);
+        const theme = region ? region.theme : DATA.regions[0].theme;
+        document.documentElement.style.setProperty("--accent", theme.accent);
+        document.documentElement.style.setProperty("--accent-deep", theme.accentDeep);
+        document.documentElement.style.setProperty("--accent-secondary", theme.secondary);
+        document.documentElement.style.setProperty("--accent-glow", `${theme.glow}55`);
+      }
+
+      function frNumber(value, digits = 1) {
+        if (value == null || Number.isNaN(value)) return "—";
+        return Number(value).toLocaleString("fr-FR", {
+          minimumFractionDigits: digits,
+          maximumFractionDigits: digits,
+        });
+      }
+
+      function formatCount(value) {
+        if (value == null || Number.isNaN(value)) return "—";
+        const abs = Math.abs(value);
+        if (abs >= 1e6) return `${frNumber(value / 1e6, 2)} M`;
+        if (abs >= 1e3) return `${frNumber(value / 1e3, 1)} k`;
+        return Number(value).toLocaleString("fr-FR", { maximumFractionDigits: 0 });
+      }
+
+      function formatCurrency(value) {
+        if (value == null || Number.isNaN(value)) return "—";
+        const abs = Math.abs(value);
+        if (abs >= 1e9) return `${frNumber(value / 1e9, 1)} Md€`;
+        if (abs >= 1e6) return `${frNumber(value / 1e6, 1)} M€`;
+        return `${Number(value).toLocaleString("fr-FR", { maximumFractionDigits: 0 })} €`;
+      }
+
+      function formatPercent(value, digits = 1) {
+        if (value == null || Number.isNaN(value)) return "—";
+        return `${frNumber(value, digits)} %`;
+      }
+
+      function monthLabel(dateValue) {
+        if (!dateValue) return "—";
+        const date = new Date(`${dateValue}T00:00:00`);
+        return date.toLocaleDateString("fr-FR", { month: "short", year: "numeric" });
+      }
+
+      function quarterLabel(dateValue) {
+        if (!dateValue) return "—";
+        const date = new Date(`${dateValue}T00:00:00`);
+        const quarter = Math.floor(date.getMonth() / 3) + 1;
+        return `T${quarter} ${date.getFullYear()}`;
+      }
+
+      function dateLabel(dateValue) {
+        if (!dateValue) return "—";
+        return monthLabel(dateValue);
+      }
+
+      function currentRegion() {
+        return regionsByCode.get(state.selectedRegion);
+      }
+
+      function heroPayloadForScope() {
+        if (state.phase === "national") return DATA.nationalHero;
+        return currentRegion().hero;
+      }
+
+      function scopeLabel() {
+        return state.phase === "national" ? "France entière" : currentRegion().name;
+      }
+
+      function mapRegionValues() {
+        if (state.phase === "national") {
+          return new Map(DATA.regions.map((region) => [region.code, region.hero.payroll && region.hero.payroll.value != null ? region.hero.payroll.value : null]));
+        }
+        return new Map();
+      }
+
+      function renderSubjectNav() {
+        const sections = [
+          { id: "module-sector", label: "01. Secteurs" },
+          { id: "module-payroll", label: "02. Flux mensuel" },
+          { id: "module-auto", label: "03. Auto-entrepreneurs" },
+          { id: "module-rar", label: "04. RAR / HORSTO" },
+        ];
+        subjectNav.innerHTML = "";
+        sections.forEach((section) => {
+          const anchor = document.createElement("a");
+          anchor.href = `#${section.id}`;
+          anchor.className = "subject-link";
+          anchor.textContent = section.label;
+          subjectNav.appendChild(anchor);
+        });
+      }
+
+      function renderSwitchRail() {
+        switchRail.innerHTML = "";
+        const franceButton = document.createElement("button");
+        franceButton.type = "button";
+        franceButton.className = `liquid-button${state.phase === "national" ? " is-active" : ""}`;
+        franceButton.textContent = "France entière";
+        franceButton.addEventListener("click", () => transitionToNational(true));
+        switchRail.appendChild(franceButton);
+        DATA.regions.forEach((region) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = `liquid-button${state.phase !== "national" && state.selectedRegion === region.code ? " is-active" : ""}`;
+          button.textContent = region.name;
+          button.addEventListener("click", () => transitionToRegion(region.code, true));
+          switchRail.appendChild(button);
+        });
+        switchRail.classList.toggle("is-visible", state.phase !== "landing");
+      }
+
+      function renderHero() {
+        const eyebrow = document.getElementById("heroEyebrow");
+        const title = document.getElementById("heroTitle");
+        const lead = document.getElementById("heroLead");
+        const heroDates = document.getElementById("heroDates");
+        const heroKpis = document.getElementById("heroKpis");
+        const heroData = heroPayloadForScope();
+
+        if (state.phase === "national") {
+          eyebrow.textContent = "France entière";
+          title.textContent = "France entière";
+          lead.textContent = "Rythme national, gradients régionaux, départements à explorer.";
+        } else {
+          eyebrow.textContent = currentRegion().group === "dom" ? "Outre-mer" : "Région";
+          title.textContent = currentRegion().name;
+          lead.textContent = currentRegion().hasData
+            ? "Le film s'ouvre, la carte se retire, les chiffres prennent le relais."
+            : "Territoire visible, données partielles ou absentes dans les CSV fournis.";
+        }
+
+        heroDates.innerHTML = "";
+        [
+          heroData.payroll ? `Masse ${dateLabel(heroData.payroll.date)}` : null,
+          heroData.headcount ? `Emploi ${quarterLabel(heroData.headcount.date)}` : null,
+          heroData.auto ? `Auto ${quarterLabel(heroData.auto.date)}` : null,
+          state.phase === "national"
+            ? heroData.risk
+              ? `RAR ${monthLabel(heroData.risk.date)}`
+              : null
+            : heroData.rar90
+            ? `RAR ${monthLabel(heroData.rar90.date)}`
+            : null,
+        ].filter(Boolean).forEach((label) => {
+          const chip = document.createElement("span");
+          chip.className = "hero-chip";
+          chip.textContent = label;
+          heroDates.appendChild(chip);
+        });
+
+        const cards = state.phase === "national"
+          ? [
+              { label: "Masse salariale", value: formatCurrency(heroData.payroll && heroData.payroll.value), meta: dateLabel(heroData.payroll && heroData.payroll.date) },
+              { label: "Effectifs privés", value: formatCount(heroData.headcount && heroData.headcount.value), meta: quarterLabel(heroData.headcount && heroData.headcount.date) },
+              { label: "Éco actifs AE", value: formatCount(heroData.auto && heroData.auto.value), meta: quarterLabel(heroData.auto && heroData.auto.date) },
+              { label: "Point de tension", value: heroData.risk ? heroData.risk.region : "—", meta: heroData.risk ? formatPercent(heroData.risk.value) : "Donnée absente", textual: true },
+            ]
+          : [
+              { label: "Masse salariale", value: formatCurrency(heroData.payroll && heroData.payroll.value), meta: dateLabel(heroData.payroll && heroData.payroll.date) },
+              { label: "Effectifs privés", value: formatCount(heroData.headcount && heroData.headcount.value), meta: quarterLabel(heroData.headcount && heroData.headcount.date) },
+              { label: "Éco actifs AE", value: formatCount(heroData.auto && heroData.auto.value), meta: quarterLabel(heroData.auto && heroData.auto.date) },
+              { label: "RAR +90 jours", value: formatPercent(heroData.rar90 && heroData.rar90.value), meta: monthLabel(heroData.rar90 && heroData.rar90.date) },
+            ];
+
+        heroKpis.innerHTML = "";
+        cards.forEach((card) => {
+          const article = document.createElement("article");
+          article.className = "kpi-card";
+          article.innerHTML = `<span class="label">${card.label}</span><strong class="${card.textual ? "is-textual" : ""}">${card.value}</strong><span class="meta">${card.meta}</span>`;
+          heroKpis.appendChild(article);
+        });
+      }
+
+      function buildScale(domain, colors) {
+        return d3.scaleLinear().domain(domain).range(colors).clamp(true);
+      }
+
+      function showTooltip(event, label, value) {
+        tooltipLabel.textContent = label;
+        tooltipValue.textContent = value;
+        tooltip.style.left = `${event.clientX}px`;
+        tooltip.style.top = `${event.clientY}px`;
+        tooltip.classList.add("is-visible");
+      }
+
+      function hideTooltip() {
+        tooltip.classList.remove("is-visible");
+      }
+
+      function drawCompositeMap(selection, featureCollection, config) {
+        selection.selectAll("*").remove();
+        const root = selection.append("g").attr("class", "map-root");
+        const cameraGroup = root.append("g").attr("class", "camera-group");
+        const featureLayer = cameraGroup.append("g").attr("class", "feature-layer");
+        const focusGroup = root.append("g").attr("class", "focus-layer");
+        const features = featureCollection.features;
+        const mainlandFeatures = features.filter((feature) => !domCodes.has(config.regionResolver(feature)));
+        const projection = d3.geoMercator().fitExtent(
+          [[mapLayout.mainlandExtent[0], mapLayout.mainlandExtent[1]], [mapLayout.mainlandExtent[2], mapLayout.mainlandExtent[3]]],
+          { type: "FeatureCollection", features: mainlandFeatures },
+        );
+        const path = d3.geoPath(projection);
+        const pathByCode = new Map();
+        const pathGeneratorByCode = new Map();
+
+        const mainlandGroup = featureLayer.append("g").attr("class", "mainland-layer");
+        mainlandFeatures.forEach((feature) => {
+          const key = config.keyResolver(feature);
+          const element = mainlandGroup.append("path")
+            .datum(feature)
+            .attr("class", config.className(feature))
+            .attr("d", path)
+            .attr("fill", config.fillResolver(feature))
+            .attr("data-code", key)
+            .on("mouseenter", (event, datum) => {
+              const tooltipText = config.tooltipResolver(datum);
+              showTooltip(event, tooltipText.label, tooltipText.value);
+            })
+            .on("mousemove", (event, datum) => {
+              const tooltipText = config.tooltipResolver(datum);
+              showTooltip(event, tooltipText.label, tooltipText.value);
+            })
+            .on("mouseleave", hideTooltip);
+          if (config.clickable) {
+            element.on("click", () => config.onClick(key));
+          }
+          pathByCode.set(key, element);
+          pathGeneratorByCode.set(key, path);
+        });
+
+        Object.entries(mapLayout.domInsets).forEach(([regionCode, inset]) => {
+          const insetFeatures = features.filter((feature) => config.regionResolver(feature) === regionCode);
+          const group = featureLayer.append("g").attr("class", `inset inset-${regionCode}`);
+          group.append("rect").attr("class", "inset-card").attr("x", inset.x).attr("y", inset.y).attr("width", inset.width).attr("height", inset.height).attr("rx", 24);
+          group.append("text").attr("class", "inset-label").attr("x", inset.x + 16).attr("y", inset.y + 22).text(regionsByCode.get(regionCode).name);
+          const insetProjection = d3.geoMercator().fitExtent(
+            [[inset.x + 18, inset.y + 34], [inset.x + inset.width - 18, inset.y + inset.height - 18]],
+            { type: "FeatureCollection", features: insetFeatures },
+          );
+          const insetPath = d3.geoPath(insetProjection);
+          insetFeatures.forEach((feature) => {
+            const key = config.keyResolver(feature);
+            const element = group.append("path")
+              .datum(feature)
+              .attr("class", config.className(feature))
+              .attr("d", insetPath)
+              .attr("fill", config.fillResolver(feature))
+              .attr("data-code", key)
+              .on("mouseenter", (event, datum) => {
+                const tooltipText = config.tooltipResolver(datum);
+                showTooltip(event, tooltipText.label, tooltipText.value);
+              })
+              .on("mousemove", (event, datum) => {
+                const tooltipText = config.tooltipResolver(datum);
+                showTooltip(event, tooltipText.label, tooltipText.value);
+              })
+              .on("mouseleave", hideTooltip);
+            if (config.clickable) {
+              element.on("click", () => config.onClick(key));
+            }
+            pathByCode.set(key, element);
+            pathGeneratorByCode.set(key, insetPath);
+          });
+        });
+
+        return { rootGroup: root, cameraGroup, featureLayer, focusGroup, pathByCode, pathGeneratorByCode };
+      }
+
+      function renderLandingMap() {
+        const regionValues = mapRegionValues();
+        const numericValues = [...regionValues.values()].filter((value) => value != null);
+        const colorScale = numericValues.length
+          ? buildScale(d3.extent(numericValues), ["rgba(255,255,255,0.08)", "rgba(120,236,203,0.9)"])
+          : () => "rgba(255,255,255,0.08)";
+        chartRefs.regionMap = drawCompositeMap(landingMapSvg, DATA.geography.regions, {
+          clickable: true,
+          keyResolver: (feature) => feature.properties.code,
+          regionResolver: (feature) => feature.properties.code,
+          className: (feature) => `path-region${regionsByCode.get(feature.properties.code).hasData ? "" : " is-unavailable"}`,
+          fillResolver: (feature) => {
+            if (state.phase === "national") {
+              const value = regionValues.get(feature.properties.code);
+              return value != null ? colorScale(value) : "rgba(255,255,255,0.06)";
+            }
+            const region = regionsByCode.get(feature.properties.code);
+            return state.phase !== "landing" && state.selectedRegion === feature.properties.code ? region.theme.accent : "rgba(255,255,255,0.06)";
+          },
+          tooltipResolver: (feature) => {
+            const region = regionsByCode.get(feature.properties.code);
+            if (state.phase === "national" && region.hero.payroll && region.hero.payroll.value != null) {
+              return { label: region.name, value: formatCurrency(region.hero.payroll.value) };
+            }
+            if (!region.hasData) return { label: region.name, value: "Données indisponibles" };
+            return { label: region.name, value: "Entrer" };
+          },
+          onClick: (code) => transitionToRegion(code, false),
+        });
+        highlightSelectedRegion();
+      }
+
+      function highlightSelectedRegion() {
+        chartRefs.regionMap.pathByCode.forEach((element, code) => {
+          element.classed("is-selected", state.phase !== "national" && code === state.selectedRegion);
+          if (state.phase !== "national") {
+            const region = regionsByCode.get(code);
+            element.attr("fill", code === state.selectedRegion ? region.theme.accent : "rgba(255,255,255,0.06)");
+          }
+        });
+      }
+
+      function updateVideo(regionCode) {
+        const region = regionsByCode.get(regionCode);
+        stageVideo.src = region.video;
+        stageVideo.load();
+        stageVideo.play().catch(() => {});
+      }
+
+      function drawFocusPath(regionCode) {
+        const focusGroup = chartRefs.regionMap.focusGroup;
+        focusGroup.selectAll("*").remove();
+        const feature = DATA.geography.regions.features.find((entry) => entry.properties.code === regionCode);
+        if (!feature) return null;
+        const generator = chartRefs.regionMap.pathGeneratorByCode.get(regionCode);
+        const pathData = generator(feature);
+        return focusGroup.append("path")
+          .attr("class", "focus-path")
+          .attr("d", pathData)
+          .attr("stroke-dasharray", 1)
+          .attr("stroke-dashoffset", 1)
+          .attr("pathLength", 1)
+          .attr("opacity", 0);
+      }
+
+      function animateCameraToRegion(regionCode) {
+        const selection = chartRefs.regionMap.pathByCode.get(regionCode);
+        if (!selection) return null;
+        const node = selection.node();
+        const bbox = node.getBBox();
+        const targetScale = Math.max(1.8, Math.min(4.2, 620 / Math.max(bbox.width, bbox.height)));
+        const targetX = mapLayout.width / 2 - (bbox.x + bbox.width / 2) * targetScale;
+        const targetY = mapLayout.height / 2 - (bbox.y + bbox.height / 2) * targetScale;
+        const transform = { scale: 1, x: 0, y: 0 };
+        const apply = () => chartRefs.regionMap.cameraGroup.attr("transform", `translate(${transform.x},${transform.y}) scale(${transform.scale})`);
+        if (REDUCED_MOTION) {
+          transform.scale = targetScale;
+          transform.x = targetX;
+          transform.y = targetY;
+          apply();
+          return null;
+        }
+        return gsap.to(transform, {
+          scale: targetScale,
+          x: targetX,
+          y: targetY,
+          duration: 1.2,
+          ease: "power2.inOut",
+          onUpdate: apply,
+        });
+      }
+
+      function resetCamera() {
+        chartRefs.regionMap.cameraGroup.attr("transform", "translate(0,0) scale(1)");
+      }
+
+      function setMapStageMode(mode) {
+        mapStage.classList.remove("is-muted", "is-hidden");
+        if (mode === "landing") {
+          gsap.set(mapStage, { opacity: 1 });
+          return;
+        }
+        if (mode === "national") {
+          mapStage.classList.add("is-muted");
+          gsap.set(mapStage, { opacity: 0.24 });
+          return;
+        }
+        mapStage.classList.add("is-hidden");
+        gsap.set(mapStage, { opacity: 0 });
+      }
+
+      function scheduleStoryRender() {
+        if (storyRenderHandle != null) cancelAnimationFrame(storyRenderHandle);
+        storyRenderHandle = requestAnimationFrame(() => {
+          storyRenderHandle = null;
+          renderStoryModules();
+          if (!scrollRevealMounted) {
+            mountScrollReveal();
+            scrollRevealMounted = true;
+          } else {
+            ScrollTrigger.refresh();
+          }
+        });
+      }
+
+      function revealContent() {
+        story.classList.add("is-visible");
+        switchRail.classList.add("is-visible");
+        renderSwitchRail();
+      }
+
+      function applyPhase(phase) {
+        state.phase = phase;
+        stageShell.dataset.phase = phase;
+        if (phase === "landing") {
+          story.classList.remove("is-visible");
+          switchRail.classList.remove("is-visible");
+          setMapStageMode("landing");
+        } else if (phase === "national") {
+          setMapStageMode("national");
+        }
+      }
+
+      function animateFranceRipple() {
+        const values = DATA.regions.map((region) => region.hero.payroll && region.hero.payroll.value).filter((value) => value != null);
+        const scale = buildScale(d3.extent(values), ["rgba(255,255,255,0.08)", "rgba(120,236,203,0.92)"]);
+        const center = { x: mapLayout.width / 2, y: mapLayout.height / 2 };
+        const ring = chartRefs.regionMap.focusGroup.append("circle").attr("class", "ripple-ring").attr("cx", center.x).attr("cy", center.y).attr("r", 30).attr("opacity", 0.7);
+        const timeline = gsap.timeline();
+        timeline.to(ring.node(), { attr: { r: 760 }, opacity: 0, duration: REDUCED_MOTION ? 0.01 : 1.8, ease: "power2.out" });
+        chartRefs.regionMap.pathByCode.forEach((selection, code) => {
+          const region = regionsByCode.get(code);
+          const value = region.hero.payroll && region.hero.payroll.value;
+          const box = selection.node().getBBox();
+          const dx = center.x - (box.x + box.width / 2);
+          const dy = center.y - (box.y + box.height / 2);
+          const delay = Math.sqrt(dx * dx + dy * dy) / 560;
+          timeline.to(selection.node(), { fill: value != null ? scale(value) : "rgba(255,255,255,0.06)", duration: REDUCED_MOTION ? 0.01 : 0.9, ease: "power2.out" }, delay);
+        });
+        timeline.add(() => chartRefs.regionMap.focusGroup.selectAll("*").remove());
+        return timeline;
+      }
+
+      function transitionToNational(fromRail) {
+        resetCamera();
+        applyPhase("national");
+        setTheme(state.selectedRegion);
+        mapStage.classList.remove("is-hidden", "is-muted");
+        gsap.set(mapStage, { opacity: 1 });
+        renderLandingMap();
+        renderHero();
+        if (REDUCED_MOTION || fromRail) {
+          animateFranceRipple();
+          revealContent();
+          scheduleStoryRender();
+          setMapStageMode("national");
+          return;
+        }
+        const timeline = gsap.timeline();
+        timeline.add(() => animateFranceRipple(), 0.05);
+        timeline.call(() => {
+          revealContent();
+          scheduleStoryRender();
+          setMapStageMode("national");
+        }, null, 1.45);
+      }
+
+      function transitionToRegion(regionCode, fromRail) {
+        state.selectedRegion = regionCode;
+        setTheme(regionCode);
+        renderHero();
+        renderSwitchRail();
+        updateVideo(regionCode);
+
+        if (REDUCED_MOTION || fromRail || state.phase !== "landing") {
+          applyPhase("region");
+          setMapStageMode("region");
+          revealContent();
+          scheduleStoryRender();
+          return;
+        }
+
+        mapStage.classList.remove("is-hidden", "is-muted");
+        gsap.set(mapStage, { opacity: 1 });
+        const focusPath = drawFocusPath(regionCode);
+        const cameraTween = animateCameraToRegion(regionCode);
+        const timeline = gsap.timeline();
+        if (cameraTween) timeline.add(cameraTween, 0);
+        if (focusPath) {
+          timeline.to(focusPath.node(), { attr: { "stroke-dashoffset": 0 }, opacity: 1, duration: 1.2, ease: "power2.out" }, 0.42);
+        }
+        timeline.to({}, { duration: 3 }, 1.2);
+        timeline.add(() => {
+          applyPhase("region");
+          renderHero();
+        }, 4.15);
+        timeline.to(mapStage, { opacity: 0, duration: 0.95, ease: "power2.inOut" }, 4.16);
+        timeline.call(() => {
+          setMapStageMode("region");
+          revealContent();
+          scheduleStoryRender();
+          chartRefs.regionMap.focusGroup.selectAll("*").remove();
+        }, null, 5.12);
+      }
+
+      function renderMetricSwitch(containerId, items, activeKey, onChange) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+        items.forEach((item) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = `metric-button${item.key === activeKey ? " is-active" : ""}`;
+          button.textContent = item.label;
+          button.addEventListener("click", () => onChange(item.key));
+          container.appendChild(button);
+        });
+      }
+
+      function renderEmptyState(target, title, message) {
+        target.innerHTML = `<div class="empty-state"><strong>${title}</strong><p>${message}</p></div>`;
+      }
+
+      function getSectorScopeData() {
+        return state.phase === "national" ? DATA.modules.sector.national : DATA.modules.sector.regions[state.selectedRegion];
+      }
+
+      function renderSectorModule() {
+        const scope = getSectorScopeData();
+        const subtitle = document.getElementById("sectorSubtitle");
+        const rankingMeta = document.getElementById("sectorRankingMeta");
+        const seriesTitle = document.getElementById("sectorSeriesTitle");
+        const seriesMeta = document.getElementById("sectorSeriesMeta");
+        renderMetricSwitch("sectorMetricSwitch", DATA.modules.sector.metrics, state.sectorMetric, (key) => {
+          state.sectorMetric = key;
+          renderSectorModule();
+        });
+
+        if (!scope || !scope.latest || !scope.latest.length) {
+          subtitle.textContent = `${scopeLabel()} / données indisponibles dans les CSV fournis.`;
+          renderEmptyState(document.getElementById("sectorRankingSvg").parentElement, "Aucune série", "Ce territoire ne dispose pas de ventilation sectorielle exploitable.");
+          renderEmptyState(document.getElementById("sectorSeriesSvg").parentElement, "Aucune trajectoire", "La sélection ne peut pas être tracée avec les données actuelles.");
+          return;
+        }
+
+        if (!scope.series[state.sectorKey]) {
+          state.sectorKey = scope.defaultSector;
+        }
+        const sorted = [...scope.latest].sort((a, b) => (b[state.sectorMetric] || 0) - (a[state.sectorMetric] || 0));
+        const top = sorted.slice(0, 12);
+        const selectedSeries = scope.series[state.sectorKey] || scope.series[scope.defaultSector];
+        subtitle.textContent = `${scopeLabel()} / lecture ${quarterLabel(scope.latestDate)} / classement cliquable + trajectoire liée`;
+        rankingMeta.textContent = state.sectorMetric === "effectifs_cvs" ? "Classement par effectifs CVS" : "Classement par masse salariale CVS";
+        seriesTitle.textContent = selectedSeries ? selectedSeries.label : "Trajectoire";
+        seriesMeta.textContent = selectedSeries ? `Série complète / ${quarterLabel(scope.latestDate)}` : "";
+
+        const rankingSvg = d3.select("#sectorRankingSvg");
+        rankingSvg.selectAll("*").remove();
+        const margin = { top: 16, right: 22, bottom: 18, left: 210 };
+        const width = 640 - margin.left - margin.right;
+        const height = Math.max(360, top.length * 34);
+        const g = rankingSvg.attr("viewBox", `0 0 640 ${height + 40}`).append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+        const x = d3.scaleLinear().domain([0, d3.max(top, (d) => d[state.sectorMetric]) || 1]).range([0, width]);
+        const y = d3.scaleBand().domain(top.map((item) => item.key)).range([0, height]).padding(0.24);
+        const color = d3.scaleLinear().domain([0, top.length - 1]).range(["rgba(141,184,255,0.96)", "rgba(120,236,203,0.96)"]);
+
+        g.selectAll(".bar")
+          .data(top)
+          .join("rect")
+          .attr("x", 0)
+          .attr("y", (d) => y(d.key))
+          .attr("height", y.bandwidth())
+          .attr("width", (d) => x(d[state.sectorMetric] || 0))
+          .attr("rx", 12)
+          .attr("fill", (_, index) => color(index))
+          .attr("opacity", (d) => (d.key === state.sectorKey ? 1 : 0.62))
+          .style("cursor", "pointer")
+          .on("click", (_, datum) => {
+            state.sectorKey = datum.key;
+            renderSectorModule();
+          });
+
+        g.selectAll(".sector-label")
+          .data(top)
+          .join("text")
+          .attr("x", -16)
+          .attr("y", (d) => (y(d.key) || 0) + y.bandwidth() / 2 + 5)
+          .attr("text-anchor", "end")
+          .attr("fill", "rgba(238,247,255,0.82)")
+          .style("font-size", "13px")
+          .style("font-weight", (d) => (d.key === state.sectorKey ? 800 : 600))
+          .text((d) => d.label.length > 34 ? `${d.label.slice(0, 34)}…` : d.label);
+
+        g.selectAll(".bar-value")
+          .data(top)
+          .join("text")
+          .attr("x", (d) => x(d[state.sectorMetric] || 0) + 10)
+          .attr("y", (d) => (y(d.key) || 0) + y.bandwidth() / 2 + 5)
+          .attr("fill", "rgba(238,247,255,0.76)")
+          .style("font-size", "12px")
+          .text((d) => state.sectorMetric === "effectifs_cvs" ? formatCount(d.effectifs_cvs) : formatCurrency(d.masse_cvs));
+
+        const seriesSvg = d3.select("#sectorSeriesSvg");
+        seriesSvg.selectAll("*").remove();
+        const seriesMargin = { top: 18, right: 18, bottom: 36, left: 48 };
+        const seriesWidth = 640 - seriesMargin.left - seriesMargin.right;
+        const seriesHeight = 520 - seriesMargin.top - seriesMargin.bottom;
+        const seriesG = seriesSvg.append("g").attr("transform", `translate(${seriesMargin.left},${seriesMargin.top})`);
+        const points = selectedSeries.points.map((point) => ({ ...point, value: point[state.sectorMetric] || 0 }));
+        const xScale = d3.scaleTime().domain(d3.extent(points, (point) => new Date(`${point.date}T00:00:00`))).range([0, seriesWidth]);
+        const yScale = d3.scaleLinear().domain([0, d3.max(points, (point) => point.value) || 1]).nice().range([seriesHeight, 0]);
+        const area = d3.area()
+          .x((point) => xScale(new Date(`${point.date}T00:00:00`)))
+          .y0(seriesHeight)
+          .y1((point) => yScale(point.value))
+          .curve(d3.curveCatmullRom.alpha(0.6));
+        const line = d3.line()
+          .x((point) => xScale(new Date(`${point.date}T00:00:00`)))
+          .y((point) => yScale(point.value))
+          .curve(d3.curveCatmullRom.alpha(0.6));
+        seriesG.append("path").attr("d", area(points)).attr("fill", "rgba(141,184,255,0.18)");
+        seriesG.append("path").attr("d", line(points)).attr("fill", "none").attr("stroke", "var(--accent-secondary)").attr("stroke-width", 3.2);
+        seriesG.append("g")
+          .attr("transform", `translate(0,${seriesHeight})`)
+          .call(d3.axisBottom(xScale).ticks(6).tickFormat((date) => `T${Math.floor(date.getMonth() / 3) + 1} ${String(date.getFullYear()).slice(-2)}`))
+          .call((axis) => axis.selectAll("text").attr("fill", "rgba(238,247,255,0.52)").style("font-size", "11px"))
+          .call((axis) => axis.selectAll("path,line").attr("stroke", "rgba(255,255,255,0.08)"));
+        seriesG.append("g")
+          .call(d3.axisLeft(yScale).ticks(5).tickFormat((value) => (state.sectorMetric === "effectifs_cvs" ? formatCount(value) : formatCurrency(value))))
+          .call((axis) => axis.selectAll("text").attr("fill", "rgba(238,247,255,0.52)").style("font-size", "11px"))
+          .call((axis) => axis.selectAll("path,line").attr("stroke", "rgba(255,255,255,0.08)"));
+        const latestPoint = points[points.length - 1];
+        seriesG.append("circle")
+          .attr("cx", xScale(new Date(`${latestPoint.date}T00:00:00`)))
+          .attr("cy", yScale(latestPoint.value))
+          .attr("r", 4.5)
+          .attr("fill", "#fff")
+          .attr("stroke", "var(--accent-secondary)")
+          .attr("stroke-width", 2.5);
+      }
+
+      function getPayrollScopeData() {
+        return state.phase === "national" ? DATA.modules.payroll.national : DATA.modules.payroll.regions[state.selectedRegion];
+      }
+
+      function renderPayrollModule() {
+        const scope = getPayrollScopeData();
+        const subtitle = document.getElementById("payrollSubtitle");
+        const chartMeta = document.getElementById("payrollChartMeta");
+        const statsMeta = document.getElementById("payrollStatsMeta");
+        const stats = document.getElementById("payrollStats");
+        const panel = document.getElementById("payrollSvg").parentElement;
+        if (!scope || !scope.points || !scope.points.length) {
+          subtitle.textContent = `${scopeLabel()} / aucun flux mensuel exploitable.`;
+          renderEmptyState(panel, "Flux indisponible", "Le couple masse salariale / chômage partiel manque pour ce territoire.");
+          stats.innerHTML = "";
+          return;
+        }
+
+        subtitle.textContent = `${scopeLabel()} / lecture mensuelle / masse salariale + part de l'assiette chômage partiel`;
+        chartMeta.textContent = `Fenêtre mobile / ${monthLabel(scope.points[0].date)} → ${monthLabel(scope.latestDate)}`;
+        statsMeta.textContent = `Dernier mois / ${monthLabel(scope.latestDate)}`;
+
+        const points = scope.points.slice(-48);
+        const svg = d3.select("#payrollSvg");
+        svg.selectAll("*").remove();
+        const margin = { top: 18, right: 58, bottom: 34, left: 58 };
+        const width = 760 - margin.left - margin.right;
+        const height = 420 - margin.top - margin.bottom;
+        const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+        const x = d3.scaleTime().domain(d3.extent(points, (point) => new Date(`${point.date}T00:00:00`))).range([0, width]);
+        const yLeft = d3.scaleLinear().domain([0, d3.max(points, (point) => point.payroll) || 1]).nice().range([height, 0]);
+        const yRight = d3.scaleLinear().domain([0, d3.max(points, (point) => point.share) || 1]).nice().range([height, 0]);
+        const area = d3.area()
+          .x((point) => x(new Date(`${point.date}T00:00:00`)))
+          .y0(height)
+          .y1((point) => yLeft(point.payroll))
+          .curve(d3.curveMonotoneX);
+        const line = d3.line()
+          .x((point) => x(new Date(`${point.date}T00:00:00`)))
+          .y((point) => yRight(point.share))
+          .curve(d3.curveMonotoneX);
+
+        g.append("path").attr("d", area(points)).attr("fill", "rgba(120,236,203,0.18)");
+        g.append("path").attr("d", d3.line().x((point) => x(new Date(`${point.date}T00:00:00`))).y((point) => yLeft(point.payroll)).curve(d3.curveMonotoneX)(points))
+          .attr("fill", "none").attr("stroke", "var(--accent)").attr("stroke-width", 3.4);
+        g.append("path").attr("d", line(points)).attr("fill", "none").attr("stroke", "var(--warning)").attr("stroke-width", 2.4).attr("stroke-dasharray", "7 7");
+        g.append("g")
+          .attr("transform", `translate(0,${height})`)
+          .call(d3.axisBottom(x).ticks(6).tickFormat((date) => date.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" })))
+          .call((axis) => axis.selectAll("text").attr("fill", "rgba(238,247,255,0.52)").style("font-size", "11px"))
+          .call((axis) => axis.selectAll("path,line").attr("stroke", "rgba(255,255,255,0.08)"));
+        g.append("g")
+          .call(d3.axisLeft(yLeft).ticks(5).tickFormat((value) => formatCurrency(value)))
+          .call((axis) => axis.selectAll("text").attr("fill", "rgba(238,247,255,0.52)").style("font-size", "11px"))
+          .call((axis) => axis.selectAll("path,line").attr("stroke", "rgba(255,255,255,0.08)"));
+        g.append("g")
+          .attr("transform", `translate(${width},0)`)
+          .call(d3.axisRight(yRight).ticks(5).tickFormat((value) => formatPercent(value)))
+          .call((axis) => axis.selectAll("text").attr("fill", "rgba(238,247,255,0.52)").style("font-size", "11px"))
+          .call((axis) => axis.selectAll("path,line").attr("stroke", "rgba(255,255,255,0.08)"));
+
+        const latest = points[points.length - 1];
+        const previous = points[points.length - 2] || latest;
+        stats.innerHTML = "";
+        [
+          { label: "Masse salariale", value: formatCurrency(latest.payroll), meta: monthLabel(latest.date) },
+          { label: "Part chômage partiel", value: formatPercent(latest.share), meta: "recalcul national si nécessaire" },
+          { label: "Variation annuelle", value: formatPercent(latest.yearlyChange), meta: previous ? `vs ${monthLabel(previous.date)}` : "—" },
+        ].forEach((entry) => {
+          const article = document.createElement("article");
+          article.className = "mini-stat";
+          article.innerHTML = `<small>${entry.label}</small><strong>${entry.value}</strong><span>${entry.meta}</span>`;
+          stats.appendChild(article);
+        });
+      }
+
+      function metricValueForDepartment(department, sectorKey, metricKey) {
+        const sectorValues = department.values[sectorKey];
+        return sectorValues ? sectorValues[metricKey] : null;
+      }
+
+      function renderAutoModule() {
+        const subtitle = document.getElementById("autoSubtitle");
+        const mapMeta = document.getElementById("autoMapMeta");
+        const rankingMeta = document.getElementById("autoRankingMeta");
+        const autoPanel = document.getElementById("autoMapPanel");
+        const autoRanking = document.getElementById("autoRanking");
+        const scopeDepartmentCodes = state.phase === "national"
+          ? new Set(DATA.modules.auto.departments.map((department) => department.code))
+          : new Set((DATA.modules.auto.regions[state.selectedRegion] && DATA.modules.auto.regions[state.selectedRegion].departmentCodes) || []);
+        const departments = DATA.modules.auto.departments.filter((department) => scopeDepartmentCodes.has(department.code));
+
+        renderMetricSwitch("autoMetricSwitch", DATA.modules.auto.metrics, state.autoMetric, (key) => {
+          state.autoMetric = key;
+          renderAutoModule();
+        });
+
+        const sectorSelect = document.getElementById("autoSectorSelect");
+        if (!sectorSelect.options.length) {
+          DATA.modules.auto.sectors.forEach((sector) => {
+            const option = document.createElement("option");
+            option.value = sector.key;
+            option.textContent = sector.label;
+            sectorSelect.appendChild(option);
+          });
+          sectorSelect.addEventListener("change", (event) => {
+            state.autoSector = event.target.value;
+            renderAutoModule();
+          });
+        }
+        sectorSelect.value = state.autoSector;
+
+        if (!departments.length) {
+          subtitle.textContent = `${scopeLabel()} / aucun département exploitable.`;
+          renderEmptyState(autoPanel, "Données manquantes", "Les auto-entrepreneurs ne sont pas documentés ici dans les CSV fournis.");
+          autoRanking.innerHTML = "";
+          return;
+        }
+
+        subtitle.textContent = `${scopeLabel()} / lecture ${quarterLabel(DATA.modules.auto.latestDate)} / secteur filtrable / carte + rail`;
+        mapMeta.textContent = `${DATA.modules.auto.sectors.find((sector) => sector.key === state.autoSector).label}`;
+        rankingMeta.textContent = DATA.modules.auto.metrics.find((metric) => metric.key === state.autoMetric).label;
+
+        const values = departments.map((department) => metricValueForDepartment(department, state.autoSector, state.autoMetric)).filter((value) => value != null);
+        const scale = values.length ? buildScale(d3.extent(values), ["rgba(255,255,255,0.06)", "rgba(120,236,203,0.94)"]) : () => "rgba(255,255,255,0.06)";
+        const svg = d3.select("#autoMapSvg");
+        svg.selectAll("*").remove();
+
+        if (state.phase === "national") {
+          drawCompositeMap(svg, DATA.geography.departments, {
+            clickable: false,
+            keyResolver: (feature) => feature.properties.code,
+            regionResolver: (feature) => feature.properties.region,
+            className: (feature) => `path-department${DATA.modules.auto.departments.find((entry) => entry.code === feature.properties.code) ? "" : " is-unavailable"}`,
+            fillResolver: (feature) => {
+              const department = DATA.modules.auto.departments.find((entry) => entry.code === feature.properties.code);
+              const value = department ? metricValueForDepartment(department, state.autoSector, state.autoMetric) : null;
+              return value != null ? scale(value) : "rgba(255,255,255,0.05)";
+            },
+            tooltipResolver: (feature) => {
+              const department = DATA.modules.auto.departments.find((entry) => entry.code === feature.properties.code);
+              const value = department ? metricValueForDepartment(department, state.autoSector, state.autoMetric) : null;
+              return { label: department ? department.name : feature.properties.nom, value: state.autoMetric === "turnover" ? formatCurrency(value) : formatCount(value) };
+            },
+          });
+        } else {
+          const features = DATA.geography.departments.features.filter((feature) => feature.properties.region === state.selectedRegion);
+          const projection = d3.geoMercator().fitExtent([[32, 32], [868, 588]], { type: "FeatureCollection", features });
+          const path = d3.geoPath(projection);
+          const root = svg.append("g");
+          root.selectAll("path")
+            .data(features)
+            .join("path")
+            .attr("class", (feature) => `path-department${DATA.modules.auto.departments.find((entry) => entry.code === feature.properties.code) ? "" : " is-unavailable"}`)
+            .attr("d", path)
+            .attr("fill", (feature) => {
+              const department = DATA.modules.auto.departments.find((entry) => entry.code === feature.properties.code);
+              const value = department ? metricValueForDepartment(department, state.autoSector, state.autoMetric) : null;
+              return value != null ? scale(value) : "rgba(255,255,255,0.05)";
+            })
+            .on("mouseenter", (event, feature) => {
+              const department = DATA.modules.auto.departments.find((entry) => entry.code === feature.properties.code);
+              const value = department ? metricValueForDepartment(department, state.autoSector, state.autoMetric) : null;
+              showTooltip(event, department ? department.name : feature.properties.nom, state.autoMetric === "turnover" ? formatCurrency(value) : formatCount(value));
+            })
+            .on("mousemove", (event, feature) => {
+              const department = DATA.modules.auto.departments.find((entry) => entry.code === feature.properties.code);
+              const value = department ? metricValueForDepartment(department, state.autoSector, state.autoMetric) : null;
+              showTooltip(event, department ? department.name : feature.properties.nom, state.autoMetric === "turnover" ? formatCurrency(value) : formatCount(value));
+            })
+            .on("mouseleave", hideTooltip);
+        }
+
+        const domain = d3.extent(values);
+        const legend = document.getElementById("autoLegend");
+        legend.innerHTML = `<span>${state.autoMetric === "turnover" ? formatCurrency(domain[0]) : formatCount(domain[0])}</span><span>→</span><span>${state.autoMetric === "turnover" ? formatCurrency(domain[1]) : formatCount(domain[1])}</span>`;
+        autoRanking.innerHTML = "";
+        departments
+          .map((department) => ({ ...department, metric: metricValueForDepartment(department, state.autoSector, state.autoMetric) }))
+          .filter((department) => department.metric != null)
+          .sort((a, b) => b.metric - a.metric)
+          .slice(0, 10)
+          .forEach((department) => {
+            const article = document.createElement("article");
+            article.className = "ranking-item";
+            article.innerHTML = `<div class="topline"><strong>${department.name}</strong><strong>${state.autoMetric === "turnover" ? formatCurrency(department.metric) : formatCount(department.metric)}</strong></div><span>${regionsByCode.get(department.regionCode).name}</span>`;
+            autoRanking.appendChild(article);
+          });
+      }
+
+      function renderSparkline(container, values, color) {
+        const width = 240;
+        const height = 44;
+        const svg = d3.create("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("class", "sparkline-canvas");
+        const x = d3.scaleLinear().domain([0, values.length - 1]).range([4, width - 4]);
+        const y = d3.scaleLinear().domain(d3.extent(values)).nice().range([height - 6, 6]);
+        const line = d3.line().x((_, index) => x(index)).y((value) => y(value)).curve(d3.curveMonotoneX);
+        svg.append("path").attr("d", line(values)).attr("fill", "none").attr("stroke", color).attr("stroke-width", 2.5);
+        container.appendChild(svg.node());
+      }
+
+      function renderRarModule() {
+        const subtitle = document.getElementById("rarSubtitle");
+        const primaryTitle = document.getElementById("rarPrimaryTitle");
+        const primaryMeta = document.getElementById("rarPrimaryMeta");
+        const secondaryTitle = document.getElementById("rarSecondaryTitle");
+        const secondaryMeta = document.getElementById("rarSecondaryMeta");
+        const secondaryBody = document.getElementById("rarSecondaryBody");
+
+        renderMetricSwitch("rarMetricSwitch", DATA.modules.rar.metrics, state.rarMetric, (key) => {
+          state.rarMetric = key;
+          renderRarModule();
+        });
+
+        if (state.phase === "national") {
+          subtitle.textContent = `France entière / ${monthLabel(DATA.modules.rar.latestDate)} / choropleth régional + rail de séries récentes`;
+          primaryTitle.textContent = "Carte des tensions";
+          primaryMeta.textContent = DATA.modules.rar.metrics.find((metric) => metric.key === state.rarMetric).label;
+          secondaryTitle.textContent = "Régions à surveiller";
+          secondaryMeta.textContent = "12 derniers mois";
+
+          const svg = d3.select("#rarPrimarySvg");
+          svg.selectAll("*").remove();
+          const latestMap = new Map(DATA.modules.rar.national.latestByMetric[state.rarMetric].map((item) => [item.code, item.value]));
+          const values = [...latestMap.values()].filter((value) => value != null);
+          const scale = buildScale(d3.extent(values), ["rgba(255,255,255,0.06)", "rgba(255,151,131,0.92)"]);
+          drawCompositeMap(svg, DATA.geography.regions, {
+            clickable: false,
+            keyResolver: (feature) => feature.properties.code,
+            regionResolver: (feature) => feature.properties.code,
+            className: () => "path-region",
+            fillResolver: (feature) => {
+              const value = latestMap.get(feature.properties.code);
+              return value != null ? scale(value) : "rgba(255,255,255,0.05)";
+            },
+            tooltipResolver: (feature) => ({ label: regionsByCode.get(feature.properties.code).name, value: formatPercent(latestMap.get(feature.properties.code)) }),
+          });
+
+          secondaryBody.innerHTML = "";
+          const sparklineStack = document.createElement("div");
+          sparklineStack.className = "sparkline-stack";
+          DATA.modules.rar.national.latestByMetric[state.rarMetric].slice(0, 8).forEach((entry) => {
+            const row = document.createElement("div");
+            row.className = "sparkline-row";
+            row.innerHTML = `<div class="topline"><strong>${entry.name}</strong><strong>${formatPercent(entry.value)}</strong></div><div class="sparkline-value">${entry.yearlyChange != null ? `Glissement annuel ${formatPercent(entry.yearlyChange)}` : "—"}</div>`;
+            const series = ((DATA.modules.rar.regions[entry.code] && DATA.modules.rar.regions[entry.code].points) || []).slice(-12).map((point) => point[state.rarMetric]).filter((value) => value != null);
+            renderSparkline(row, series.length ? series : [0, 0], "var(--danger)");
+            sparklineStack.appendChild(row);
+          });
+          secondaryBody.appendChild(sparklineStack);
+          return;
+        }
+
+        const scope = DATA.modules.rar.regions[state.selectedRegion];
+        if (!scope || !scope.points || !scope.points.length) {
+          subtitle.textContent = `${scopeLabel()} / aucun historique RAR exploitable.`;
+          renderEmptyState(document.getElementById("rarPrimaryPanel"), "RAR indisponible", "La mesure n'existe pas pour ce territoire dans les CSV fournis.");
+          secondaryBody.innerHTML = "";
+          return;
+        }
+
+        subtitle.textContent = `${scopeLabel()} / 36 derniers mois / trois courbes pour lire le relief du recouvrement`;
+        primaryTitle.textContent = "Courbes mensuelles";
+        primaryMeta.textContent = monthLabel(scope.points[scope.points.length - 1].date);
+        secondaryTitle.textContent = "Dernier point";
+        secondaryMeta.textContent = "Lecture simultanée";
+
+        const svg = d3.select("#rarPrimarySvg");
+        svg.selectAll("*").remove();
+        const points = scope.points.slice(-36);
+        const margin = { top: 20, right: 24, bottom: 34, left: 52 };
+        const width = 760 - margin.left - margin.right;
+        const height = 420 - margin.top - margin.bottom;
+        const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+        const x = d3.scaleTime().domain(d3.extent(points, (point) => new Date(`${point.date}T00:00:00`))).range([0, width]);
+        const y = d3.scaleLinear()
+          .domain([
+            0,
+            d3.max(points, (point) => Math.max(
+              point.rar_fin_mois ?? 0,
+              point.rar_mois_suivant ?? 0,
+              point.rar_90 ?? 0,
+            )) || 1,
+          ])
+          .nice()
+          .range([height, 0]);
+        const palette = { rar_fin_mois: "#8db8ff", rar_mois_suivant: "#ffd37a", rar_90: "#ff9783" };
+        ["rar_fin_mois", "rar_mois_suivant", "rar_90"].forEach((key) => {
+          const line = d3.line()
+            .defined((point) => point[key] != null)
+            .x((point) => x(new Date(`${point.date}T00:00:00`)))
+            .y((point) => y(point[key]))
+            .curve(d3.curveMonotoneX);
+          g.append("path")
+            .attr("d", line(points))
+            .attr("fill", "none")
+            .attr("stroke", palette[key])
+            .attr("stroke-width", key === "rar_90" ? 3 : 2.4);
+        });
+        g.append("g")
+          .attr("transform", `translate(0,${height})`)
+          .call(d3.axisBottom(x).ticks(6).tickFormat((date) => date.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" })))
+          .call((axis) => axis.selectAll("text").attr("fill", "rgba(238,247,255,0.52)").style("font-size", "11px"))
+          .call((axis) => axis.selectAll("path,line").attr("stroke", "rgba(255,255,255,0.08)"));
+        g.append("g")
+          .call(d3.axisLeft(y).ticks(5).tickFormat((value) => formatPercent(value)))
+          .call((axis) => axis.selectAll("text").attr("fill", "rgba(238,247,255,0.52)").style("font-size", "11px"))
+          .call((axis) => axis.selectAll("path,line").attr("stroke", "rgba(255,255,255,0.08)"));
+
+        secondaryBody.innerHTML = `<div class="mini-grid"><article class="mini-stat"><small>Fin de mois</small><strong>${formatPercent(points[points.length - 1].rar_fin_mois)}</strong><span>${monthLabel(points[points.length - 1].date)}</span></article><article class="mini-stat"><small>Mois suivant</small><strong>${formatPercent(points[points.length - 1].rar_mois_suivant)}</strong><span>${monthLabel(points[points.length - 1].date)}</span></article><article class="mini-stat"><small>+90 jours</small><strong>${formatPercent(points[points.length - 1].rar_90)}</strong><span>${monthLabel(points[points.length - 1].date)}</span></article></div>`;
+      }
+
+      function renderStoryModules() {
+        renderSectorModule();
+        renderPayrollModule();
+        renderAutoModule();
+        renderRarModule();
+      }
+
+      function setupFooter() {
+        const generatedAt = new Date(DATA.meta.generatedAt);
+        document.getElementById("footerTimestamp").textContent = `Généré ${generatedAt.toLocaleDateString("fr-FR", { dateStyle: "medium" })} / ${generatedAt.toLocaleTimeString("fr-FR", { timeStyle: "short" })}`;
+      }
+
+      function initStageButtons() {
+        document.getElementById("franceButton").addEventListener("click", () => transitionToNational(false));
+      }
+
+      function mountScrollReveal() {
+        d3.selectAll(".section-card").each(function() {
+          gsap.from(this, {
+            opacity: 0,
+            y: 24,
+            duration: REDUCED_MOTION ? 0.01 : 0.75,
+            ease: "power2.out",
+            scrollTrigger: { trigger: this, start: "top 82%" },
+          });
+        });
+      }
+
+      function boot() {
+        renderSubjectNav();
+        setupFooter();
+        initStageButtons();
+        setTheme(state.selectedRegion);
+        renderLandingMap();
+        renderHero();
+        renderSwitchRail();
+        stageVideo.muted = true;
+        setMapStageMode("landing");
+      }
+
+      boot();
+    })();
+  </script>
+</body>
+</html>
+

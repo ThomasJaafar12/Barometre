@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Etat de l'emploi salarie prive - Mockup editorial</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f4efe7;
+            --surface-soft: rgba(255, 251, 245, 0.76);
+            --ink: #121826;
+            --muted: #596171;
+            --line: rgba(18, 24, 38, 0.1);
+            --blue: #2f67ff;
+            --green: #35b98f;
+            --red: #db7a72;
+            --shadow: 0 28px 80px rgba(28, 33, 52, 0.12);
+            --maxw: 1440px;
+        }
+
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            color: var(--ink);
+            font-family: "Inter", sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(138, 98, 255, 0.12), transparent 26%),
+                radial-gradient(circle at 80% 20%, rgba(39, 209, 194, 0.12), transparent 24%),
+                linear-gradient(180deg, #f8f3eb 0%, #f4efe7 38%, #f1ebdf 100%);
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(18, 24, 38, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(18, 24, 38, 0.03) 1px, transparent 1px);
+            background-size: 28px 28px;
+            mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.85), transparent 92%);
+        }
+
+        .page {
+            width: min(calc(100% - 32px), var(--maxw));
+            margin: 18px auto 28px;
+        }
+
+        .shell {
+            position: relative;
+            overflow: hidden;
+            border-radius: 38px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(250, 245, 238, 0.82));
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(20px);
+        }
+
+        .shell::before,
+        .shell::after {
+            content: "";
+            position: absolute;
+            border-radius: 999px;
+            filter: blur(18px);
+            pointer-events: none;
+        }
+
+        .shell::before {
+            width: 360px;
+            height: 360px;
+            right: -100px;
+            top: -120px;
+            background: rgba(138, 98, 255, 0.13);
+        }
+
+        .shell::after {
+            width: 300px;
+            height: 300px;
+            left: -80px;
+            bottom: -120px;
+            background: rgba(239, 123, 182, 0.12);
+        }
+
+        .topbar,
+        .footer {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            padding: 18px 28px;
+            color: var(--muted);
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .topbar { border-bottom: 1px solid var(--line); }
+        .topbar strong { color: var(--ink); }
+
+        .hero {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.72fr);
+            gap: 24px;
+            padding: 28px 28px 10px;
+        }
+
+        .mono {
+            font-family: "IBM Plex Mono", monospace;
+            font-size: 12px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        h1, h2, h3, h4 { margin: 0; }
+
+        .title {
+            margin-top: 10px;
+            max-width: 10.5ch;
+            font-size: clamp(3.5rem, 8vw, 8rem);
+            line-height: 0.9;
+            letter-spacing: -0.07em;
+            font-weight: 900;
+        }
+
+        .title em {
+            font-family: "Instrument Serif", serif;
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        .hero-copy p,
+        .summary-card p,
+        .chapter-copy,
+        .chapter-note,
+        .takeaway p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.72;
+        }
+
+        .hero-copy p {
+            max-width: 64ch;
+            margin-top: 18px;
+            font-size: 1.03rem;
+        }
+
+        .hero-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 22px;
+            padding: 14px 18px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--ink), #28324a);
+            color: #fff;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .hero-cta::after { content: "↓"; font-size: 14px; }
+
+        .summary-card,
+        .chapter,
+        .takeaway {
+            border: 1px solid rgba(18, 24, 38, 0.08);
+            background: var(--surface-soft);
+            backdrop-filter: blur(10px);
+        }
+
+        .summary-card {
+            padding: 24px;
+            border-radius: 30px;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(247, 242, 236, 0.92)),
+                radial-gradient(circle at top right, rgba(39, 209, 194, 0.08), transparent 35%);
+        }
+
+        .summary-card h2 {
+            margin: 12px 0 10px;
+            font-size: clamp(1.9rem, 3vw, 3rem);
+            line-height: 0.98;
+            letter-spacing: -0.05em;
+        }
+
+        .stat-grid {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            padding: 16px 28px 10px;
+        }
+
+        .stat {
+            padding: 22px;
+            border-radius: 26px;
+            border: 1px solid rgba(18, 24, 38, 0.07);
+            background: rgba(255, 251, 245, 0.72);
+        }
+
+        .stat strong {
+            display: block;
+            margin-top: 10px;
+            font-size: clamp(2.5rem, 6vw, 5.4rem);
+            line-height: 0.92;
+            letter-spacing: -0.08em;
+            font-weight: 900;
+        }
+
+        .stat strong.serif {
+            font-family: "Instrument Serif", serif;
+            font-style: italic;
+            font-weight: 400;
+            letter-spacing: -0.03em;
+        }
+
+        .stat p { margin: 10px 0 0; color: var(--muted); line-height: 1.62; }
+        .stat .accent-blue { color: var(--blue); }
+        .stat .accent-green { color: var(--green); }
+        .stat .accent-red { color: var(--red); }
+
+        .chapter-nav {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 8px 28px 0;
+        }
+
+        .chapter-link {
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(18, 24, 38, 0.08);
+            background: rgba(255, 255, 255, 0.65);
+            color: var(--ink);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.93rem;
+        }
+
+        .chapter-link:hover { background: var(--ink); color: #fff; }
+
+        .chapters {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            gap: 16px;
+            padding: 22px 28px 28px;
+        }
+
+        .chapter {
+            display: grid;
+            grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr);
+            gap: 18px;
+            padding: 24px;
+            border-radius: 34px;
+            min-height: 320px;
+        }
+
+        .chapter-copy-wrap {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 18px;
+        }
+
+        .chapter-title {
+            margin-top: 12px;
+            max-width: 12ch;
+            font-size: clamp(2rem, 4vw, 4rem);
+            line-height: 0.95;
+            letter-spacing: -0.06em;
+            font-weight: 900;
+        }
+
+        .chapter-kpi {
+            margin-top: 18px;
+            font-size: clamp(3rem, 7vw, 6.2rem);
+            line-height: 0.9;
+            letter-spacing: -0.09em;
+            font-weight: 900;
+        }
+
+        .chapter-kpi small {
+            display: block;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            letter-spacing: 0;
+            font-weight: 600;
+            color: var(--muted);
+        }
+
+        .chapter-art {
+            position: relative;
+            overflow: hidden;
+            border-radius: 28px;
+            border: 1px solid rgba(18, 24, 38, 0.06);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(247, 242, 236, 0.96));
+            min-height: 270px;
+        }
+
+        .chapter-art.soft-purple { background: linear-gradient(180deg, rgba(242, 235, 255, 0.8), rgba(249, 244, 238, 0.92)); }
+        .chapter-art.soft-aqua { background: linear-gradient(180deg, rgba(232, 252, 249, 0.92), rgba(249, 244, 238, 0.94)); }
+        .chapter-art.soft-peach { background: linear-gradient(180deg, rgba(255, 239, 232, 0.88), rgba(249, 244, 238, 0.94)); }
+
+        .chart-holder { position: relative; padding: 18px; }
+        #employment-chart { width: 100%; height: auto; display: block; }
+
+        .tooltip {
+            position: absolute;
+            left: 18px;
+            top: 18px;
+            max-width: 220px;
+            padding: 12px 14px;
+            border-radius: 16px;
+            background: rgba(18, 24, 38, 0.92);
+            color: #fff;
+            box-shadow: 0 20px 40px rgba(18, 24, 38, 0.2);
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            pointer-events: none;
+        }
+
+        .tooltip.visible { opacity: 1; transform: translateY(0); }
+        .tooltip .mono { color: rgba(255, 255, 255, 0.72); font-size: 11px; }
+        .tooltip-value { margin-top: 8px; line-height: 1.55; font-weight: 700; }
+
+        .micro-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            padding: 18px;
+        }
+
+        .mini-card {
+            padding: 18px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.74);
+            border: 1px solid rgba(18, 24, 38, 0.06);
+        }
+
+        .mini-card strong {
+            display: block;
+            margin-top: 8px;
+            font-size: clamp(1.6rem, 2vw, 2.4rem);
+            line-height: 0.95;
+            letter-spacing: -0.06em;
+        }
+
+        .mini-card p { margin: 8px 0 0; color: var(--muted); line-height: 1.55; font-size: 0.92rem; }
+
+        .takeaway {
+            padding: 24px;
+            border-radius: 30px;
+        }
+
+        .takeaway h3 {
+            margin: 10px 0 10px;
+            font-size: clamp(1.8rem, 3vw, 2.8rem);
+            line-height: 0.98;
+            letter-spacing: -0.05em;
+        }
+
+        .animate {
+            opacity: 0;
+            transform: translateY(24px);
+            animation: rise 0.75s cubic-bezier(0.2, 0.7, 0.15, 1) forwards;
+        }
+
+        .d1 { animation-delay: 0.08s; }
+        .d2 { animation-delay: 0.16s; }
+        .d3 { animation-delay: 0.24s; }
+
+        @keyframes rise {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 1180px) {
+            .hero,
+            .chapter { grid-template-columns: 1fr; }
+            .stat-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 760px) {
+            .page { width: min(calc(100% - 16px), var(--maxw)); margin: 8px auto 18px; }
+            .shell { border-radius: 24px; }
+            .topbar, .footer, .hero, .stat-grid, .chapter-nav, .chapters { padding-left: 16px; padding-right: 16px; }
+            .chapter { padding: 18px; border-radius: 24px; }
+            .chapter-art { border-radius: 20px; }
+            .micro-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            .animate { opacity: 1; transform: none; animation: none; }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <section class="shell">
+            <div class="topbar animate">
+                <div><strong>OpenUrssaf</strong> / proposition inspiree du rythme editorial Asana</div>
+                <div>emploi salarie prive, France, T4 2025</div>
+            </div>
+
+            <section class="hero">
+                <div class="hero-copy animate d1">
+                    <div class="mono">Chapitre d'introduction</div>
+                    <h1 class="title">L'emploi prive <em>ralentit</em>, mais reste a un niveau historique.</h1>
+                    <p>
+                        Le sujet n'est pas seulement la baisse trimestrielle de <strong>-0,2 %</strong>. Le vrai recit est plus riche:
+                        une rupture en 2020, un rebond spectaculaire en 2021, puis un plateau eleve mais fragile en 2024-2025.
+                        Cette version reprend la logique editoriale du rapport Asana: gros message, chapitres, chiffres massifs et narration visuelle.
+                    </p>
+                    <a class="hero-cta" href="#chapitre-1">Explorer l'histoire</a>
+                </div>
+
+                <aside class="summary-card animate d2">
+                    <div class="mono">Resume executif</div>
+                    <h2>Ce n'est pas une crise. C'est une deceleration apres un cycle exceptionnel.</h2>
+                    <p>
+                        Le niveau total demeure autour de <strong>20,21 millions</strong> de salaries. Ce qui change, c'est la dynamique:
+                        la courbe cesse d'accelerer, les barres se tassent, et la fin de serie devient plus ambivalente.
+                    </p>
+                </aside>
+            </section>
+
+            <section class="stat-grid">
+                <article class="stat animate d1">
+                    <div class="mono">Niveau total</div>
+                    <strong class="accent-blue">20,21<span class="serif">M</span></strong>
+                    <p>Le prive reste a un niveau tres eleve malgre l'essoufflement de fin de periode.</p>
+                </article>
+                <article class="stat animate d2">
+                    <div class="mono">Variation trimestrielle</div>
+                    <strong class="accent-red">-0,2 %</strong>
+                    <p>Une contraction moderee, mais symboliquement forte car elle rompt l'impression de stabilite.</p>
+                </article>
+                <article class="stat animate d3">
+                    <div class="mono">Pic de reprise</div>
+                    <strong class="accent-green">+4,7 %</strong>
+                    <p>Le rebond 2021 reste le moment le plus spectaculaire de la serie recente.</p>
+                </article>
+            </section>
+
+            <nav class="chapter-nav animate d2" aria-label="Chapitres">
+                <a class="chapter-link" href="#chapitre-1">01. Le niveau</a>
+                <a class="chapter-link" href="#chapitre-2">02. La rupture 2020</a>
+                <a class="chapter-link" href="#chapitre-3">03. Le rebond</a>
+                <a class="chapter-link" href="#chapitre-4">04. Le plateau</a>
+            </nav>
+
+            <section class="chapters">
+                <article class="chapter animate d1" id="chapitre-1">
+                    <div class="chapter-copy-wrap">
+                        <div>
+                            <div class="mono">Chapitre 1</div>
+                            <h2 class="chapter-title">Le sujet central, c'est d'abord l'echelle.</h2>
+                            <p class="chapter-copy">
+                                Avant de lire la variation, il faut sentir la masse. Plus de vingt millions de salaries:
+                                le graphique doit commencer par la grandeur, pas par la nervosite du dernier point.
+                            </p>
+                            <div class="chapter-kpi">20,21 M<small>Niveau au 4e trimestre 2025</small></div>
+                        </div>
+                        <p class="chapter-note">Comme sur la page Asana, le grand chiffre agit comme une porte d'entree narrative.</p>
+                    </div>
+                    <div class="chapter-art soft-purple">
+                        <div class="micro-grid">
+                            <div class="mini-card">
+                                <div class="mono">2014</div>
+                                <strong>17,8 M</strong>
+                                <p>Depart de serie, encore loin du sommet recent.</p>
+                            </div>
+                            <div class="mini-card">
+                                <div class="mono">2022</div>
+                                <strong>20,39 M</strong>
+                                <p>Le niveau change de regime apres le rebond post-crise.</p>
+                            </div>
+                            <div class="mini-card">
+                                <div class="mono">2025</div>
+                                <strong>20,21 M</strong>
+                                <p>Le haut plateau se maintient, mais sans la meme poussee.</p>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="chapter animate d2" id="chapitre-2">
+                    <div class="chapter-copy-wrap">
+                        <div>
+                            <div class="mono">Chapitre 2</div>
+                            <h2 class="chapter-title">2020 a casse la trajectoire, pas seulement le trimestre.</h2>
+                            <p class="chapter-copy">
+                                La sequence de rupture merite une place entiere. Sur un site institutionnel, il faut assumer
+                                l'evenement sans hysterie visuelle: une cassure nette, un commentaire court, une mise en scene sobre.
+                            </p>
+                            <div class="chapter-kpi" style="color: var(--red);">-2,2 %<small>Point bas annuel, T2 2020</small></div>
+                        </div>
+                        <p class="chapter-note">L'inspiration Asana est ici structurelle: un chapitre autonome, centre sur une idee simple.</p>
+                    </div>
+                    <div class="chapter-art soft-peach">
+                        <div class="micro-grid">
+                            <div class="mini-card">
+                                <div class="mono">Avant choc</div>
+                                <strong>+2,0 %</strong>
+                                <p>Fin 2019, le marche de l'emploi reste bien oriente.</p>
+                            </div>
+                            <div class="mini-card">
+                                <div class="mono">Creux</div>
+                                <strong>18,56 M</strong>
+                                <p>Le niveau recule brutalement au coeur de la rupture.</p>
+                            </div>
+                            <div class="mini-card">
+                                <div class="mono">Lecture</div>
+                                <strong>Rupture</strong>
+                                <p>Le choc devient une cesure visuelle claire dans la narration.</p>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="chapter animate d2" id="chapitre-3">
+                    <div class="chapter-copy-wrap">
+                        <div>
+                            <div class="mono">Chapitre 3</div>
+                            <h2 class="chapter-title">Le rebond 2021 justifie le traitement le plus spectaculaire.</h2>
+                            <p class="chapter-copy">
+                                C'est la que la page doit prendre de l'ampleur. Les meilleures experiences editoriales isolent
+                                le moment de bascule et le rendent memorable: grand chiffre, contraste, et vue detaillee du mouvement.
+                            </p>
+                            <div class="chapter-kpi" style="color: var(--green);">+4,7 %<small>Pic de reprise, T2 2021</small></div>
+                        </div>
+                        <p class="chapter-note">L'utilisateur doit sentir le changement de phase avant meme de lire tous les labels.</p>
+                    </div>
+                    <div class="chapter-art soft-aqua">
+                        <div class="chart-holder">
+                            <svg id="employment-chart" viewBox="0 0 820 360" role="img" aria-labelledby="chart-title chart-desc">
+                                <title id="chart-title">Evolution de l'emploi salarie prive</title>
+                                <desc id="chart-desc">Barres de glissement annuel et courbe du niveau d'emploi de 2014 a 2025.</desc>
+                            </svg>
+                            <div id="tooltip" class="tooltip">
+                                <div class="mono">T2 2021</div>
+                                <div class="tooltip-value">Glissement annuel: +4,7 %<br>Niveau: 19,44 M</div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="chapter animate d3" id="chapitre-4">
+                    <div class="chapter-copy-wrap">
+                        <div>
+                            <div class="mono">Chapitre 4</div>
+                            <h2 class="chapter-title">En 2024-2025, la serie devient plus silencieuse.</h2>
+                            <p class="chapter-copy">
+                                La fin n'appelle pas un climax, mais une nuance. Les barres approchent de zero, la courbe s'aplatit,
+                                et le sens change: on ne lit plus un redressement, mais une stabilisation sous tension.
+                            </p>
+                            <div class="chapter-kpi">Plateau<small>Haut niveau, faible impulsion</small></div>
+                        </div>
+                        <p class="chapter-note">Une bonne fin editoriale ne force pas le drame. Elle laisse la serie respirer.</p>
+                    </div>
+                    <div class="chapter-art">
+                        <div class="micro-grid">
+                            <div class="mini-card">
+                                <div class="mono">T4 2024</div>
+                                <strong>0,0 %</strong>
+                                <p>Le glissement annuel est quasiment plat.</p>
+                            </div>
+                            <div class="mini-card">
+                                <div class="mono">T1 2025</div>
+                                <strong>-0,2 %</strong>
+                                <p>Le negatif reapparait, sans effondrement mais sans elan.</p>
+                            </div>
+                            <div class="mini-card">
+                                <div class="mono">T4 2025</div>
+                                <strong>20,21 M</strong>
+                                <p>Le niveau reste eleve, mais la dynamique se fragilise.</p>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <section class="takeaway animate d3">
+                    <div class="mono">Conclusion</div>
+                    <h3>Ce style fonctionne si tu copies la dramaturgie, pas les pixels.</h3>
+                    <p>
+                        Ce mock reprend ce qui rend la page Asana efficace: des chapitres courts, un message enorme des l'ouverture,
+                        des metriques qui deviennent du texte visuel, et une progression narrative tres controlee.
+                    </p>
+                </section>
+            </section>
+
+            <div class="footer animate d3">
+                <div>Standalone HTML/CSS/JS. Inspire de la structure editoriale d'Asana, pas d'un clonage pixel-perfect.</div>
+                <div>Jeu de donnees reconstitue a partir du visuel fourni dans ton premier message.</div>
+            </div>
+        </section>
+    </main>
+    <script>
+        const points = [
+            ["T1 2014",-0.2,17.80],["T2 2014",0.05,17.80],["T3 2014",-0.12,17.74],["T4 2014",-0.18,17.73],
+            ["T1 2015",-0.25,17.72],["T2 2015",-0.10,17.78],["T3 2015",0.30,17.83],["T4 2015",0.58,17.90],
+            ["T1 2016",0.65,17.95],["T2 2016",0.82,18.08],["T3 2016",1.15,18.20],["T4 2016",1.28,18.32],
+            ["T1 2017",1.68,18.46],["T2 2017",1.92,18.50],["T3 2017",1.55,18.65],["T4 2017",1.70,18.76],
+            ["T1 2018",1.28,18.84],["T2 2018",1.42,18.93],["T3 2018",1.24,19.02],["T4 2018",1.72,19.18],
+            ["T1 2019",1.82,19.25],["T2 2019",1.95,19.34],["T3 2019",1.98,19.43],["T4 2019",1.98,19.52],
+            ["T1 2020",-1.48,18.62],["T2 2020",-2.22,18.56],["T3 2020",-0.74,18.90],["T4 2020",0.56,18.85],
+            ["T1 2021",2.68,19.08],["T2 2021",4.72,19.44],["T3 2021",3.42,19.74],["T4 2021",4.08,19.95],
+            ["T1 2022",3.05,20.05],["T2 2022",2.34,20.20],["T3 2022",1.92,20.31],["T4 2022",1.68,20.39],
+            ["T1 2023",1.28,20.42],["T2 2023",0.84,20.45],["T3 2023",0.46,20.45],["T4 2023",0.64,20.45],
+            ["T1 2024",0.24,20.55],["T2 2024",0.28,20.51],["T3 2024",0.16,20.54],["T4 2024",0.00,20.50],
+            ["T1 2025",-0.20,20.50],["T2 2025",-0.06,20.50],["T3 2025",-0.22,20.48],["T4 2025",-0.20,20.21]
+        ];
+
+        const svg = document.getElementById("employment-chart");
+        const tooltip = document.getElementById("tooltip");
+        const NS = "http://www.w3.org/2000/svg";
+        const w = 820, h = 360, m = { t: 26, r: 56, b: 44, l: 56 };
+        const pw = w - m.l - m.r, ph = h - m.t - m.b;
+        const annualMin = -3, annualMax = 5, levelMin = 17.5, levelMax = 20.8;
+        const el = (name, attrs = {}, parent = svg) => {
+            const node = document.createElementNS(NS, name);
+            Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
+            parent.appendChild(node);
+            return node;
+        };
+        const x = i => m.l + (i / (points.length - 1)) * pw;
+        const yAnnual = v => m.t + ((annualMax - v) / (annualMax - annualMin)) * ph;
+        const yLevel = v => m.t + ((levelMax - v) / (levelMax - levelMin)) * ph;
+        const fmtPct = v => `${v.toFixed(1).replace(".", ",")} %`;
+        const fmtMil = v => `${v.toFixed(2).replace(".", ",")} M`;
+
+        function drawChart() {
+            svg.innerHTML = "";
+            const defs = el("defs");
+            const pos = el("linearGradient", { id: "pos", x1: "0", x2: "0", y1: "0", y2: "1" }, defs);
+            pos.innerHTML = '<stop offset="0%" stop-color="rgba(53,185,143,.95)"></stop><stop offset="100%" stop-color="rgba(53,185,143,.35)"></stop>';
+            const neg = el("linearGradient", { id: "neg", x1: "0", x2: "0", y1: "0", y2: "1" }, defs);
+            neg.innerHTML = '<stop offset="0%" stop-color="rgba(219,122,114,.95)"></stop><stop offset="100%" stop-color="rgba(219,122,114,.38)"></stop>';
+            const focus = el("linearGradient", { id: "focus", x1: "0", x2: "0", y1: "0", y2: "1" }, defs);
+            focus.innerHTML = '<stop offset="0%" stop-color="rgba(47,103,255,.12)"></stop><stop offset="100%" stop-color="rgba(47,103,255,0)"></stop>';
+
+            el("rect", { x: x(28) - 14, y: m.t, width: x(35) - x(28) + 28, height: ph, rx: 18, fill: "url(#focus)" });
+
+            const zero = yAnnual(0);
+            [-2,-1,0,1,2,3,4,5].forEach(v => {
+                const y = yAnnual(v);
+                el("line", { x1: m.l, x2: w - m.r, y1: y, y2: y, stroke: v === 0 ? "rgba(18,24,38,.18)" : "rgba(18,24,38,.08)", "stroke-width": v === 0 ? "1.4" : "1" });
+            });
+
+            [18.0, 18.5, 19.0, 19.5, 20.0, 20.5].forEach(v => {
+                const label = el("text", { x: w - m.r + 10, y: yLevel(v) + 4, fill: "#2f67ff", "font-size": "11", "font-family": "IBM Plex Mono, monospace" });
+                label.textContent = v.toFixed(1).replace(".", ",");
+            });
+
+            const barWidth = Math.max(7, pw / points.length - 4);
+            let path = "";
+
+            points.forEach(([label, annual, level], i) => {
+                const bx = x(i) - barWidth / 2;
+                const barTop = annual >= 0 ? yAnnual(annual) : zero;
+                const barHeight = Math.abs(yAnnual(annual) - zero);
+                el("rect", { x: bx, y: barTop, width: barWidth, height: barHeight, rx: 4, fill: annual >= 0 ? "url(#pos)" : "url(#neg)" });
+                path += `${i === 0 ? "M" : "L"} ${x(i)} ${yLevel(level)} `;
+                const hit = el("rect", { x: x(i) - barWidth, y: m.t, width: barWidth * 2, height: ph, fill: "transparent", cursor: "pointer" });
+                hit.addEventListener("mousemove", event => showTooltip(event, label, annual, level));
+                hit.addEventListener("mouseleave", hideTooltip);
+            });
+
+            el("path", { d: path, fill: "none", stroke: "rgba(47,103,255,.18)", "stroke-width": "8", "stroke-linejoin": "round", "stroke-linecap": "round" });
+            el("path", { d: path, fill: "none", stroke: "#2f67ff", "stroke-width": "3.2", "stroke-linejoin": "round", "stroke-linecap": "round" });
+
+            points.forEach(([label, annual, level], i) => {
+                const circle = el("circle", { cx: x(i), cy: yLevel(level), r: i === 29 ? "4.6" : "2.8", fill: i === 29 ? "#fff" : "#2f67ff", stroke: "#2f67ff", "stroke-width": i === 29 ? "2.4" : "0" });
+                circle.addEventListener("mousemove", event => showTooltip(event, label, annual, level));
+                circle.addEventListener("mouseleave", hideTooltip);
+            });
+
+            [0, 8, 16, 24, 32, 40, 47].forEach(i => {
+                const tx = el("text", { x: x(i), y: h - 14, fill: "#596171", "font-size": "11", "text-anchor": "middle", "font-family": "IBM Plex Mono, monospace" });
+                tx.textContent = points[i][0];
+            });
+        }
+
+        function showTooltip(event, label, annual, level) {
+            tooltip.querySelector(".mono").textContent = label;
+            tooltip.querySelector(".tooltip-value").innerHTML = `Glissement annuel: ${fmtPct(annual)}<br>Niveau: ${fmtMil(level)}`;
+            const rect = svg.getBoundingClientRect();
+            const tx = Math.min(event.clientX - rect.left + 12, rect.width - 210);
+            const ty = Math.max(event.clientY - rect.top - 70, 12);
+            tooltip.style.left = `${tx}px`;
+            tooltip.style.top = `${ty}px`;
+            tooltip.classList.add("visible");
+        }
+
+        function hideTooltip() {
+            tooltip.classList.remove("visible");
+        }
+
+        drawChart();
+    </script>
+</body>
+</html>

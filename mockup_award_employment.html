@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Observatoire de l'emploi - Mockup editorial</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg:#f6f1e7; --paper:rgba(255,252,247,.78); --paper-strong:rgba(255,252,247,.9); --ink:#16212c; --muted:#5b6773; --blue:#1a4e93; --teal:#26c1a0; --teal-deep:#17876e; --coral:#e48676; --line:rgba(22,33,44,.1); --shadow:0 26px 80px rgba(19,29,40,.12); }
+        *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;font-family:"Manrope",sans-serif;color:var(--ink);background:radial-gradient(circle at top left,rgba(38,193,160,.14),transparent 30%),radial-gradient(circle at top right,rgba(228,134,118,.14),transparent 26%),linear-gradient(180deg,#fbf8f2 0%,var(--bg) 45%,#f1eadc 100%);min-height:100vh}
+        body::before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(22,33,44,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(22,33,44,.035) 1px,transparent 1px);background-size:34px 34px;mask-image:linear-gradient(180deg,rgba(0,0,0,.7),transparent 88%)}
+        .page{width:min(calc(100% - 32px),1320px);margin:16px auto 28px}
+        .shell{position:relative;overflow:hidden;border-radius:34px;background:linear-gradient(180deg,rgba(255,255,255,.78),rgba(255,252,247,.68));border:1px solid rgba(255,255,255,.75);box-shadow:var(--shadow);backdrop-filter:blur(18px)}
+        .shell::before,.shell::after{content:"";position:absolute;border-radius:999px;filter:blur(16px);pointer-events:none}.shell::before{width:320px;height:320px;right:-70px;top:-120px;background:rgba(38,193,160,.15)}.shell::after{width:260px;height:260px;left:-70px;bottom:-120px;background:rgba(228,134,118,.14)}
+        .topbar,.footer{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:18px 28px;font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);position:relative;z-index:1}.topbar{border-bottom:1px solid var(--line)} .topbar strong{color:var(--ink)}
+        .hero{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(320px,.9fr);gap:22px;padding:30px 28px 20px;position:relative;z-index:1}
+        .eyebrow,.label{font:500 12px "IBM Plex Mono",monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+        h1,h2,h3{font-family:"Fraunces",serif;letter-spacing:-.045em;margin:0}
+        h1{font-size:clamp(3.1rem,7vw,6.1rem);line-height:.92;max-width:12ch;margin:12px 0 16px}
+        .hero p,.chart-copy,.focus-copy,.principle p{margin:0;color:var(--muted);line-height:1.72}
+        .tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.tag{padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.68);border:1px solid rgba(22,33,44,.08);font-weight:700;font-size:.92rem}
+        .note,.metric,.panel,.focus-card,.principle{border:1px solid rgba(22,33,44,.08);background:var(--paper);backdrop-filter:blur(8px)}
+        .note{padding:22px;border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.88),rgba(247,241,231,.95))}
+        .note h2{font-size:clamp(1.8rem,3.5vw,2.7rem);line-height:1.02;margin:12px 0 10px}
+        .metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;padding:0 28px 14px;position:relative;z-index:1}
+        .metric{padding:20px;border-radius:22px}.metric .value{margin-top:10px;font-size:clamp(2rem,4vw,3rem);font-weight:800;letter-spacing:-.05em;line-height:.95}.metric .sub{margin-top:10px;color:var(--muted);font-size:.93rem;line-height:1.62}.metric .serif{font-family:"Fraunces",serif}.metric.neg .value{color:#c05948}.metric.pos .value{color:var(--teal-deep)}
+        .grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(280px,.75fr);gap:16px;padding:8px 28px 28px;position:relative;z-index:1}
+        .panel{padding:20px;border-radius:30px;background:var(--paper-strong)} .panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;margin-bottom:16px}
+        .panel-head h3,.focus-card h3{font-size:clamp(1.65rem,3vw,2.25rem);line-height:1.02;margin:10px 0 8px}
+        .chart-tools{display:flex;flex-wrap:wrap;gap:10px}.tool{appearance:none;border:1px solid rgba(22,33,44,.09);background:rgba(255,255,255,.78);padding:9px 14px;border-radius:999px;font:700 .92rem "Manrope",sans-serif;color:var(--ink);cursor:pointer}.tool.active,.tool:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+        .chart-box{position:relative;padding:16px;border-radius:24px;background:linear-gradient(180deg,rgba(247,244,238,.96),rgba(255,252,247,.86));border:1px solid rgba(22,33,44,.06)}
+        svg{display:block;width:100%;height:auto}
+        .legend{display:flex;flex-wrap:wrap;gap:18px;margin-top:12px;color:var(--muted);font-size:.92rem;font-weight:700}.legend span{display:inline-flex;align-items:center;gap:10px}.swatch,.linechip{flex:0 0 auto}.swatch{width:18px;height:18px;border-radius:6px}.linechip{width:26px;height:0;border-top:3px solid var(--blue);border-radius:999px}
+        .tooltip{position:absolute;max-width:220px;padding:14px 16px;border-radius:16px;background:rgba(16,25,34,.93);color:#fbf7f0;box-shadow:0 16px 40px rgba(15,23,35,.25);opacity:0;transform:translateY(8px);transition:opacity .16s,transform .16s;pointer-events:none}.tooltip.show{opacity:1;transform:none}.tooltip .t1{font:500 12px "IBM Plex Mono",monospace;letter-spacing:.07em;text-transform:uppercase;color:rgba(251,247,240,.7)}.tooltip .t2{margin-top:8px;font-size:.98rem;line-height:1.55;font-weight:700}
+        .side{display:grid;gap:16px}.focus-card{padding:22px;border-radius:26px;background:linear-gradient(180deg,rgba(248,245,239,.98),rgba(255,255,255,.9))}
+        .focus-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}.mini{padding:14px;border-radius:18px;background:rgba(255,255,255,.84);border:1px solid rgba(22,33,44,.06)}.mini strong{display:block;font-size:1.5rem;letter-spacing:-.04em}.mini span{display:block;margin-top:8px;font-size:.84rem;line-height:1.45;color:var(--muted)}
+        .principles{display:grid;gap:14px}.principle{padding:18px;border-radius:22px}
+        .principle h4{margin:10px 0 8px;font-size:1.04rem;letter-spacing:-.02em}
+        .animate{opacity:0;transform:translateY(22px);animation:rise .78s cubic-bezier(.2,.7,.15,1) forwards}.d1{animation-delay:.08s}.d2{animation-delay:.16s}.d3{animation-delay:.24s}@keyframes rise{to{opacity:1;transform:none}}
+        @media (max-width:1120px){.hero,.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+        @media (max-width:760px){.page{width:min(calc(100% - 16px),1320px);margin:8px auto 18px}.shell{border-radius:24px}.topbar,.hero,.metrics,.grid,.footer{padding-left:16px;padding-right:16px}.metrics{grid-template-columns:1fr}.panel-head{flex-direction:column}.focus-metrics{grid-template-columns:1fr 1fr}}
+        @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.animate{opacity:1;transform:none;animation:none}}
+    </style>
+</head>
+<body>
+    <main class="page">
+        <section class="shell">
+            <div class="topbar animate"><div><strong>OpenUrssaf</strong> / proposition de redesign editorial</div><div>données trimestrielles, lecture publique, 2026 mockup</div></div>
+            <section class="hero">
+                <div class="animate d1">
+                    <div class="eyebrow">Effectifs salariés du secteur privé</div>
+                    <h1>Faire d'un graphique officiel un objet éditorial.</h1>
+                    <p>Au lieu d'empiler KPI, axes et légendes, cette proposition met la hiérarchie, l'annotation et le rythme au premier plan. L'idée: garder la rigueur statistique d'un indicateur public, mais lui donner la présence d'une page magazine et la fluidité d'un produit numérique premium.</p>
+                    <div class="tags"><span class="tag">Lecture immédiate</span><span class="tag">Narration par repères</span><span class="tag">Animations discrètes</span><span class="tag">SVG net et imprimable</span></div>
+                </div>
+                <aside class="note animate d2">
+                    <div class="eyebrow">Direction artistique</div>
+                    <h2>Sobre, lumineux, public mais pas bureaucratique.</h2>
+                    <p>Palette minérale, typographie à contraste, grands blancs, et quelques accents teal / corail pour faire sentir les inflexions. Le graphique devient la pièce centrale, pas un widget enfermé dans une boîte.</p>
+                </aside>
+            </section>
+            <section class="metrics">
+                <article class="metric animate d1"><div class="label">Niveau</div><div class="value"><span class="serif">20,21</span> M</div><div class="sub">Salariés du privé au T4 2025. Un chiffre ample, posé, lisible en moins d'une seconde.</div></article>
+                <article class="metric neg animate d2"><div class="label">Variation trimestrielle</div><div class="value">-0,2 %</div><div class="sub">Le négatif existe, mais il n'envahit pas la page. La baisse est signalée avec calme.</div></article>
+                <article class="metric pos animate d2"><div class="label">Point haut récent</div><div class="value">+4,7 %</div><div class="sub">Le rebond post-crise devient un moment visuel identifiable, pas juste une barre plus haute.</div></article>
+                <article class="metric animate d3"><div class="label">Principe clé</div><div class="value">3 focales</div><div class="sub">Crash, rebond, plateau. Un bon data-viz public guide la lecture sans infantiliser l'utilisateur.</div></article>
+            </section>
+            <section class="grid">
+                <article class="panel animate d2">
+                    <div class="panel-head">
+                        <div>
+                            <div class="eyebrow">Lecture temporelle</div>
+                            <h3>Deux mesures, une scène de lecture claire.</h3>
+                            <p class="chart-copy">Les barres racontent le glissement annuel. La ligne suit le niveau total d'emploi. Les zones de focus et les annotations réduisent l'effort cognitif.</p>
+                        </div>
+                        <div class="chart-tools">
+                            <button class="tool" data-focus="crash">2020 / rupture</button>
+                            <button class="tool active" data-focus="rebound">2021 / rebond</button>
+                            <button class="tool" data-focus="plateau">2024-2025 / plateau</button>
+                        </div>
+                    </div>
+                    <div class="chart-box">
+                        <svg id="chart" viewBox="0 0 980 560" role="img" aria-labelledby="tt dd">
+                            <title id="tt">Evolution de l'emploi salarié privé, glissement annuel et niveau en millions</title>
+                            <desc id="dd">Histogramme trimestriel du glissement annuel et courbe du niveau total d'emploi de 2014 à 2025.</desc>
+                        </svg>
+                        <div id="tooltip" class="tooltip"><div class="t1">T3 2021</div><div class="t2">Glissement annuel: +4,1 %<br>Niveau: 19,95 millions</div></div>
+                    </div>
+                    <div class="legend">
+                        <span><i class="swatch" style="background:linear-gradient(180deg,rgba(38,193,160,.95),rgba(38,193,160,.46))"></i>Glissement annuel positif</span>
+                        <span><i class="swatch" style="background:linear-gradient(180deg,rgba(228,134,118,.95),rgba(228,134,118,.5))"></i>Glissement annuel négatif</span>
+                        <span><i class="linechip"></i>Niveau total (millions)</span>
+                    </div>
+                </article>
+                <aside class="side animate d3">
+                    <section class="focus-card">
+                        <div class="eyebrow">Annotation éditoriale</div>
+                        <h3 id="focusTitle">Le rebond doit respirer.</h3>
+                        <p id="focusCopy" class="focus-copy">Ici, la montée 2021-2022 n'est pas juste une performance chiffrée. Elle devient un chapitre. La zone de focus teinte légèrement le fond, la note est brève, et le regard revient naturellement vers la courbe.</p>
+                        <div class="focus-metrics">
+                            <div class="mini"><strong id="focusPeak">+4,7 %</strong><span>Pic du glissement annuel pendant la reprise.</span></div>
+                            <div class="mini"><strong id="focusLevel">20,05 M</strong><span>Niveau franchi au moment où la courbe change de rythme.</span></div>
+                        </div>
+                    </section>
+                    <section class="principles">
+                        <article class="principle"><div class="eyebrow">01 / Typographie</div><h4>Un display expressif pour le sens, pas pour décorer.</h4><p>La serif sert les titres et les chiffres-clés. Le sans-serif garde la donnée propre et stable.</p></article>
+                        <article class="principle"><div class="eyebrow">02 / Annotation</div><h4>Trois repères exacts valent mieux qu'un panneau de légendes.</h4><p>Les meilleurs sites laissent l'utilisateur explorer, mais lui donnent une trajectoire de lecture immédiate.</p></article>
+                        <article class="principle"><div class="eyebrow">03 / Mouvement</div><h4>Des transitions lentes, quasi éditoriales.</h4><p>Pas de sur-animation. Juste assez pour sentir les cycles, les seuils, les bascules.</p></article>
+                    </section>
+                </aside>
+            </section>
+            <div class="footer animate d3"><div>Mockup autonome HTML/CSS/JS. SVG généré côté client pour garder une netteté parfaite à toute échelle.</div><div>Sources simulées à partir de la structure visuelle de l'indicateur fourni. Direction pensée pour desktop et mobile.</div></div>
+        </section>
+    </main>
+    <script>
+        const data=[["T1 2014",-0.2,17.8],["T2 2014",0.05,17.8],["T3 2014",-0.12,17.74],["T4 2014",-0.18,17.73],["T1 2015",-0.25,17.72],["T2 2015",-0.10,17.78],["T3 2015",0.30,17.83],["T4 2015",0.58,17.90],["T1 2016",0.65,17.95],["T2 2016",0.82,18.08],["T3 2016",1.15,18.20],["T4 2016",1.28,18.32],["T1 2017",1.68,18.46],["T2 2017",1.92,18.50],["T3 2017",1.55,18.65],["T4 2017",1.70,18.76],["T1 2018",1.28,18.84],["T2 2018",1.42,18.93],["T3 2018",1.24,19.02],["T4 2018",1.72,19.18],["T1 2019",1.82,19.25],["T2 2019",1.95,19.34],["T3 2019",1.98,19.43],["T4 2019",1.98,19.52],["T1 2020",-1.48,18.62],["T2 2020",-2.22,18.56],["T3 2020",-0.74,18.90],["T4 2020",0.56,18.85],["T1 2021",2.68,19.08],["T2 2021",4.72,19.44],["T3 2021",3.42,19.74],["T4 2021",4.08,19.95],["T1 2022",3.05,20.05],["T2 2022",2.34,20.20],["T3 2022",1.92,20.31],["T4 2022",1.68,20.39],["T1 2023",1.28,20.42],["T2 2023",0.84,20.45],["T3 2023",0.46,20.45],["T4 2023",0.64,20.45],["T1 2024",0.24,20.55],["T2 2024",0.28,20.51],["T3 2024",0.16,20.54],["T4 2024",0.00,20.50],["T1 2025",-0.20,20.50],["T2 2025",-0.06,20.50],["T3 2025",-0.22,20.48],["T4 2025",-0.20,20.21]];
+        const focus={crash:{title:"Montrer la cassure sans drame inutile.",copy:"Le trou d'air de 2020 mérite un traitement plus sculpté que rouge-flash + gras. Ici, la rupture est nette, mais le dessin reste digne et lisible, ce qui convient mieux à un site institutionnel haut de gamme.",peak:"-2,2 %",level:"18,56 M",range:[24,27]},rebound:{title:"Le rebond doit respirer.",copy:"Ici, la montée 2021-2022 n'est pas juste une performance chiffrée. Elle devient un chapitre. La zone de focus teinte légèrement le fond, la note est brève, et le regard revient naturellement vers la courbe.",peak:"+4,7 %",level:"20,05 M",range:[28,35]},plateau:{title:"Finir sur une impression de maturité.",copy:"En 2024-2025, la question n'est plus l'explosion de croissance mais le ralentissement. La composition se calme, les barres se tassent, et la courbe devient presque une ligne d'horizon.",peak:"0,3 %",level:"20,21 M",range:[40,47]}};
+        const svg=document.getElementById("chart"),tooltip=document.getElementById("tooltip"),tools=[...document.querySelectorAll(".tool")],NS="http://www.w3.org/2000/svg",W=980,H=560,m={t:36,r:76,b:66,l:76},pw=W-m.l-m.r,ph=H-m.t-m.b,ad=[-3,5],ld=[17.5,20.8]; let active="rebound",focusRect;
+        const el=(n,a={},p=svg)=>{const e=document.createElementNS(NS,n);Object.entries(a).forEach(([k,v])=>e.setAttribute(k,v));p.appendChild(e);return e;}, xs=i=>m.l+i/(data.length-1)*pw, ya=v=>m.t+(ad[1]-v)/(ad[1]-ad[0])*ph, yl=v=>m.t+(ld[1]-v)/(ld[1]-ld[0])*ph, pf=v=>`${v.toFixed(1).replace(".",",")} %`, lf=v=>`${v.toFixed(2).replace(".",",")} M`;
+        function draw(){svg.innerHTML=""; const defs=el("defs"),gp=el("linearGradient",{id:"gp",x1:"0",x2:"0",y1:"0",y2:"1"},defs),gn=el("linearGradient",{id:"gn",x1:"0",x2:"0",y1:"0",y2:"1"},defs),gw=el("linearGradient",{id:"gw",x1:"0",x2:"0",y1:"0",y2:"1"},defs),f=el("filter",{id:"glow",x:"-20%",y:"-20%",width:"140%",height:"140%"},defs); gp.innerHTML='<stop offset="0%" stop-color="rgba(38,193,160,.95)"/><stop offset="100%" stop-color="rgba(38,193,160,.44)"/>'; gn.innerHTML='<stop offset="0%" stop-color="rgba(228,134,118,.95)"/><stop offset="100%" stop-color="rgba(228,134,118,.48)"/>'; gw.innerHTML='<stop offset="0%" stop-color="rgba(26,78,147,.12)"/><stop offset="100%" stop-color="rgba(26,78,147,0)"/>'; f.innerHTML='<feGaussianBlur stdDeviation="3.2" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>';
+            const zero=ya(0),g=el("g"),fg=el("g"); focusRect=el("rect",{x:m.l,y:m.t,width:100,height:ph,rx:18,fill:"url(#gw)"},fg);
+            [-2,-1,0,1,2,3,4,5].forEach(t=>{const y=ya(t); el("line",{x1:m.l,x2:W-m.r,y1:y,y2:y,stroke:t===0?"rgba(22,33,44,.18)":"rgba(22,33,44,.07)","stroke-width":t===0?1.5:1},g); const tx=el("text",{x:m.l-14,y:y+5,"text-anchor":"end",fill:"#5b6773","font-size":"12","font-family":"IBM Plex Mono, monospace"},g); tx.textContent=pf(t);});
+            [18.0,18.5,19.0,19.5,20.0,20.5].forEach(t=>{const y=yl(t),tx=el("text",{x:W-m.r+14,y:y+5,fill:"#1a4e93","font-size":"12","font-family":"IBM Plex Mono, monospace"}); tx.textContent=t.toFixed(1).replace(".",",");});
+            [["Glissement annuel",m.l,"start","#16212c"],["Niveau (millions)",W-m.r,"end","#1a4e93"]].forEach(([txt,x,anchor,fill])=>{const t=el("text",{x,y:m.t-14,fill,"font-size":"12","font-family":"IBM Plex Mono, monospace","text-anchor":anchor}); t.textContent=txt;});
+            const bars=el("g"),hits=el("g"),bw=Math.max(8,pw/data.length-4); let path="";
+            data.forEach(([q,a,l],i)=>{const x=xs(i),y=ya(Math.max(a,0)),h=Math.abs(ya(a)-zero); el("rect",{x:x-bw/2,y:a>=0?y:zero,width:bw,height:h,rx:6,fill:a>=0?"url(#gp)":"url(#gn)"},bars); const hit=el("rect",{x:x-bw,y:m.t,width:bw*2,height:ph,fill:"transparent",cursor:"pointer"},hits); hit.addEventListener("mousemove",e=>tip(e,q,a,l)); hit.addEventListener("mouseleave",hide); path+=`${i?"L":"M"} ${x} ${yl(l)} `;});
+            el("path",{d:path,fill:"none",stroke:"rgba(26,78,147,.16)","stroke-width":"10",filter:"url(#glow)"}); el("path",{d:path,fill:"none",stroke:"#1a4e93","stroke-width":"3.5","stroke-linejoin":"round","stroke-linecap":"round"});
+            data.forEach(([q,a,l],i)=>{const c=el("circle",{cx:xs(i),cy:yl(l),r:i===data.length-1?5.5:3.3,fill:i===data.length-1?"#fff":"#1a4e93",stroke:"#1a4e93","stroke-width":i===data.length-1?3:0}); c.addEventListener("mousemove",e=>tip(e,q,a,l)); c.addEventListener("mouseleave",hide);});
+            el("line",{x1:m.l,x2:W-m.r,y1:H-m.b,y2:H-m.b,stroke:"rgba(22,33,44,.16)","stroke-width":"1.2"}); el("line",{x1:W-m.r,x2:W-m.r,y1:m.t,y2:H-m.b,stroke:"rgba(26,78,147,.12)","stroke-width":"1"});
+            [0,4,8,12,16,20,24,28,32,36,40,44,47].forEach(i=>{const x=xs(i); el("line",{x1:x,x2:x,y1:H-m.b,y2:H-m.b+6,stroke:"rgba(22,33,44,.16)","stroke-width":"1"}); const t=el("text",{x,y:H-m.b+24,fill:"#5b6773","font-size":"12","font-family":"IBM Plex Mono, monospace","text-anchor":"middle"}); t.textContent=data[i][0];});
+            const ax=el("text",{x:m.l+pw/2,y:H-16,"text-anchor":"middle",fill:"#16212c","font-size":"12","font-family":"IBM Plex Mono, monospace"}); ax.textContent="Temps trimestriel";
+            [["RUPTURE","Le choc 2020 casse le rythme historique.",25,-2.22],["REBOND","Le pic de reprise mérite une lecture dédiée.",29,4.72],["PLATEAU","Fin de période plus calme, presque horizontale.",46,-0.22]].forEach(([ttl,txt,i,a])=>ann(ttl,txt,i,a));
+            update();
+        }
+        function ann(ttl,txt,i,a){const x=xs(i),y=a>=0?ya(a)-18:ya(a)+18,ay=a>=0?y-42:y+14; el("line",{x1:x,y1:y,x2:x+24,y2:ay,stroke:"rgba(22,33,44,.28)","stroke-width":"1.25"}); const g=el("g",{transform:`translate(${x+26},${ay-40})`}),w=ttl==="PLATEAU"?170:158; el("rect",{x:0,y:0,width:w,height:54,rx:14,fill:"rgba(255,255,255,.94)",stroke:"rgba(22,33,44,.08)"},g); const t1=el("text",{x:12,y:18,fill:"#16212c","font-size":"11","font-family":"IBM Plex Mono, monospace","letter-spacing":"0.08em"},g); t1.textContent=ttl; const t2=el("text",{x:12,y:36,fill:"#5b6773","font-size":"12","font-family":"Manrope, sans-serif"},g); t2.textContent=txt;}
+        function tip(e,q,a,l){tooltip.querySelector(".t1").textContent=q; tooltip.querySelector(".t2").innerHTML=`Glissement annuel: ${pf(a)}<br>Niveau: ${lf(l)}`; const r=svg.getBoundingClientRect(),x=Math.min(e.clientX-r.left+12,r.width-220),y=Math.max(e.clientY-r.top-76,16); tooltip.style.left=`${x}px`; tooltip.style.top=`${y}px`; tooltip.classList.add("show");}
+        function hide(){tooltip.classList.remove("show")}
+        function update(){const f=focus[active],x1=xs(f.range[0])-12,x2=xs(f.range[1])+12; focusRect.setAttribute("x",x1); focusRect.setAttribute("width",Math.max(80,x2-x1)); document.getElementById("focusTitle").textContent=f.title; document.getElementById("focusCopy").textContent=f.copy; document.getElementById("focusPeak").textContent=f.peak; document.getElementById("focusLevel").textContent=f.level; tools.forEach(b=>b.classList.toggle("active",b.dataset.focus===active));}
+        tools.forEach(b=>b.addEventListener("click",()=>{active=b.dataset.focus;update();})); draw(); update();
+    </script>
+</body>
+</html>

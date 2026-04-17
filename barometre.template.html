@@ -1077,11 +1077,13 @@
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <script>
-    window.BAROMETRE_DATA = __DATA_JSON__;
+    window.BAROMETRE_BOOT = __BOOT_JSON__;
+    window.BAROMETRE_DEFERRED_GZIP = "__DEFERRED_B64__";
   </script>
   <script>
     (() => {
-      const DATA = window.BAROMETRE_DATA;
+      const DATA = window.BAROMETRE_BOOT;
+      const DEFERRED_GZIP = window.BAROMETRE_DEFERRED_GZIP;
       const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const regionOrder = DATA.meta.experienceRegionCodes;
       const domCodes = new Set(DATA.meta.domRegionCodes);
@@ -1102,9 +1104,9 @@
         phase: "landing",
         selectedRegion: "11",
         sectorMetric: "effectifs_cvs",
-        sectorKey: DATA.modules.sector.national.defaultSector,
+        sectorKey: null,
         autoMetric: "economically_active",
-        autoSector: DATA.modules.auto.defaultSector,
+        autoSector: null,
         rarMetric: "rar_90",
       };
 
@@ -1113,6 +1115,7 @@
       };
       let storyRenderHandle = null;
       let scrollRevealMounted = false;
+      let deferredDataPromise = null;
 
       gsap.registerPlugin(ScrollTrigger);
 
@@ -1332,6 +1335,7 @@
             .attr("fill", config.fillResolver(feature))
             .attr("data-code", key)
             .on("mouseenter", (event, datum) => {
+              element.raise();
               const tooltipText = config.tooltipResolver(datum);
               showTooltip(event, tooltipText.label, tooltipText.value);
             })
@@ -1366,6 +1370,7 @@
               .attr("fill", config.fillResolver(feature))
               .attr("data-code", key)
               .on("mouseenter", (event, datum) => {
+                element.raise();
                 const tooltipText = config.tooltipResolver(datum);
                 showTooltip(event, tooltipText.label, tooltipText.value);
               })
@@ -1419,10 +1424,14 @@
 
       function highlightSelectedRegion() {
         chartRefs.regionMap.pathByCode.forEach((element, code) => {
-          element.classed("is-selected", state.phase !== "national" && code === state.selectedRegion);
+          const isSelected = state.phase !== "national" && code === state.selectedRegion;
+          element.classed("is-selected", isSelected);
           if (state.phase !== "national") {
             const region = regionsByCode.get(code);
-            element.attr("fill", code === state.selectedRegion ? region.theme.accent : "rgba(255,255,255,0.06)");
+            element.attr("fill", isSelected ? region.theme.accent : "rgba(255,255,255,0.06)");
+          }
+          if (isSelected) {
+            element.raise();
           }
         });
       }
@@ -1477,6 +1486,27 @@
         });
       }
 
+      async function parseDeferredData() {
+        const binary = atob(DEFERRED_GZIP);
+        const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+        const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+        return JSON.parse(await new Response(stream).text());
+      }
+
+      function ensureDeferredData() {
+        if (DATA.modules && DATA.geography.departments) {
+          return Promise.resolve(DATA);
+        }
+        deferredDataPromise ??= parseDeferredData().then((deferred) => {
+          DATA.geography = { ...DATA.geography, ...deferred.geography };
+          DATA.modules = deferred.modules;
+          state.sectorKey ??= DATA.modules.sector.national.defaultSector;
+          state.autoSector ??= DATA.modules.auto.defaultSector;
+          return DATA;
+        });
+        return deferredDataPromise;
+      }
+
       function resetCamera() {
         chartRefs.regionMap.cameraGroup.attr("transform", "translate(0,0) scale(1)");
       }
@@ -1500,13 +1530,17 @@
         if (storyRenderHandle != null) cancelAnimationFrame(storyRenderHandle);
         storyRenderHandle = requestAnimationFrame(() => {
           storyRenderHandle = null;
-          renderStoryModules();
-          if (!scrollRevealMounted) {
-            mountScrollReveal();
-            scrollRevealMounted = true;
-          } else {
-            ScrollTrigger.refresh();
-          }
+          ensureDeferredData()
+            .then(() => {
+              renderStoryModules();
+              if (!scrollRevealMounted) {
+                mountScrollReveal();
+                scrollRevealMounted = true;
+              } else {
+                ScrollTrigger.refresh();
+              }
+            })
+            .catch((error) => console.error("Deferred payload error", error));
         });
       }
 
@@ -2102,4 +2136,6 @@
   </script>
 </body>
 </html>
+
+
 

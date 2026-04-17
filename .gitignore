@@ -1,0 +1,5 @@
+__pycache__/builder.cpython-314.pyc
+*.pyc
+*.pyo
+*.pyd
+*.pyc3

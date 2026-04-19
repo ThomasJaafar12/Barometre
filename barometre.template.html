@@ -1089,6 +1089,7 @@
       const domCodes = new Set(DATA.meta.domRegionCodes);
       const mapLayout = DATA.meta.mapLayout;
       const regionsByCode = new Map(DATA.regions.map((region) => [region.code, region]));
+      const DISPLAY_POLYGON_AREA_RATIO = 0.01;
       const stageShell = document.getElementById("stageShell");
       const stageVideo = document.getElementById("stageVideo");
       const mapStage = document.getElementById("mapStage");
@@ -1297,6 +1298,51 @@
         return d3.scaleLinear().domain(domain).range(colors).clamp(true);
       }
 
+      function ringArea(ring) {
+        const points = ring && ring.length > 1 && ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1]
+          ? ring.slice(0, -1)
+          : ring;
+        if (!points || points.length < 3) return 0;
+        let area = 0;
+        for (let index = 0; index < points.length; index += 1) {
+          const [x1, y1] = points[index];
+          const [x2, y2] = points[(index + 1) % points.length];
+          area += (x1 * y2) - (x2 * y1);
+        }
+        return Math.abs(area / 2);
+      }
+
+      function polygonArea(polygon) {
+        if (!polygon || !polygon.length) return 0;
+        return ringArea(polygon[0]);
+      }
+
+      function pruneDisplayGeometry(geometry) {
+        if (!geometry || geometry.type !== "MultiPolygon") return geometry;
+        const rankedPolygons = geometry.coordinates
+          .map((polygon) => ({ polygon, area: polygonArea(polygon) }))
+          .filter((entry) => entry.area > 0)
+          .sort((left, right) => right.area - left.area);
+        if (rankedPolygons.length <= 1) return geometry;
+        const minimumArea = rankedPolygons[0].area * DISPLAY_POLYGON_AREA_RATIO;
+        const keptPolygons = rankedPolygons
+          .filter((entry) => entry.area >= minimumArea)
+          .map((entry) => entry.polygon);
+        if (!keptPolygons.length) {
+          return { type: "Polygon", coordinates: rankedPolygons[0].polygon };
+        }
+        return keptPolygons.length === 1
+          ? { type: "Polygon", coordinates: keptPolygons[0] }
+          : { type: "MultiPolygon", coordinates: keptPolygons };
+      }
+
+      const displayRegionFeatures = DATA.geography.regions.features.map((feature) => ({
+        ...feature,
+        geometry: pruneDisplayGeometry(feature.geometry),
+      }));
+      const displayRegionsGeojson = { ...DATA.geography.regions, features: displayRegionFeatures };
+      const displayRegionFeatureByCode = new Map(displayRegionFeatures.map((feature) => [feature.properties.code, feature]));
+
       function showTooltip(event, label, value) {
         tooltipLabel.textContent = label;
         tooltipValue.textContent = value;
@@ -1396,7 +1442,7 @@
         const colorScale = numericValues.length
           ? buildScale(d3.extent(numericValues), ["rgba(255,255,255,0.08)", "rgba(120,236,203,0.9)"])
           : () => "rgba(255,255,255,0.08)";
-        chartRefs.regionMap = drawCompositeMap(landingMapSvg, DATA.geography.regions, {
+        chartRefs.regionMap = drawCompositeMap(landingMapSvg, displayRegionsGeojson, {
           clickable: true,
           keyResolver: (feature) => feature.properties.code,
           regionResolver: (feature) => feature.properties.code,
@@ -1446,7 +1492,7 @@
       function drawFocusPath(regionCode) {
         const focusGroup = chartRefs.regionMap.focusGroup;
         focusGroup.selectAll("*").remove();
-        const feature = DATA.geography.regions.features.find((entry) => entry.properties.code === regionCode);
+        const feature = displayRegionFeatureByCode.get(regionCode);
         if (!feature) return null;
         const generator = chartRefs.regionMap.pathGeneratorByCode.get(regionCode);
         const pathData = generator(feature);
@@ -2005,7 +2051,7 @@
           const latestMap = new Map(DATA.modules.rar.national.latestByMetric[state.rarMetric].map((item) => [item.code, item.value]));
           const values = [...latestMap.values()].filter((value) => value != null);
           const scale = buildScale(d3.extent(values), ["rgba(255,255,255,0.06)", "rgba(255,151,131,0.92)"]);
-          drawCompositeMap(svg, DATA.geography.regions, {
+          drawCompositeMap(svg, displayRegionsGeojson, {
             clickable: false,
             keyResolver: (feature) => feature.properties.code,
             regionResolver: (feature) => feature.properties.code,

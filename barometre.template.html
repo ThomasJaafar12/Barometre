@@ -216,6 +216,7 @@
       border-radius: 999px;
       filter: blur(18px);
       pointer-events: none;
+      opacity: 0;
     }
     .stage-shell::before {
       width: 340px;
@@ -231,13 +232,6 @@
       right: -80px;
       bottom: -160px;
     }
-    .stage-shell[data-phase="region"]::before,
-    .stage-shell[data-phase="region"]::after,
-    .stage-shell[data-phase="national"]::before,
-    .stage-shell[data-phase="national"]::after {
-      opacity: 0;
-    }
-
     .stage-media {
       position: absolute;
       inset: 0;
@@ -842,6 +836,258 @@
     .legend-dot { width: 12px; height: 12px; }
     .legend-line { width: 22px; height: 0; border-top: 3px solid currentColor; }
 
+    .employment-grid {
+      grid-template-columns: minmax(0, 1.32fr) minmax(320px, 0.72fr);
+      align-items: stretch;
+    }
+    .employment-main,
+    .employment-side {
+      position: relative;
+      overflow: hidden;
+    }
+    .employment-main {
+      gap: 18px;
+      padding: 22px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)),
+        var(--panel-faint);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .employment-main::before,
+    .employment-side::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,0.7), transparent 96%);
+    }
+    .employment-intro {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .employment-title strong {
+      font-size: clamp(1.35rem, 2vw, 1.8rem);
+      color: var(--text);
+      letter-spacing: -0.04em;
+    }
+    .employment-title span {
+      color: var(--muted);
+      max-width: 62ch;
+    }
+    .employment-controls {
+      display: grid;
+      gap: 12px;
+      justify-items: end;
+      min-width: min(100%, 320px);
+    }
+    .employment-select-wrap {
+      display: grid;
+      gap: 8px;
+      width: min(100%, 320px);
+      color: inherit;
+      text-decoration: none;
+    }
+    .employment-select-label {
+      color: rgba(238,247,255,0.56);
+    }
+    .employment-select-wrap select {
+      width: 100%;
+      appearance: none;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.09);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)),
+        var(--panel-faint);
+      color: var(--text);
+      padding: 12px 16px;
+      font: 600 0.96rem "Manrope", sans-serif;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+      cursor: pointer;
+    }
+    .employment-select-wrap select:focus-visible {
+      outline: 2px solid rgba(159,194,255,0.34);
+      outline-offset: 2px;
+    }
+    .employment-focus-switch {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    .employment-focus-button {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 9px 14px;
+      font: 700 0.84rem "Manrope", sans-serif;
+      cursor: pointer;
+      transition: background 180ms ease, color 180ms ease, transform 180ms ease, border-color 180ms ease;
+    }
+    .employment-focus-button:hover,
+    .employment-focus-button.is-active {
+      background: rgba(255,255,255,0.16);
+      color: #fffaf3;
+      border-color: rgba(255,255,255,0.18);
+      transform: translateY(-1px);
+    }
+    .employment-chart-shell {
+      position: relative;
+      z-index: 1;
+      border-radius: 28px;
+      padding: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(252,247,239,0.86));
+      border: 1px solid rgba(22,33,44,0.08);
+      box-shadow: 0 20px 48px rgba(15,23,35,0.08);
+    }
+    .employment-chart-shell svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .employment-legend,
+    .employment-focus-card,
+    .employment-note-card {
+      position: relative;
+      z-index: 1;
+    }
+    .employment-legend {
+      color: var(--muted);
+    }
+    .employment-swatch {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border-radius: 5px;
+      flex: 0 0 auto;
+    }
+    .employment-swatch-positive {
+      background: linear-gradient(180deg, rgba(38,193,160,0.95), rgba(38,193,160,0.38));
+    }
+    .employment-swatch-negative {
+      background: linear-gradient(180deg, rgba(228,134,118,0.95), rgba(228,134,118,0.42));
+    }
+    .employment-side {
+      gap: 16px;
+      padding: 20px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06)),
+        rgba(10,18,26,0.88);
+    }
+    .employment-focus-card {
+      display: grid;
+      gap: 14px;
+      padding: 22px;
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .employment-focus-card h3,
+    .employment-note-card h4 {
+      margin: 0;
+      font-family: "Syne", sans-serif;
+      letter-spacing: -0.04em;
+    }
+    .employment-focus-card h3 {
+      font-size: clamp(1.7rem, 2.8vw, 2.35rem);
+      line-height: 0.96;
+    }
+    .employment-focus-card p,
+    .employment-note-card p {
+      margin: 0;
+      color: rgba(238,247,255,0.72);
+      line-height: 1.7;
+    }
+    .employment-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .employment-stat {
+      display: grid;
+      gap: 8px;
+      min-height: 118px;
+      padding: 16px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .employment-stat-label {
+      font: 500 11px "IBM Plex Mono", monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(238,247,255,0.54);
+    }
+    .employment-stat strong {
+      font-family: "Syne", sans-serif;
+      font-size: clamp(1.5rem, 2vw, 2rem);
+      line-height: 0.92;
+      letter-spacing: -0.05em;
+      color: #fff8ee;
+    }
+    .employment-stat small {
+      color: rgba(238,247,255,0.62);
+      line-height: 1.55;
+    }
+    .employment-principles {
+      display: grid;
+      gap: 12px;
+    }
+    .employment-note-card {
+      display: grid;
+      gap: 10px;
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .employment-note-card h4 {
+      font-size: 1.08rem;
+      color: #fff8ee;
+    }
+    .employment-tooltip {
+      position: absolute;
+      inset: auto auto 16px 16px;
+      min-width: 188px;
+      max-width: 240px;
+      padding: 13px 15px;
+      border-radius: 18px;
+      background: rgba(16,25,34,0.92);
+      color: #fbf7f0;
+      box-shadow: 0 18px 44px rgba(15,23,35,0.24);
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+    .employment-tooltip.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .employment-tooltip .tooltip-overline {
+      font: 500 12px "IBM Plex Mono", monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(251,247,240,0.68);
+    }
+    .employment-tooltip .tooltip-body {
+      margin-top: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      line-height: 1.55;
+    }
+
     .mini-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1032,6 +1278,19 @@
       text-transform: uppercase;
       fill: rgba(238,247,255,0.7);
     }
+    .map-region-label {
+      fill: rgba(244,248,255,0.82);
+      font-family: "Manrope", sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      text-anchor: middle;
+      pointer-events: none;
+      paint-order: stroke;
+      stroke: rgba(8,19,28,0.88);
+      stroke-width: 4px;
+      stroke-linejoin: round;
+    }
     .focus-department-path {
       fill: none;
       stroke: var(--focus-stroke);
@@ -1080,6 +1339,19 @@
       .section-grid {
         grid-template-columns: 1fr;
       }
+      .employment-grid {
+        grid-template-columns: 1fr;
+      }
+      .employment-intro {
+        flex-direction: column;
+      }
+      .employment-controls {
+        width: 100%;
+        justify-items: stretch;
+      }
+      .employment-focus-switch {
+        justify-content: flex-start;
+      }
       .hero-panel {
         justify-self: stretch;
         max-width: none;
@@ -1121,6 +1393,9 @@
       }
       .hero-kpis,
       .mini-grid {
+        grid-template-columns: 1fr;
+      }
+      .employment-stat-grid {
         grid-template-columns: 1fr;
       }
       .hero-panel h1 {
@@ -1186,6 +1461,7 @@ __EXPORT_UI_STYLE__
           </div>
         </div>
         <div class="topbar-actions">
+          <button class="hero-action" id="backToMapButton" type="button" hidden>Retour à la carte</button>
           <button class="hero-action" id="franceButton" type="button">France entière</button>
 __EXPORT_UI_HTML__
         </div>
@@ -1269,6 +1545,21 @@ __CHAPTER_SECTIONS_HTML__
         ["04", { name: "Saint-Denis", coordinates: [55.4481, -20.8789] }],
         ["06", { name: "Mamoudzou", coordinates: [45.2279, -12.7806] }],
       ]);
+      const MAINLAND_REGION_LABELS = new Map([
+        ["11", { lines: ["Île-de-", "France"], dy: 8 }],
+        ["24", { lines: ["Centre-Val", "de Loire"], dy: 4 }],
+        ["27", { lines: ["Bourgogne-", "Franche-Comté"], dx: 28, dy: 8, fontSize: 11 }],
+        ["28", { lines: ["Normandie"], dy: -6 }],
+        ["32", { lines: ["Hauts-de-", "France"], dx: 24, dy: -18 }],
+        ["44", { lines: ["Grand Est"], dx: 34, dy: -6 }],
+        ["52", { lines: ["Pays de", "la Loire"], dx: -28, dy: -4 }],
+        ["53", { lines: ["Bretagne"], dx: -18, dy: -8 }],
+        ["75", { lines: ["Nouvelle-", "Aquitaine"], dx: -26, dy: 18 }],
+        ["76", { lines: ["Occitanie"], dx: 18, dy: 28 }],
+        ["84", { lines: ["Auvergne-", "Rhône-Alpes"], dx: 22, dy: 10, fontSize: 11.2 }],
+        ["93", { lines: ["Provence-Alpes-", "Côte d'Azur"], dx: 42, dy: 20, fontSize: 10.8 }],
+        ["94", { lines: ["Corse"], dy: -42 }],
+      ]);
       const mapLayout = DATA.meta.mapLayout;
       const regionsByCode = new Map(DATA.regions.map((region) => [region.code, region]));
       const DISPLAY_POLYGON_AREA_RATIO = 0.01;
@@ -1279,6 +1570,8 @@ __CHAPTER_SECTIONS_HTML__
       const story = document.getElementById("story");
       const switchRail = document.getElementById("switchRail");
       const subjectNav = document.getElementById("subjectNav");
+      const backToMapButton = document.getElementById("backToMapButton");
+      const franceButton = document.getElementById("franceButton");
       const tooltip = document.getElementById("tooltip");
       const tooltipLabel = document.getElementById("tooltipLabel");
       const tooltipValue = document.getElementById("tooltipValue");
@@ -1288,14 +1581,15 @@ __CHAPTER_SECTIONS_HTML__
         phase: "landing",
         selectedRegion: "11",
         sectorMetric: "effectifs_cvs",
-        sectorKey: null,
+        sectorSeriesKey: null,
+        sectorFocusKey: "rebound",
         autoMetric: "economically_active",
         autoSector: null,
         rarMetric: "rar_90",
       };
 
       const chartRefs = {
-        regionMap: { cameraGroup: null, cameraState: { scale: 1, x: 0, y: 0 }, focusGroup: null, pathByCode: new Map(), rootGroup: null, pathGeneratorByCode: new Map() },
+        regionMap: { cameraGroup: null, cameraState: { scale: 1, x: 0, y: 0 }, focusGroup: null, pathByCode: new Map(), labelByCode: new Map(), rootGroup: null, pathGeneratorByCode: new Map() },
       };
       let storyRenderHandle = null;
       let scrollRevealMounted = false;
@@ -1600,6 +1894,10 @@ __CHAPTER_REGISTRY_SCRIPT__
         switchRail.classList.toggle("is-visible", state.phase !== "landing");
       }
 
+      function renderHeaderActions() {
+        backToMapButton.hidden = state.phase === "landing";
+      }
+
       function renderHero() {
         const eyebrow = document.getElementById("heroEyebrow");
         const title = document.getElementById("heroTitle");
@@ -1737,6 +2035,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         );
         const path = d3.geoPath(projection);
         const pathByCode = new Map();
+        const labelByCode = new Map();
         const pathGeneratorByCode = new Map();
 
         const mainlandGroup = featureLayer.append("g").attr("class", "mainland-layer");
@@ -1764,6 +2063,35 @@ __CHAPTER_REGISTRY_SCRIPT__
           pathByCode.set(key, element);
           pathGeneratorByCode.set(key, path);
         });
+        if (config.showMainlandLabels) {
+          const labelLayer = featureLayer.append("g").attr("class", "mainland-label-layer");
+          mainlandFeatures.forEach((feature) => {
+            const code = config.regionResolver(feature);
+            const region = regionsByCode.get(code);
+            if (!region) return;
+            const layout = MAINLAND_REGION_LABELS.get(code) || { lines: [region.name] };
+            const [baseX, baseY] = path.centroid(feature);
+            if (!Number.isFinite(baseX) || !Number.isFinite(baseY)) return;
+            const x = baseX + (layout.dx || 0);
+            const lineHeight = layout.lineHeight || 14;
+            const startY = baseY + (layout.dy || 0) - ((layout.lines.length - 1) * lineHeight) / 2;
+            const text = labelLayer.append("text")
+              .attr("class", "map-region-label")
+              .attr("x", x)
+              .attr("y", startY)
+              .attr("data-code", code);
+            if (layout.fontSize) {
+              text.style("font-size", `${layout.fontSize}px`);
+            }
+            layout.lines.forEach((line, index) => {
+              text.append("tspan")
+                .attr("x", x)
+                .attr("y", startY + index * lineHeight)
+                .text(line);
+            });
+            labelByCode.set(code, text);
+          });
+        }
 
         Object.entries(mapLayout.domInsets).forEach(([regionCode, inset]) => {
           const insetFeatures = features.filter((feature) => config.regionResolver(feature) === regionCode);
@@ -1801,7 +2129,7 @@ __CHAPTER_REGISTRY_SCRIPT__
           });
         });
 
-        return { rootGroup: root, cameraGroup, cameraState: { scale: 1, x: 0, y: 0 }, featureLayer, focusGroup, pathByCode, pathGeneratorByCode };
+        return { rootGroup: root, cameraGroup, cameraState: { scale: 1, x: 0, y: 0 }, featureLayer, focusGroup, pathByCode, labelByCode, pathGeneratorByCode };
       }
 
       function renderLandingMap() {
@@ -1812,6 +2140,7 @@ __CHAPTER_REGISTRY_SCRIPT__
           : () => paletteToken("map-national-low", "rgba(255,255,255,0.08)");
         chartRefs.regionMap = drawCompositeMap(landingMapSvg, displayRegionsGeojson, {
           clickable: true,
+          showMainlandLabels: true,
           keyResolver: (feature) => feature.properties.code,
           regionResolver: (feature) => feature.properties.code,
           className: (feature) => `path-region${regionsByCode.get(feature.properties.code).hasData ? "" : " is-unavailable"}`,
@@ -1847,6 +2176,15 @@ __CHAPTER_REGISTRY_SCRIPT__
           if (isSelected) {
             element.raise();
           }
+        });
+        chartRefs.regionMap.labelByCode.forEach((element, code) => {
+          element.attr("display", state.phase === "region" ? "none" : null);
+        });
+      }
+
+      function hideMapLabels() {
+        chartRefs.regionMap.labelByCode.forEach((element) => {
+          element.attr("display", "none");
         });
       }
 
@@ -1993,7 +2331,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         deferredDataPromise ??= parseDeferredData().then((deferred) => {
           DATA.geography = { ...DATA.geography, ...deferred.geography };
           DATA.modules = deferred.modules;
-          state.sectorKey ??= DATA.modules.sector.national.defaultSector;
+          state.sectorSeriesKey ??= DATA.modules.sector.national.defaultSeriesKey;
           state.autoSector ??= DATA.modules.auto.defaultSector;
           return DATA;
         });
@@ -2052,6 +2390,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         state.phase = phase;
         stageShell.dataset.phase = phase;
         clearChapterScrollLock();
+        renderHeaderActions();
         if (phase === "landing") {
           story.classList.remove("is-visible");
           switchRail.classList.remove("is-visible");
@@ -2082,6 +2421,22 @@ __CHAPTER_REGISTRY_SCRIPT__
         });
         timeline.add(() => clearFocusOverlay());
         return timeline;
+      }
+
+      function transitionToLanding() {
+        regionTransitionToken += 1;
+        clearFocusOverlay();
+        gsap.killTweensOf(chartRefs.regionMap.cameraState);
+        gsap.killTweensOf(mapStage);
+        stageVideo.pause();
+        resetCamera();
+        setTheme(null);
+        applyPhase("landing");
+        renderLandingMap();
+        window.scrollTo({
+          top: 0,
+          behavior: REDUCED_MOTION ? "auto" : "smooth",
+        });
       }
 
       function transitionToNational(fromRail) {
@@ -2117,6 +2472,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         const transitionToken = ++regionTransitionToken;
         state.selectedRegion = regionCode;
         setTheme(regionCode);
+        hideMapLabels();
         renderHero();
         renderSwitchRail();
         updateVideo(regionCode);
@@ -2156,12 +2512,13 @@ __CHAPTER_REGISTRY_SCRIPT__
         );
         if (transitionToken !== regionTransitionToken) return;
 
+        clearFocusOverlay();
         applyPhase("region");
         renderHero();
         await new Promise((resolve) => {
           gsap.to(mapStage, {
             opacity: 0,
-            duration: 0.95,
+            duration: 0.32,
             ease: "power2.inOut",
             onComplete: resolve,
           });
@@ -2201,7 +2558,8 @@ __CHAPTER_MODULES_SCRIPT__
       }
 
       function initStageButtons() {
-        document.getElementById("franceButton").addEventListener("click", () => transitionToNational(false));
+        franceButton.addEventListener("click", () => transitionToNational(false));
+        backToMapButton.addEventListener("click", transitionToLanding);
       }
 
       function initChapterNavigation() {
@@ -2224,6 +2582,7 @@ __CHAPTER_MODULES_SCRIPT__
 
       function boot() {
         applyCurrentPalette({ persist: false });
+        setTheme(null);
         initPaletteDevtools();
         initChapterNavigation();
         setupFooter();
@@ -2231,6 +2590,7 @@ __CHAPTER_MODULES_SCRIPT__
         renderLandingMap();
         renderHero();
         renderSwitchRail();
+        renderHeaderActions();
         stageVideo.muted = true;
         setMapStageMode("landing");
         ensureDeferredData().catch((error) => console.error("Deferred payload error", error));

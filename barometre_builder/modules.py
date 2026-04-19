@@ -31,107 +31,131 @@ def build_video_manifest(region_meta: dict[str, dict[str, Any]]) -> dict[str, An
 def build_sector_module(rows: list[dict[str, str]], region_meta: dict[str, dict[str, Any]]) -> tuple[dict[str, Any], dict[str, Any]]:
     filtered_rows = [row for row in rows if normalize_code(row["Code région"]) in region_meta]
     latest_date = max(row["Dernier jour du trimestre"] for row in filtered_rows)
+    aggregate_key = "population-entiere"
     sector_labels = sorted({row["Secteur NA28i"] for row in filtered_rows})
     sector_ids = build_slug_index(sector_labels)
-
-    region_series_map: dict[str, dict[str, dict[str, Any]]] = defaultdict(lambda: defaultdict(lambda: {"label": "", "points": []}))
+    labels_by_key = {aggregate_key: "Population entière", **{sector_id: label for label, sector_id in sector_ids.items()}}
+    region_accumulator: dict[str, dict[str, dict[str, dict[str, float]]]] = defaultdict(
+        lambda: defaultdict(lambda: defaultdict(lambda: {"effectifs_cvs": 0.0, "masse_cvs": 0.0}))
+    )
     national_accumulator: dict[str, dict[str, dict[str, float]]] = defaultdict(
         lambda: defaultdict(lambda: {"effectifs_cvs": 0.0, "masse_cvs": 0.0})
     )
-    region_latest: dict[str, dict[str, dict[str, float]]] = defaultdict(
-        lambda: defaultdict(lambda: {"effectifs_cvs": 0.0, "masse_cvs": 0.0})
-    )
+
+    def accumulate(bucket: dict[str, dict[str, dict[str, float]]], series_key: str, date: str, effectifs: float, masse: float) -> None:
+        bucket[series_key][date]["effectifs_cvs"] += effectifs
+        bucket[series_key][date]["masse_cvs"] += masse
 
     for row in filtered_rows:
         code = normalize_code(row["Code région"])
         date = row["Dernier jour du trimestre"]
-        sector_label = row["Secteur NA28i"]
-        sector_id = sector_ids[sector_label]
+        sector_id = sector_ids[row["Secteur NA28i"]]
         effectifs = float(parse_number(row["Effectifs salariés (CVS)"]) or 0)
         masse = float(parse_number(row["Masse salariale (CVS)"]) or 0)
-        region_series_map[code][sector_id]["label"] = sector_label
-        region_series_map[code][sector_id]["points"].append(
-            {"date": date, "effectifs_cvs": compact_number(effectifs), "masse_cvs": compact_number(masse)}
+        accumulate(region_accumulator[code], aggregate_key, date, effectifs, masse)
+        accumulate(region_accumulator[code], sector_id, date, effectifs, masse)
+        accumulate(national_accumulator, aggregate_key, date, effectifs, masse)
+        accumulate(national_accumulator, sector_id, date, effectifs, masse)
+
+    def build_series(points_by_date: dict[str, dict[str, float]]) -> list[dict[str, Any]]:
+        ordered_dates = sorted(points_by_date)
+        points: list[dict[str, Any]] = []
+        previous_quarter: dict[str, float] | None = None
+
+        for date in ordered_dates:
+            values = points_by_date[date]
+            previous_year = points_by_date.get(f"{int(date[:4]) - 1}{date[4:]}")
+            effectifs = values["effectifs_cvs"]
+            masse = values["masse_cvs"]
+            effectifs_yoy = ((effectifs / previous_year["effectifs_cvs"]) - 1) * 100 if previous_year and previous_year["effectifs_cvs"] else None
+            masse_yoy = ((masse / previous_year["masse_cvs"]) - 1) * 100 if previous_year and previous_year["masse_cvs"] else None
+            effectifs_qoq = ((effectifs / previous_quarter["effectifs_cvs"]) - 1) * 100 if previous_quarter and previous_quarter["effectifs_cvs"] else None
+            masse_qoq = ((masse / previous_quarter["masse_cvs"]) - 1) * 100 if previous_quarter and previous_quarter["masse_cvs"] else None
+            points.append(
+                {
+                    "date": date,
+                    "effectifs_cvs": compact_number(effectifs),
+                    "masse_cvs": compact_number(masse),
+                    "effectifs_yoy": compact_number(effectifs_yoy),
+                    "masse_yoy": compact_number(masse_yoy),
+                    "effectifs_qoq": compact_number(effectifs_qoq),
+                    "masse_qoq": compact_number(masse_qoq),
+                }
+            )
+            previous_quarter = values
+        return points
+
+    def build_scope(series_map: dict[str, dict[str, dict[str, float]]]) -> dict[str, Any]:
+        series_payload: dict[str, Any] = {}
+        option_rows: list[dict[str, Any]] = []
+        latest_scope_date = None
+
+        for series_key, points_by_date in series_map.items():
+            points = build_series(points_by_date)
+            if not points:
+                continue
+            latest_point = points[-1]
+            latest_scope_date = max(latest_scope_date, latest_point["date"]) if latest_scope_date else latest_point["date"]
+            series_payload[series_key] = {
+                "label": labels_by_key.get(series_key, series_key),
+                "points": points,
+            }
+            option_rows.append(
+                {
+                    "key": series_key,
+                    "label": labels_by_key.get(series_key, series_key),
+                    "latestEffectifs": latest_point["effectifs_cvs"] or 0,
+                }
+            )
+
+        ordered_options = []
+        if aggregate_key in series_payload:
+            ordered_options.append({"key": aggregate_key, "label": labels_by_key[aggregate_key]})
+        ordered_options.extend(
+            {"key": item["key"], "label": item["label"]}
+            for item in sorted(
+                (item for item in option_rows if item["key"] != aggregate_key),
+                key=lambda item: (-float(item["latestEffectifs"] or 0), item["label"]),
+            )
         )
-        national_accumulator[sector_id][date]["effectifs_cvs"] += effectifs
-        national_accumulator[sector_id][date]["masse_cvs"] += masse
-        if date == latest_date:
-            region_latest[code][sector_id]["effectifs_cvs"] += effectifs
-            region_latest[code][sector_id]["masse_cvs"] += masse
+        default_series_key = ordered_options[0]["key"] if ordered_options else None
+        return {
+            "latestDate": latest_scope_date,
+            "defaultSeriesKey": default_series_key,
+            "seriesOptions": ordered_options,
+            "series": series_payload,
+        }
 
     region_payload: dict[str, Any] = {}
     hero_regions: dict[str, Any] = {}
     for code in EXPERIENCE_REGION_CODES:
-        series = region_series_map.get(code, {})
-        latest_rows = [
-            {
-                "key": sector_id,
-                "label": series.get(sector_id, {}).get("label") or sector_id,
-                "effectifs_cvs": compact_number(values["effectifs_cvs"]),
-                "masse_cvs": compact_number(values["masse_cvs"]),
-            }
-            for sector_id, values in region_latest.get(code, {}).items()
-        ]
-        latest_rows.sort(key=lambda item: item["effectifs_cvs"] or 0, reverse=True)
-        region_payload[code] = {
-            "latestDate": latest_date,
-            "defaultSector": latest_rows[0]["key"] if latest_rows else None,
-            "latest": latest_rows,
-            "series": {
-                sector_id: {"label": data["label"], "points": sorted(data["points"], key=lambda point: point["date"])}
-                for sector_id, data in series.items()
-            },
-        }
+        scope = build_scope(region_accumulator.get(code, {}))
+        aggregate_series = scope["series"].get(aggregate_key, {})
+        latest_point = (aggregate_series.get("points") or [None])[-1]
+        region_payload[code] = scope
         hero_regions[code] = {
-            "date": latest_date if latest_rows else None,
-            "value": compact_number(sum(float(item["effectifs_cvs"] or 0) for item in latest_rows)) if latest_rows else None,
+            "date": latest_point["date"] if latest_point else None,
+            "value": latest_point["effectifs_cvs"] if latest_point else None,
         }
 
-    national_series: dict[str, Any] = {}
-    national_latest_rows = []
-    label_by_sector_id = {sector_id: label for label, sector_id in sector_ids.items()}
-    for sector_id, points_by_date in national_accumulator.items():
-        label = label_by_sector_id[sector_id]
-        points = []
-        latest_effectifs = 0.0
-        latest_masse = 0.0
-        for date, values in sorted(points_by_date.items()):
-            points.append(
-                {"date": date, "effectifs_cvs": compact_number(values["effectifs_cvs"]), "masse_cvs": compact_number(values["masse_cvs"])}
-            )
-            if date == latest_date:
-                latest_effectifs += values["effectifs_cvs"]
-                latest_masse += values["masse_cvs"]
-        national_series[sector_id] = {"label": label, "points": points}
-        national_latest_rows.append(
-            {
-                "key": sector_id,
-                "label": label,
-                "effectifs_cvs": compact_number(latest_effectifs),
-                "masse_cvs": compact_number(latest_masse),
-            }
-        )
-    national_latest_rows.sort(key=lambda item: item["effectifs_cvs"] or 0, reverse=True)
+    national_scope = build_scope(national_accumulator)
+    national_latest = (national_scope["series"].get(aggregate_key, {}).get("points") or [None])[-1]
 
     return (
         {
+            "displayStartDate": "2014-01-01",
             "metrics": [
-                {"key": "effectifs_cvs", "label": "Effectifs CVS", "format": "count"},
-                {"key": "masse_cvs", "label": "Masse salariale CVS", "format": "currency"},
+                {"key": "effectifs_cvs", "label": "Effectifs", "format": "count"},
+                {"key": "masse_cvs", "label": "Masse salariale", "format": "currency"},
             ],
             "regions": region_payload,
-            "national": {
-                "latestDate": latest_date,
-                "defaultSector": national_latest_rows[0]["key"] if national_latest_rows else None,
-                "latest": national_latest_rows,
-                "series": national_series,
-            },
+            "national": national_scope,
         },
         {
             "regions": hero_regions,
             "national": {
-                "date": latest_date,
-                "value": compact_number(sum(float(item["effectifs_cvs"] or 0) for item in national_latest_rows)),
+                "date": national_latest["date"] if national_latest else latest_date,
+                "value": national_latest["effectifs_cvs"] if national_latest else None,
             },
         },
     )

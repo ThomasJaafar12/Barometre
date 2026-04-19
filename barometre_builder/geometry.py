@@ -3,8 +3,9 @@
 from copy import deepcopy
 from typing import Any
 
-from .config import DOM_REGION_CODES, EXPERIENCE_REGION_CODES, GEOMETRY_OPTIMIZATION, REGION_GEOJSON_PATH, REGION_THEMES
+from .config import DOM_REGION_CODES, EXPERIENCE_REGION_CODES, GEOMETRY_OPTIMIZATION, REGION_GEOJSON_PATH
 from .io import ensure_department_geojson
+from .palettes import DEFAULT_REGION_THEMES
 from .utils import load_json, normalize_code, normalize_department_code, slugify
 
 
@@ -36,7 +37,7 @@ def trim_region_geojson() -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
             "name": name,
             "slug": slugify(name),
             "group": "dom" if code in DOM_REGION_CODES else "mainland",
-            "theme": REGION_THEMES[index],
+            "theme": DEFAULT_REGION_THEMES[index],
         }
     return {"type": "FeatureCollection", "features": features}, region_meta
 

@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mockup chapitres editorial</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@500;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #15202d;
+      --bg-panel: rgba(27, 38, 53, 0.9);
+      --bg-panel-2: rgba(40, 53, 70, 0.96);
+      --text: #edf3fb;
+      --muted: #9eacc0;
+      --muted-2: #c8d3df;
+      --stroke: rgba(255, 255, 255, 0.1);
+      --stroke-2: rgba(189, 208, 232, 0.22);
+      --shadow: 0 28px 80px rgba(5, 10, 18, 0.42);
+      --hero-shadow: 0 14px 40px rgba(0, 0, 0, 0.2);
+      --active-ink: #1d2b40;
+      --rail-line: rgba(211, 225, 255, 0.26);
+      --tab-gap: -16px;
+      --tab-radius: 0;
+      --tab-min-width: 210px;
+      --tab-height: 70px;
+      --tab-height-active: 84px;
+      --tab-skew-left: 24px;
+      --tab-skew-right: 28px;
+      --tab-border: rgba(61, 85, 126, 0.42);
+      --tab-overlay: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.08));
+      --tab-label-weight: 800;
+      --tab-meta-opacity: 0.72;
+      --tab-shadow-strength: 0 18px 30px rgba(0, 0, 0, 0.18);
+      --active-shadow-strength: 0 24px 40px rgba(0, 0, 0, 0.24);
+      --rail-padding: 18px;
+      --rail-bottom-pad: 0px;
+      --surface-glow-a: rgba(94, 147, 255, 0.18);
+      --surface-glow-b: rgba(255, 183, 220, 0.12);
+      --title-font: "Space Grotesk", sans-serif;
+      --body-font: "Manrope", sans-serif;
+      --mono-font: "IBM Plex Mono", monospace;
+      --preview-accent: linear-gradient(135deg, rgba(132, 169, 244, 0.48), rgba(246, 178, 195, 0.32));
+      --tone-1: linear-gradient(180deg, #f4f7ff 0%, #dce6ff 100%);
+      --tone-2: linear-gradient(180deg, #ffd7f5 0%, #efb8e5 100%);
+      --tone-3: linear-gradient(180deg, #cef7d7 0%, #afe8bb 100%);
+      --tone-4: linear-gradient(180deg, #c7eaff 0%, #a9d6f5 100%);
+      --tone-5: linear-gradient(180deg, #ffe2f1 0%, #f4c5e5 100%);
+      --tone-1-shadow: rgba(161, 186, 246, 0.26);
+      --tone-2-shadow: rgba(222, 130, 209, 0.28);
+      --tone-3-shadow: rgba(118, 214, 146, 0.26);
+      --tone-4-shadow: rgba(100, 179, 227, 0.28);
+      --tone-5-shadow: rgba(227, 152, 194, 0.26);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+    }
+
+    body {
+      font-family: var(--body-font);
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(96, 129, 176, 0.22), transparent 24%),
+        radial-gradient(circle at right 18% top 12%, rgba(140, 98, 186, 0.14), transparent 22%),
+        linear-gradient(180deg, #132031 0%, #182433 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(149, 168, 201, 0.22) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(149, 168, 201, 0.22) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.54), transparent 74%);
+      pointer-events: none;
+    }
+
+    .page {
+      width: min(1490px, calc(100vw - 26px));
+      margin: 18px auto 36px;
+    }
+
+    .stage {
+      position: relative;
+      border-radius: 36px;
+      padding: 22px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+        var(--bg-panel);
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .stage::before,
+    .stage::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(20px);
+      opacity: 0.64;
+      z-index: -1;
+      transition: background 220ms ease, opacity 220ms ease;
+    }
+
+    .stage::before {
+      width: 320px;
+      height: 320px;
+      background: var(--surface-glow-a);
+      top: -120px;
+      left: -80px;
+    }
+
+    .stage::after {
+      width: 380px;
+      height: 380px;
+      background: var(--surface-glow-b);
+      right: -110px;
+      bottom: -170px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 14px;
+    }
+
+    .eyebrow {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow strong {
+      color: var(--muted-2);
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+
+    .variant-switcher {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      max-width: 760px;
+    }
+
+    .variant-chip {
+      appearance: none;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      color: #dfe9f6;
+      padding: 12px 14px;
+      min-height: 44px;
+      border-radius: 999px;
+      font: 800 0.8rem var(--body-font);
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+    }
+
+    .variant-chip:hover,
+    .variant-chip:focus-visible {
+      transform: translateY(-1px);
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .variant-chip.is-active {
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 12px 24px rgba(0, 0, 0, 0.16);
+    }
+
+    .variant-intro {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 16px;
+      align-items: start;
+      padding: 0 4px 16px;
+    }
+
+    .variant-caption {
+      margin: 0;
+      max-width: 920px;
+      color: var(--muted-2);
+      line-height: 1.55;
+      font-size: 1rem;
+    }
+
+    .variant-caption strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #f2f7fd;
+      font: 700 1rem var(--title-font);
+      letter-spacing: -0.03em;
+    }
+
+    .variant-score {
+      display: grid;
+      gap: 10px;
+      padding: 16px 18px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .variant-score strong {
+      color: #f4f8fe;
+      font: 700 0.92rem var(--title-font);
+      letter-spacing: -0.02em;
+    }
+
+    .variant-score span {
+      color: var(--muted);
+      font-size: 0.93rem;
+      line-height: 1.45;
+    }
+
+    .tab-rail {
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      gap: 0;
+      min-height: 92px;
+      padding: 0 var(--rail-padding) var(--rail-bottom-pad);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .tab-rail::-webkit-scrollbar { display: none; }
+
+    .tab-rail::after {
+      content: "";
+      position: absolute;
+      left: var(--rail-padding);
+      right: var(--rail-padding);
+      bottom: 0;
+      height: 1px;
+      background: var(--rail-line);
+      transition: background 220ms ease;
+    }
+
+    .chapter-tab {
+      position: relative;
+      flex: 0 0 auto;
+      min-width: var(--tab-min-width);
+      margin-right: var(--tab-gap);
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: #213149;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: transform 220ms ease, filter 220ms ease, opacity 220ms ease;
+    }
+
+    .chapter-tab:hover,
+    .chapter-tab:focus-visible {
+      transform: translateY(-3px);
+      outline: none;
+      filter: brightness(1.03);
+    }
+
+    .chapter-tab__shape {
+      position: relative;
+      display: grid;
+      gap: 8px;
+      min-height: var(--tab-height);
+      padding: 16px 28px 14px 24px;
+      clip-path: polygon(0 0, calc(100% - var(--tab-skew-right)) 0, 100% 100%, var(--tab-skew-left) 100%);
+      border: 1px solid var(--tab-border);
+      border-bottom: 0;
+      border-radius: var(--tab-radius);
+      background: var(--tab-overlay), var(--tone-1);
+      box-shadow: var(--tab-shadow-strength);
+      overflow: hidden;
+      transition:
+        min-height 220ms ease,
+        border-color 220ms ease,
+        box-shadow 220ms ease,
+        border-radius 220ms ease,
+        clip-path 220ms ease,
+        background 220ms ease;
+    }
+
+    .chapter-tab__shape::before,
+    .chapter-tab__shape::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      transition: opacity 220ms ease, transform 220ms ease, background 220ms ease;
+    }
+
+    .chapter-tab__shape::before {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.26), transparent 55%);
+      opacity: 0.8;
+    }
+
+    .chapter-tab__shape::after {
+      inset: auto 18px 12px 18px;
+      height: 1px;
+      background: rgba(33, 49, 73, 0.16);
+      opacity: 0;
+      transform: scaleX(0.3);
+      transform-origin: left center;
+    }
+
+    .chapter-tab[data-tone="1"] .chapter-tab__shape { background: var(--tab-overlay), var(--tone-1); box-shadow: 0 16px 26px var(--tone-1-shadow); }
+    .chapter-tab[data-tone="2"] .chapter-tab__shape { background: var(--tab-overlay), var(--tone-2); box-shadow: 0 16px 26px var(--tone-2-shadow); }
+    .chapter-tab[data-tone="3"] .chapter-tab__shape { background: var(--tab-overlay), var(--tone-3); box-shadow: 0 16px 26px var(--tone-3-shadow); }
+    .chapter-tab[data-tone="4"] .chapter-tab__shape { background: var(--tab-overlay), var(--tone-4); box-shadow: 0 16px 26px var(--tone-4-shadow); }
+    .chapter-tab[data-tone="5"] .chapter-tab__shape { background: var(--tab-overlay), var(--tone-5); box-shadow: 0 16px 26px var(--tone-5-shadow); }
+
+    .chapter-tab__index {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: rgba(33, 49, 73, 0.64);
+      font-family: var(--mono-font);
+      font-size: 0.72rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .chapter-tab__index::after {
+      content: "";
+      width: 34px;
+      height: 1px;
+      background: currentColor;
+      opacity: 0.42;
+    }
+
+    .chapter-tab__label {
+      font-family: var(--title-font);
+      font-size: 1.06rem;
+      font-weight: var(--tab-label-weight);
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+
+    .chapter-tab__meta {
+      color: rgba(33, 49, 73, var(--tab-meta-opacity));
+      font-size: 0.79rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .chapter-tab.is-active {
+      z-index: 5;
+      transform: translateY(0);
+    }
+
+    .chapter-tab.is-active .chapter-tab__shape {
+      min-height: var(--tab-height-active);
+      box-shadow: var(--active-shadow-strength);
+    }
+
+    .chapter-tab.is-active .chapter-tab__shape::after {
+      opacity: 1;
+      transform: scaleX(1);
+    }
+
+    .chapter-tab:not(.is-active) {
+      z-index: 1;
+      filter: saturate(0.9);
+    }
+
+    .preview-shell {
+      position: relative;
+      padding: 28px 24px 24px;
+      border-radius: 0 28px 28px 28px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
+        var(--bg-panel-2);
+      border: 1px solid var(--stroke-2);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      transition: background 220ms ease, border-color 220ms ease;
+    }
+
+    .preview-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(128deg, rgba(255, 255, 255, 0.04), transparent 34%);
+      pointer-events: none;
+    }
+
+    .preview-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 22px;
+      margin-bottom: 24px;
+    }
+
+    .preview-kicker {
+      margin-bottom: 8px;
+      color: #91a4bc;
+      font-family: var(--mono-font);
+      font-size: 0.72rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .preview-title {
+      margin: 0;
+      max-width: 780px;
+      font-family: var(--title-font);
+      font-size: clamp(2.8rem, 5vw, 5.3rem);
+      line-height: 0.92;
+      letter-spacing: -0.07em;
+      text-wrap: balance;
+      text-shadow: var(--hero-shadow);
+    }
+
+    .preview-subtitle {
+      margin: 14px 0 0;
+      max-width: 800px;
+      color: var(--muted-2);
+      font-size: 1.06rem;
+      line-height: 1.6;
+    }
+
+    .preview-pills {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .preview-pill {
+      padding: 12px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.06);
+      color: #f2f6fb;
+      font-size: 0.95rem;
+      font-weight: 800;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      transition: background 220ms ease;
+    }
+
+    .preview-pill.is-active { background: var(--preview-accent); }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: 1.06fr 0.94fr;
+      gap: 18px;
+    }
+
+    .module-card {
+      border-radius: 28px;
+      padding: 20px 18px 18px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    .module-card h3,
+    .module-card p {
+      margin: 0;
+    }
+
+    .module-card h3 {
+      font-family: var(--title-font);
+      font-size: 1.12rem;
+      font-weight: 700;
+      color: #f4f7fb;
+      letter-spacing: -0.03em;
+    }
+
+    .module-card p {
+      margin-top: 8px;
+      color: #bdc9d8;
+      line-height: 1.55;
+      font-size: 0.96rem;
+    }
+
+    .bar-stack {
+      display: grid;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: minmax(0, 230px) minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 14px;
+      color: #dbe4ef;
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .bar-track {
+      position: relative;
+      height: 30px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(143, 163, 196, 0.18);
+    }
+
+    .bar-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, rgba(110, 155, 230, 0.78), rgba(96, 177, 255, 0.98));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
+    }
+
+    .line-chart {
+      position: relative;
+      margin-top: 20px;
+      height: 270px;
+      border-radius: 24px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01)),
+        rgba(14, 21, 31, 0.2);
+    }
+
+    .line-chart svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .spec-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .spec {
+      padding: 14px 16px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .spec strong,
+    .spec span {
+      display: block;
+    }
+
+    .spec strong {
+      color: #f4f8fc;
+      font-size: 0.84rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .spec span {
+      margin-top: 8px;
+      color: #bdd0e8;
+      line-height: 1.5;
+      font-size: 0.93rem;
+    }
+
+    .footer-note {
+      margin-top: 16px;
+      color: #8fa2bb;
+      font-size: 0.9rem;
+    }
+
+    body[data-variant="editorial"] {
+      --surface-glow-a: rgba(94, 147, 255, 0.18);
+      --surface-glow-b: rgba(255, 183, 220, 0.12);
+      --bg-panel-2: rgba(40, 53, 70, 0.96);
+      --preview-accent: linear-gradient(135deg, rgba(132, 169, 244, 0.48), rgba(246, 178, 195, 0.32));
+    }
+
+    body[data-variant="glass"] {
+      --surface-glow-a: rgba(78, 206, 255, 0.16);
+      --surface-glow-b: rgba(124, 240, 224, 0.12);
+      --rail-line: rgba(185, 244, 255, 0.36);
+      --tab-gap: 10px;
+      --tab-radius: 24px;
+      --tab-height: 74px;
+      --tab-height-active: 88px;
+      --tab-skew-left: 16px;
+      --tab-skew-right: 16px;
+      --tab-border: rgba(217, 248, 255, 0.28);
+      --tab-overlay: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03));
+      --preview-accent: linear-gradient(135deg, rgba(105, 227, 255, 0.48), rgba(135, 247, 215, 0.26));
+      --tone-1: linear-gradient(180deg, rgba(224, 244, 255, 0.16), rgba(191, 219, 255, 0.08));
+      --tone-2: linear-gradient(180deg, rgba(240, 230, 255, 0.16), rgba(212, 193, 255, 0.08));
+      --tone-3: linear-gradient(180deg, rgba(223, 255, 246, 0.16), rgba(170, 255, 229, 0.08));
+      --tone-4: linear-gradient(180deg, rgba(227, 248, 255, 0.16), rgba(183, 228, 255, 0.08));
+      --tone-5: linear-gradient(180deg, rgba(255, 232, 244, 0.16), rgba(255, 201, 227, 0.08));
+      --tone-1-shadow: rgba(65, 145, 222, 0.12);
+      --tone-2-shadow: rgba(147, 124, 214, 0.12);
+      --tone-3-shadow: rgba(74, 189, 173, 0.12);
+      --tone-4-shadow: rgba(80, 178, 214, 0.12);
+      --tone-5-shadow: rgba(204, 118, 176, 0.12);
+      --active-ink: #ebf7ff;
+      --stroke-2: rgba(189, 239, 249, 0.22);
+      --hero-shadow: 0 20px 38px rgba(0, 0, 0, 0.3);
+    }
+
+    body[data-variant="glass"] .stage {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+        rgba(19, 31, 44, 0.82);
+      backdrop-filter: blur(22px);
+    }
+
+    body[data-variant="glass"] .chapter-tab {
+      color: #e7f8ff;
+    }
+
+    body[data-variant="glass"] .chapter-tab__shape {
+      backdrop-filter: blur(18px);
+      box-shadow: 0 12px 30px rgba(10, 24, 39, 0.24);
+    }
+
+    body[data-variant="glass"] .chapter-tab__shape::before {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 64%),
+        radial-gradient(circle at 15% 0%, rgba(255, 255, 255, 0.25), transparent 36%);
+      opacity: 1;
+    }
+
+    body[data-variant="glass"] .chapter-tab__shape::after {
+      inset: 0;
+      height: auto;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), transparent 38%);
+      opacity: 0.9;
+      transform: none;
+      mix-blend-mode: screen;
+    }
+
+    body[data-variant="glass"] .chapter-tab__index,
+    body[data-variant="glass"] .chapter-tab__meta {
+      color: rgba(231, 248, 255, 0.72);
+    }
+
+    body[data-variant="glass"] .chapter-tab__label {
+      color: #f2fbff;
+    }
+
+    body[data-variant="glass"] .chapter-tab.is-active .chapter-tab__shape {
+      box-shadow: 0 22px 42px rgba(7, 25, 39, 0.32), inset 0 0 0 1px rgba(214, 246, 255, 0.18);
+    }
+
+    body[data-variant="glass"] .preview-shell {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
+        rgba(28, 43, 59, 0.78);
+      backdrop-filter: blur(24px);
+    }
+
+    body[data-variant="gallery"] {
+      --surface-glow-a: rgba(226, 173, 81, 0.12);
+      --surface-glow-b: rgba(255, 223, 183, 0.09);
+      --rail-line: rgba(234, 205, 151, 0.3);
+      --tab-gap: -6px;
+      --tab-radius: 22px 22px 0 0;
+      --tab-height: 74px;
+      --tab-height-active: 92px;
+      --tab-skew-left: 20px;
+      --tab-skew-right: 34px;
+      --tab-border: rgba(176, 136, 68, 0.44);
+      --tab-overlay: linear-gradient(180deg, rgba(255, 250, 238, 0.34), rgba(255, 244, 224, 0.1));
+      --preview-accent: linear-gradient(135deg, rgba(212, 167, 96, 0.54), rgba(255, 229, 182, 0.24));
+      --tone-1: linear-gradient(180deg, #fff6e7 0%, #e8d9c0 100%);
+      --tone-2: linear-gradient(180deg, #f6eadf 0%, #ddc6b4 100%);
+      --tone-3: linear-gradient(180deg, #ecf1df 0%, #cfdbc1 100%);
+      --tone-4: linear-gradient(180deg, #e3ecf6 0%, #c6d2df 100%);
+      --tone-5: linear-gradient(180deg, #f7e7ea 0%, #dfc7cd 100%);
+      --tone-1-shadow: rgba(154, 108, 42, 0.2);
+      --tone-2-shadow: rgba(138, 96, 64, 0.18);
+      --tone-3-shadow: rgba(99, 129, 92, 0.16);
+      --tone-4-shadow: rgba(96, 119, 142, 0.16);
+      --tone-5-shadow: rgba(138, 91, 101, 0.16);
+      --active-ink: #342616;
+      --bg-panel-2: rgba(45, 39, 31, 0.92);
+      --stroke-2: rgba(207, 178, 119, 0.22);
+      --hero-shadow: 0 18px 32px rgba(0, 0, 0, 0.24);
+    }
+
+    body[data-variant="gallery"] .stage {
+      background:
+        linear-gradient(180deg, rgba(255, 248, 240, 0.03), rgba(255, 255, 255, 0.01)),
+        rgba(24, 29, 36, 0.94);
+    }
+
+    body[data-variant="gallery"] .chapter-tab__shape {
+      box-shadow: 0 10px 0 rgba(137, 102, 57, 0.2), 0 18px 24px rgba(0, 0, 0, 0.14);
+    }
+
+    body[data-variant="gallery"] .chapter-tab__shape::before {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent 54%),
+        linear-gradient(90deg, rgba(136, 104, 62, 0.12), transparent 40%);
+    }
+
+    body[data-variant="gallery"] .chapter-tab__shape::after {
+      inset: auto 18px 10px 18px;
+      background: linear-gradient(90deg, rgba(84, 60, 31, 0.4), rgba(84, 60, 31, 0.08));
+    }
+
+    body[data-variant="gallery"] .preview-shell {
+      background:
+        linear-gradient(180deg, rgba(255, 251, 244, 0.05), rgba(255, 246, 228, 0.01)),
+        rgba(49, 44, 37, 0.94);
+    }
+
+    body[data-variant="gallery"] .module-card,
+    body[data-variant="gallery"] .variant-score,
+    body[data-variant="gallery"] .spec {
+      background: rgba(255, 245, 226, 0.04);
+      border-color: rgba(212, 175, 115, 0.12);
+    }
+
+    body[data-variant="gallery"] .preview-pill {
+      border-color: rgba(214, 179, 119, 0.12);
+      color: #fff3df;
+    }
+
+    body[data-variant="monolith"] {
+      --surface-glow-a: rgba(110, 133, 185, 0.09);
+      --surface-glow-b: rgba(163, 205, 255, 0.06);
+      --rail-line: rgba(138, 160, 197, 0.26);
+      --tab-gap: 8px;
+      --tab-radius: 18px 18px 0 0;
+      --tab-height: 74px;
+      --tab-height-active: 98px;
+      --tab-skew-left: 10px;
+      --tab-skew-right: 10px;
+      --tab-border: rgba(141, 157, 187, 0.18);
+      --tab-overlay: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.01));
+      --preview-accent: linear-gradient(135deg, rgba(155, 188, 255, 0.34), rgba(127, 174, 255, 0.18));
+      --tone-1: linear-gradient(180deg, #2e3949 0%, #1f2835 100%);
+      --tone-2: linear-gradient(180deg, #353446 0%, #232330 100%);
+      --tone-3: linear-gradient(180deg, #253a37 0%, #1d2928 100%);
+      --tone-4: linear-gradient(180deg, #243746 0%, #1b2835 100%);
+      --tone-5: linear-gradient(180deg, #3f3241 0%, #2b222e 100%);
+      --tone-1-shadow: rgba(17, 23, 31, 0.3);
+      --tone-2-shadow: rgba(23, 18, 31, 0.3);
+      --tone-3-shadow: rgba(17, 31, 28, 0.3);
+      --tone-4-shadow: rgba(14, 25, 37, 0.3);
+      --tone-5-shadow: rgba(28, 18, 27, 0.3);
+      --active-ink: #f3f7fd;
+      --bg-panel-2: rgba(27, 34, 45, 0.98);
+      --stroke-2: rgba(162, 181, 216, 0.16);
+    }
+
+    body[data-variant="monolith"] .stage {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent),
+        rgba(15, 20, 28, 0.96);
+      border-color: rgba(185, 205, 238, 0.08);
+    }
+
+    body[data-variant="monolith"] .chapter-tab {
+      color: #edf4fb;
+    }
+
+    body[data-variant="monolith"] .chapter-tab__shape {
+      box-shadow: 0 20px 32px rgba(0, 0, 0, 0.3), inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    body[data-variant="monolith"] .chapter-tab__shape::before {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 56%);
+      opacity: 1;
+    }
+
+    body[data-variant="monolith"] .chapter-tab__shape::after {
+      inset: auto 20px 14px 20px;
+      background: linear-gradient(90deg, rgba(179, 209, 255, 0.78), rgba(179, 209, 255, 0.06));
+      opacity: 0.24;
+    }
+
+    body[data-variant="monolith"] .chapter-tab__index,
+    body[data-variant="monolith"] .chapter-tab__meta {
+      color: rgba(234, 242, 251, 0.66);
+    }
+
+    body[data-variant="monolith"] .chapter-tab__label {
+      color: #eff4fc;
+    }
+
+    body[data-variant="monolith"] .chapter-tab.is-active .chapter-tab__shape {
+      box-shadow:
+        0 28px 40px rgba(0, 0, 0, 0.36),
+        inset 0 0 0 1px rgba(184, 212, 255, 0.16),
+        inset 0 -2px 0 rgba(179, 209, 255, 0.36);
+    }
+
+    body[data-variant="monolith"] .preview-shell {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 28%),
+        rgba(24, 31, 42, 0.96);
+    }
+
+    body[data-variant="ribbon"] {
+      --surface-glow-a: rgba(255, 123, 88, 0.12);
+      --surface-glow-b: rgba(255, 197, 116, 0.1);
+      --rail-line: rgba(255, 200, 128, 0.28);
+      --tab-gap: -24px;
+      --tab-radius: 18px 18px 0 0;
+      --tab-height: 70px;
+      --tab-height-active: 88px;
+      --tab-skew-left: 28px;
+      --tab-skew-right: 34px;
+      --tab-border: rgba(255, 180, 127, 0.18);
+      --tab-overlay: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.03));
+      --preview-accent: linear-gradient(135deg, rgba(255, 150, 110, 0.46), rgba(255, 210, 133, 0.26));
+      --tone-1: linear-gradient(135deg, #f1775f 0%, #f4a66a 100%);
+      --tone-2: linear-gradient(135deg, #d1699d 0%, #f3a9c4 100%);
+      --tone-3: linear-gradient(135deg, #44b8a0 0%, #8adcbf 100%);
+      --tone-4: linear-gradient(135deg, #5d9df0 0%, #87d0ff 100%);
+      --tone-5: linear-gradient(135deg, #9f78ef 0%, #d1b1ff 100%);
+      --tone-1-shadow: rgba(209, 96, 64, 0.22);
+      --tone-2-shadow: rgba(170, 88, 132, 0.22);
+      --tone-3-shadow: rgba(54, 146, 128, 0.22);
+      --tone-4-shadow: rgba(62, 120, 197, 0.22);
+      --tone-5-shadow: rgba(118, 86, 184, 0.22);
+      --active-ink: #fff8f2;
+    }
+
+    body[data-variant="ribbon"] .chapter-tab__shape {
+      box-shadow: 0 20px 28px rgba(0, 0, 0, 0.18);
+    }
+
+    body[data-variant="ribbon"] .chapter-tab__shape::before {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.24), transparent 54%),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.12), transparent 42%);
+    }
+
+    body[data-variant="ribbon"] .chapter-tab__shape::after {
+      inset: 0 auto 0 0;
+      width: 14px;
+      height: auto;
+      background: rgba(255, 255, 255, 0.16);
+      opacity: 0.46;
+      transform: none;
+      clip-path: polygon(0 0, 100% 0, 72% 100%, 0 100%);
+    }
+
+    body[data-variant="ribbon"] .chapter-tab__index,
+    body[data-variant="ribbon"] .chapter-tab__meta,
+    body[data-variant="ribbon"] .chapter-tab__label {
+      color: #fffaf4;
+    }
+
+    body[data-variant="ribbon"] .chapter-tab__index,
+    body[data-variant="ribbon"] .chapter-tab__meta {
+      opacity: 0.84;
+    }
+
+    body[data-variant="ribbon"] .preview-shell {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
+        rgba(46, 41, 50, 0.92);
+    }
+
+    @media (max-width: 1180px) {
+      .variant-intro,
+      .preview-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-header {
+        flex-direction: column;
+      }
+
+      .preview-pills {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .page {
+        width: min(100vw - 14px, 1490px);
+        margin: 8px auto 24px;
+      }
+
+      .stage {
+        padding: 14px 12px 14px;
+        border-radius: 26px;
+      }
+
+      .topbar {
+        flex-direction: column;
+      }
+
+      .variant-switcher {
+        justify-content: flex-start;
+      }
+
+      .variant-chip {
+        padding: 10px 12px;
+        min-height: 40px;
+        font-size: 0.76rem;
+      }
+
+      .variant-intro {
+        padding-bottom: 12px;
+      }
+
+      .tab-rail {
+        min-height: 86px;
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+
+      .tab-rail::after {
+        left: 8px;
+        right: 8px;
+      }
+
+      .chapter-tab {
+        min-width: 184px;
+      }
+
+      .chapter-tab__shape {
+        min-height: 64px;
+        padding: 14px 20px 12px 18px;
+      }
+
+      .chapter-tab.is-active .chapter-tab__shape {
+        min-height: 76px;
+      }
+
+      .preview-shell {
+        padding: 18px 14px 14px;
+        border-radius: 0 20px 20px 20px;
+      }
+
+      .preview-title {
+        font-size: clamp(2.35rem, 13vw, 3.8rem);
+      }
+
+      .bar-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .spec-strip {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body data-variant="editorial">
+  <main class="page">
+    <section class="stage">
+      <div class="topbar">
+        <div class="eyebrow">
+          <span>Mockup autonome pour refonte des chapitres</span>
+          <strong>Barometre employment edition</strong>
+        </div>
+        <div class="variant-switcher" aria-label="Variantes visuelles">
+          <button class="variant-chip is-active" data-variant="editorial" type="button">V1 Editorial deck</button>
+          <button class="variant-chip" data-variant="glass" type="button">V2 Glass runway</button>
+          <button class="variant-chip" data-variant="gallery" type="button">V3 Gallery luxe</button>
+          <button class="variant-chip" data-variant="monolith" type="button">V4 Monolith</button>
+          <button class="variant-chip" data-variant="ribbon" type="button">V5 Ribbon couture</button>
+        </div>
+      </div>
+
+      <div class="variant-intro">
+        <p class="variant-caption" id="variantCaption">
+          <strong id="variantName">V1 Editorial deck</strong>
+          <span id="variantCaptionBody">
+            Le rail garde la logique de l'exemple que tu as valide, mais pousse la sensation de chapitre relie au panneau.
+            C'est la version la plus proche d'une direction premium "safe but strong".
+          </span>
+        </p>
+        <div class="variant-score">
+          <strong id="variantMood">Mood: editorial premium, lisible, deja credible en prod</strong>
+          <span id="variantWhy">Chaque tab porte un mini sous-message. L'actif gagne de la hauteur, de la couleur et un vrai raccord avec la scene principale.</span>
+        </div>
+      </div>
+
+      <nav class="tab-rail" aria-label="Chapitres">
+        <button class="chapter-tab is-active" data-tone="1" type="button" data-kicker="01 / effectifs et masse salariale" data-title="Des onglets qui ressemblent enfin a des chapitres." data-copy="La logique n'est plus celle de simples pills. Chaque chapitre devient une piece de sommaire editorial, connectee au canvas principal, avec une silhouette memoire, une couleur-guide et un vrai statut actif." data-focus="Le chapitre d'ouverture assume la largeur du sujet. Il sert de point d'entree, pas juste de bouton.">
+          <span class="chapter-tab__shape">
+            <span class="chapter-tab__index">01 / lecture</span>
+            <span class="chapter-tab__label">Secteurs</span>
+            <span class="chapter-tab__meta">ouverture large, gros sujet</span>
+          </span>
+        </button>
+        <button class="chapter-tab" data-tone="2" type="button" data-kicker="02 / flux mensuel" data-title="Le rail de navigation doit deja suggerer le rythme." data-copy="Le chapitre flux mensuel peut porter une tonalite plus nerveuse: meme structure, mais code couleur plus vif et promesse de lecture plus cadencee." data-focus="Le bon tab ne se contente pas de nommer le module. Il annonce le type de lecture a venir.">
+          <span class="chapter-tab__shape">
+            <span class="chapter-tab__index">02 / rythme</span>
+            <span class="chapter-tab__label">Flux mensuel</span>
+            <span class="chapter-tab__meta">cadence, saisonnalite, tension</span>
+          </span>
+        </button>
+        <button class="chapter-tab" data-tone="3" type="button" data-kicker="03 / auto-entrepreneurs" data-title="Un chapitre secondaire peut quand meme avoir du caractere." data-copy="Le traitement editorial garde la coherence du rail, mais reserve une nuance specifique a ce module pour signaler qu'il a sa propre logique de lecture." data-focus="La variation n'est pas decorative. Elle aide a memoriser les familles de contenu.">
+          <span class="chapter-tab__shape">
+            <span class="chapter-tab__index">03 / focus</span>
+            <span class="chapter-tab__label">Auto-entrepreneurs</span>
+            <span class="chapter-tab__meta">profil a part, lecture specifique</span>
+          </span>
+        </button>
+        <button class="chapter-tab" data-tone="4" type="button" data-kicker="04 / rar et horsto" data-title="Les modules experts gagnent a etre clarifies des le sommaire." data-copy="Le systeme d'onglets autorise un peu plus de precision sous le titre du chapitre. C'est utile ici, parce que le sigle seul ne raconte pas assez la matiere." data-focus="Plus le contenu est technique, plus le nav doit faire du travail de clarification.">
+          <span class="chapter-tab__shape">
+            <span class="chapter-tab__index">04 / tension</span>
+            <span class="chapter-tab__label">RAR / HORSTO</span>
+            <span class="chapter-tab__meta">lecture experte, module dense</span>
+          </span>
+        </button>
+        <button class="chapter-tab" data-tone="5" type="button" data-kicker="05 / extension" data-title="Le systeme peut s'etendre sans revenir aux pills." data-copy="Si un cinquieme chapitre apparait plus tard, la grammaire visuelle tient encore. Le rail accepte l'extension sans perdre sa lisibilite editoriale." data-focus="Le mockup sert aussi de preuve de robustesse si le nombre de chapitres evolue.">
+          <span class="chapter-tab__shape">
+            <span class="chapter-tab__index">05 / suite</span>
+            <span class="chapter-tab__label">Comparaisons</span>
+            <span class="chapter-tab__meta">optionnel si une suite existe</span>
+          </span>
+        </button>
+      </nav>
+
+      <section class="preview-shell">
+        <div class="preview-header">
+          <div>
+            <div class="preview-kicker" id="previewKicker">01 / effectifs et masse salariale</div>
+            <h1 class="preview-title" id="previewTitle">Des onglets qui ressemblent enfin a des chapitres.</h1>
+            <p class="preview-subtitle" id="previewCopy">
+              La logique n'est plus celle de simples pills. Chaque chapitre devient une piece de sommaire editorial,
+              connectee au canvas principal, avec une silhouette memoire, une couleur-guide et un vrai statut actif.
+            </p>
+          </div>
+          <div class="preview-pills" aria-label="Metriques">
+            <div class="preview-pill is-active">Effectifs CVS</div>
+            <div class="preview-pill">Masse salariale CVS</div>
+          </div>
+        </div>
+
+        <div class="preview-grid">
+          <article class="module-card">
+            <h3>Pourquoi cette direction marche mieux</h3>
+            <p id="focusCopy">
+              Le tab actif sort du rail, se connecte au panneau et a assez de surface pour porter un sous-message.
+              Les autres tabs restent lisibles sans voler l'attention. On garde l'esprit premium du fond sombre,
+              mais avec une personnalite beaucoup plus nette que des capsules generiques.
+            </p>
+
+            <div class="bar-stack" aria-hidden="true">
+              <div class="bar-row">
+                <span>Commerce, reparation auto</span>
+                <div class="bar-track"><div class="bar-fill" style="width: 100%;"></div></div>
+                <span>10</span>
+              </div>
+              <div class="bar-row">
+                <span>Construction</span>
+                <div class="bar-track"><div class="bar-fill" style="width: 52%; opacity: 0.82;"></div></div>
+                <span>56,1 k</span>
+              </div>
+              <div class="bar-row">
+                <span>Transports et entreposage</span>
+                <div class="bar-track"><div class="bar-fill" style="width: 50%; opacity: 0.78;"></div></div>
+                <span>54,0 k</span>
+              </div>
+              <div class="bar-row">
+                <span>Hebergement-restauration</span>
+                <div class="bar-track"><div class="bar-fill" style="width: 46%; opacity: 0.72;"></div></div>
+                <span>48,6 k</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="module-card">
+            <h3>Signal visuel du chapitre actif</h3>
+            <p>
+              Le volume supplementaire sert a quelque chose: il cree une mini hierarchie narrative avant meme la lecture du titre.
+            </p>
+            <div class="line-chart" aria-hidden="true">
+              <svg viewBox="0 0 520 270" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="area" x1="260" y1="22" x2="260" y2="248" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#7ab7ff" stop-opacity="0.34"/>
+                    <stop offset="1" stop-color="#7ab7ff" stop-opacity="0.02"/>
+                  </linearGradient>
+                </defs>
+                <path d="M52 220H490" stroke="rgba(255,255,255,0.08)" />
+                <path d="M52 170H490" stroke="rgba(255,255,255,0.06)" />
+                <path d="M52 120H490" stroke="rgba(255,255,255,0.06)" />
+                <path d="M52 70H490" stroke="rgba(255,255,255,0.06)" />
+                <path d="M52 36V232" stroke="rgba(255,255,255,0.09)" />
+                <path d="M52 198C82 198 84 174 104 166C132 154 166 155 193 150C215 146 238 136 264 144C286 151 304 162 336 161C368 161 387 148 409 143C430 138 448 145 470 138C477 136 484 138 490 136V232H52V198Z" fill="url(#area)" />
+                <path d="M52 198C82 198 84 174 104 166C132 154 166 155 193 150C215 146 238 136 264 144C286 151 304 162 336 161C368 161 387 148 409 143C430 138 448 145 470 138C477 136 484 138 490 136" stroke="#6CC2FF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="490" cy="136" r="6" fill="#F9FCFF" stroke="#6CC2FF" stroke-width="3"/>
+              </svg>
+            </div>
+          </article>
+        </div>
+
+        <div class="spec-strip">
+          <div class="spec">
+            <strong id="specTitle1">Direction</strong>
+            <span id="specText1">Onglets relies au panneau, pas pills flottants. La forme raconte deja le chapitre.</span>
+          </div>
+          <div class="spec">
+            <strong id="specTitle2">Etat actif</strong>
+            <span id="specText2">Tab plus haut, contraste plus clair, ombre coloree et raccord direct avec le container principal.</span>
+          </div>
+          <div class="spec">
+            <strong id="specTitle3">Responsive</strong>
+            <span id="specText3">Rail horizontal scrollable sur mobile, sans perdre la silhouette angulaire ni la lecture du numero.</span>
+          </div>
+        </div>
+
+        <p class="footer-note">
+          Fichier de mockup uniquement. A reutiliser plus tard pour refaire `subjectNav` sans toucher a la prod maintenant.
+        </p>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const tabs = Array.from(document.querySelectorAll(".chapter-tab"));
+    const variantButtons = Array.from(document.querySelectorAll(".variant-chip"));
+    const previewKicker = document.getElementById("previewKicker");
+    const previewTitle = document.getElementById("previewTitle");
+    const previewCopy = document.getElementById("previewCopy");
+    const focusCopy = document.getElementById("focusCopy");
+    const variantName = document.getElementById("variantName");
+    const variantCaptionBody = document.getElementById("variantCaptionBody");
+    const variantMood = document.getElementById("variantMood");
+    const variantWhy = document.getElementById("variantWhy");
+    const specTitle1 = document.getElementById("specTitle1");
+    const specText1 = document.getElementById("specText1");
+    const specTitle2 = document.getElementById("specTitle2");
+    const specText2 = document.getElementById("specText2");
+    const specTitle3 = document.getElementById("specTitle3");
+    const specText3 = document.getElementById("specText3");
+
+    const variantData = {
+      editorial: {
+        name: "V1 Editorial deck",
+        mood: "Mood: editorial premium, lisible, deja credible en prod",
+        why: "Chaque tab porte un mini sous-message. L'actif gagne de la hauteur, de la couleur et un vrai raccord avec la scene principale.",
+        caption: "Le rail garde la logique de l'exemple que tu as valide, mais pousse la sensation de chapitre relie au panneau. C'est la version la plus proche d'une direction premium 'safe but strong'.",
+        specs: [
+          ["Direction", "Onglets relies au panneau, pas pills flottants. La forme raconte deja le chapitre."],
+          ["Etat actif", "Tab plus haut, contraste plus clair, ombre coloree et raccord direct avec le container principal."],
+          ["Responsive", "Rail horizontal scrollable sur mobile, sans perdre la silhouette angulaire ni la lecture du numero."]
+        ]
+      },
+      glass: {
+        name: "V2 Glass runway",
+        mood: "Mood: luxe technologique, plus Awwwards, plus atmosphere",
+        why: "Les tabs deviennent des plaques translucides avec glow interne. C'est la piste la plus demonstrative si tu veux un hero qui impressionne immediatement.",
+        caption: "Version plus ambitieuse, presque concept-car. Le fond sombre reste institutionnel, mais le systeme de chapitres prend une presence plus immersive et plus gallery-grade.",
+        specs: [
+          ["Direction", "Plaques de verre teintees, halo froid, reflet interne et rail plus aerien."],
+          ["Etat actif", "Le tab actif se lit comme une couche de verre en sur-epaisseur, pas juste un bouton selectionne."],
+          ["Risque", "Tres premium, mais plus dur a executer proprement si les perfs front ou le rendu navigateur sont fragiles."]
+        ]
+      },
+      gallery: {
+        name: "V3 Gallery luxe",
+        mood: "Mood: exposition haut de gamme, plus tactile, moins techno",
+        why: "Ici le premium vient d'un vocabulaire materiel: ivoire, bronze, ombre courte, contrastes plus rares. C'est plus mature que flashy.",
+        caption: "Cette direction donne l'impression d'une exposition ou d'un livre-objet. Elle est utile si tu veux un rendu plus institutionnel-luxueux et moins startup-glass.",
+        specs: [
+          ["Direction", "Tabs ivoire et bronze, sensation d'objet imprime ou de cartel d'expo plutot que de simple UI web."],
+          ["Etat actif", "L'actif prend de la hauteur mais aussi une assise visuelle, presque comme une piece posee sur la scene."],
+          ["Usage", "Bonne piste si tu veux un site plus premium culturel que premium technologique."]
+        ]
+      },
+      monolith: {
+        name: "V4 Monolith",
+        mood: "Mood: architecture, sobriete chere, minimalisme tendu",
+        why: "Le luxe passe par la retenue. Les tabs restent sombres, sculptes, avec une seule ligne lumineuse et une vraie masse. Ca fait plus serious flagship.",
+        caption: "Version volontairement plus severe. Si tu veux du haut de gamme sans couleur candy, c'est la piste la plus solide et la moins decorative.",
+        specs: [
+          ["Direction", "Blocs sculptes, contrastes serres, presque noir sur noir, avec details lumineux tres controles."],
+          ["Etat actif", "L'etat actif n'est pas criard. Il se detache par la hauteur, le trait et la precision du relief."],
+          ["Usage", "Bonne base si le reste du site doit rester tres institutionnel et tres sobre."]
+        ]
+      },
+      ribbon: {
+        name: "V5 Ribbon couture",
+        mood: "Mood: mode, mouvement, plus iconique et plus memorable",
+        why: "Les tabs assument la couleur et l'effet de ruban continu. C'est la piste la plus expressive, avec un vrai potentiel de signature visuelle.",
+        caption: "Cette version est la plus audacieuse. On garde le fond premium, mais le rail devient presque une piece de motion design figee.",
+        specs: [
+          ["Direction", "Rubans connectes, couleurs plus franches, impression de sequence qui deroule une histoire."],
+          ["Etat actif", "Le chapitre actif est une poussee dans la ligne, pas un simple changement de teinte."],
+          ["Usage", "A choisir si tu veux que le haut de page devienne une vraie signature de marque."]
+        ]
+      }
+    };
+
+    function activateTab(tab) {
+      tabs.forEach((item) => item.classList.toggle("is-active", item === tab));
+      previewKicker.textContent = tab.dataset.kicker;
+      previewTitle.textContent = tab.dataset.title;
+      previewCopy.textContent = tab.dataset.copy;
+      focusCopy.textContent = tab.dataset.focus;
+    }
+
+    function activateVariant(variant) {
+      document.body.dataset.variant = variant;
+      variantButtons.forEach((button) => {
+        button.classList.toggle("is-active", button.dataset.variant === variant);
+      });
+
+      const config = variantData[variant];
+      variantName.textContent = config.name;
+      variantCaptionBody.textContent = config.caption;
+      variantMood.textContent = config.mood;
+      variantWhy.textContent = config.why;
+      specTitle1.textContent = config.specs[0][0];
+      specText1.textContent = config.specs[0][1];
+      specTitle2.textContent = config.specs[1][0];
+      specText2.textContent = config.specs[1][1];
+      specTitle3.textContent = config.specs[2][0];
+      specText3.textContent = config.specs[2][1];
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => activateTab(tab));
+    });
+
+    variantButtons.forEach((button) => {
+      button.addEventListener("click", () => activateVariant(button.dataset.variant));
+    });
+
+    activateVariant("editorial");
+  </script>
+</body>
+</html>

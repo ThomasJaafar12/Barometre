@@ -15,6 +15,7 @@ Le resultat genere est `barometre.html`.
 
 - `builder.py` : point d'entree pour lancer la generation.
 - `barometre_builder/` : logique de construction des payloads, geographies et modules.
+- `barometre_builder/template_fragments/chapters/` : fragments HTML et JS dedies a chaque chapitre.
 - `barometre.template.html` : template HTML principal.
 - `barometre.html` : fichier de sortie genere.
 - `Assets/` : donnees source, geojson, logo et videos.
@@ -59,4 +60,5 @@ Ensuite, ouvrez `barometre.html` dans un navigateur pour verifier le rendu.
 ## Notes
 
 - `barometre.html` est un artefact genere : les modifications durables doivent etre faites dans le template ou dans `barometre_builder/`.
+- Les chapitres sont assembles via `barometre_builder/chapters.py`, qui centralise le registre et concatene les fragments dedies.
 - Si le cache geo des departements est absent, le builder tente de retrouver l'URL source via `Assets/Geo/contours_administratifs_dataset.json`.

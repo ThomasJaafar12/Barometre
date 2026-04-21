@@ -1,0 +1,96 @@
+{
+  "mode": "sourced-with-attribution",
+  "notes": "Small SVG motifs normalized into house-style fragments for the landing map scene. Runtime uses only local vendored assets.",
+  "sources": [
+    {
+      "id": "premium-render-pack",
+      "file": "manifest.json",
+      "title": "Premium raster scene placeholder pack",
+      "provider": "Internal provisional asset pack",
+      "license": "Project asset",
+      "sourceUrl": "",
+      "modifications": "Temporary local PNG renders used to exercise the premium hybrid raster pipeline until final vendor-prepared assets are delivered."
+    },
+    {
+      "id": "mountain",
+      "file": "mountain.svg",
+      "title": "Landscape Mountain",
+      "provider": "SVG Repo",
+      "license": "CC0",
+      "sourceUrl": "https://www.svgrepo.com/svg/255580/landscape-mountain",
+      "modifications": "Redrawn as a layered low-poly mountain symbol with simplified polygons and unified house styling."
+    },
+    {
+      "id": "bird",
+      "file": "bird.svg",
+      "title": "Bird",
+      "provider": "SVG Repo",
+      "license": "CC0",
+      "sourceUrl": "https://www.svgrepo.com/svg/417377/bird",
+      "modifications": "Reduced to a minimal gull silhouette for ambient sea and coast motion cues."
+    },
+    {
+      "id": "eiffel",
+      "file": "eiffel.svg",
+      "title": "Eiffel Tower",
+      "provider": "SVG Repo",
+      "license": "CC0",
+      "sourceUrl": "https://www.svgrepo.com/svg/197108/eiffel-tower",
+      "modifications": "Normalized into a compact silhouette suitable for miniature monument use."
+    },
+    {
+      "id": "wave",
+      "file": "wave.svg",
+      "title": "Wave vectors",
+      "provider": "PublicDomainVectors",
+      "license": "Public domain",
+      "sourceUrl": "https://publicdomainvectors.org/en/free%20waves%20vectors",
+      "modifications": "Converted into a reusable contour-wave motif with consistent stroke rhythm."
+    },
+    {
+      "id": "lighthouse",
+      "file": "lighthouse.svg",
+      "title": "Regional lighthouse motif",
+      "provider": "Internal normalized asset",
+      "license": "Project asset",
+      "sourceUrl": "https://www.svgrepo.com/",
+      "modifications": "Composed in-house from simplified geometric shapes to match sourced monument silhouettes."
+    },
+    {
+      "id": "chapel",
+      "file": "chapel.svg",
+      "title": "Alpine chapel motif",
+      "provider": "Internal normalized asset",
+      "license": "Project asset",
+      "sourceUrl": "https://www.svgrepo.com/",
+      "modifications": "Composed in-house as a compact landmark silhouette for mountainous regions."
+    },
+    {
+      "id": "palm",
+      "file": "palm.svg",
+      "title": "Island palm motif",
+      "provider": "Internal normalized asset",
+      "license": "Project asset",
+      "sourceUrl": "https://www.svgrepo.com/",
+      "modifications": "Composed in-house as a minimal tropical ornament for DOM insets."
+    },
+    {
+      "id": "landing-ocean-art",
+      "file": "landing_ocean.svg",
+      "title": "Landing ocean backdrop",
+      "provider": "Internal authored asset",
+      "license": "Project asset",
+      "sourceUrl": "",
+      "modifications": "Created in-house as the art-directed ocean and atmosphere backdrop for the hybrid landing map scene."
+    },
+    {
+      "id": "landing-land-art",
+      "file": "landing_land_texture.svg",
+      "title": "Landing land texture",
+      "provider": "Internal authored asset",
+      "license": "Project asset",
+      "sourceUrl": "",
+      "modifications": "Created in-house as the art-directed terrain texture clipped into mainland and DOM region silhouettes."
+    }
+  ]
+}

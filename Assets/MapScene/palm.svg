@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140">
+  <path d="M62 56c-8 16-11 34-10 64h-8c0-32 4-54 12-72Z" fill="currentColor"/>
+  <path d="M58 52c-9-16-22-25-40-28 14-6 34 0 50 18-4 2-7 5-10 10Z" fill="currentColor" opacity=".94"/>
+  <path d="M62 50c10-16 24-24 42-26-13-6-34 2-49 18 3 2 5 5 7 8Z" fill="currentColor" opacity=".84"/>
+  <path d="M60 58c-18-5-34-3-50 6 10-13 30-21 51-18-1 4-1 8-1 12Z" fill="currentColor" opacity=".72"/>
+  <path d="M62 58c18-5 34-3 50 6-10-13-30-21-51-18 1 4 1 8 1 12Z" fill="currentColor" opacity=".68"/>
+</svg>

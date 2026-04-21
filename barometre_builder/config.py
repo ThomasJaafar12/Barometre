@@ -8,11 +8,18 @@ ROOT = Path(__file__).resolve().parent.parent
 ASSETS_DIR = ROOT / "Assets"
 DATA_DIR = ASSETS_DIR / "Data_source"
 GEO_DIR = ASSETS_DIR / "Geo"
+MAP_SCENE_DIR = ASSETS_DIR / "MapScene"
+PREMIUM_MAP_PACK_DIR = ASSETS_DIR / "premium-map-pack"
 MP4_DIR = ASSETS_DIR / "Mp4"
 LOGO_PATH = ASSETS_DIR / "logo" / "logo.png"
 REGION_GEOJSON_PATH = GEO_DIR / "france_regions_source.geojson"
 GEO_METADATA_PATH = GEO_DIR / "contours_administratifs_dataset.json"
 DEPARTMENT_GEOJSON_CACHE = GEO_DIR / "departements-50m.geojson"
+MAP_SCENE_ATTRIBUTION_PATH = MAP_SCENE_DIR / "attribution.json"
+MAP_SCENE_RENDER_DIR = MAP_SCENE_DIR / "Renders"
+MAP_SCENE_MANIFEST_PATH = MAP_SCENE_DIR / "manifest.json"
+MAP_SCENE_REFERENCE_LAYOUT_PATH = MAP_SCENE_DIR / "reference_layout_gemini.json"
+PREMIUM_MAP_PACK_MANIFEST_PATH = PREMIUM_MAP_PACK_DIR / "manifest.json"
 OUTPUT_HTML_PATH = ROOT / "barometre.html"
 TEMPLATE_PATH = ROOT / "barometre.template.html"
 
@@ -59,3 +66,14 @@ class GeometryOptimization:
 
 
 GEOMETRY_OPTIMIZATION = GeometryOptimization()
+
+MAP_SCENE_EXPERIMENT = {
+    "enabled": True,
+    "modeDefault": "premium",
+    "storageKey": "barometre.dev.sceneMode",
+    "visiblePhases": ["landing", "national"],
+    "budget": {
+        "maxObjectCount": 24,
+        "maxDecodedArea": 7_500_000,
+    },
+}

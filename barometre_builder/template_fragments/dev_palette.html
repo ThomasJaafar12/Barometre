@@ -2,10 +2,201 @@
             <button class="hero-action dev-palette-toggle" id="paletteToggleButton" type="button" aria-expanded="false" aria-controls="palettePanel">Palette dev</button>
             <div class="dev-palette-panel glass" id="palettePanel" hidden>
               <div class="dev-palette-head">
-                <span class="mono">Couleurs export</span>
-                <strong>Basculer de palette</strong>
+                <span class="mono">Palette dev</span>
+                <strong>Couleurs et scène 2.5D</strong>
               </div>
-              <div class="dev-palette-grid" id="paletteButtons"></div>
-              <p class="dev-palette-description" id="paletteDescription"></p>
+              <div class="dev-palette-tabs" id="paletteTabs">
+                <button class="dev-palette-tab is-active" type="button" data-dev-tab="colors" aria-pressed="true">Couleurs</button>
+                <button class="dev-palette-tab" type="button" data-dev-tab="scene" aria-pressed="false">Scene</button>
+              </div>
+
+              <section class="dev-palette-section is-active" id="paletteColorsSection" data-dev-panel="colors">
+                <div class="dev-palette-tools">
+                  <div class="dev-palette-mode" id="sceneModeControl" hidden>
+                    <span class="mono">Scene</span>
+                    <div class="dev-palette-mode-buttons">
+                      <button class="dev-palette-inline-toggle" id="sceneModeOffButton" type="button" data-scene-mode="off" aria-pressed="false">Off</button>
+                      <button class="dev-palette-inline-toggle" id="sceneModePremiumButton" type="button" data-scene-mode="premium" aria-pressed="true">Premium</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="dev-palette-grid" id="paletteButtons"></div>
+                <p class="dev-palette-description" id="paletteDescription"></p>
+              </section>
+
+              <section class="dev-palette-section" id="paletteSceneSection" data-dev-panel="scene" hidden>
+                <div class="dev-scene-toolbar">
+                  <button class="dev-palette-inline-toggle" id="sceneEditorModeButton" type="button" aria-pressed="false">Édition inactive</button>
+                  <label class="dev-scene-field">
+                    <span>Scope</span>
+                    <select id="sceneScopeSelect"></select>
+                  </label>
+                  <button class="dev-palette-inline-toggle" id="sceneSaveButton" type="button">Save layout.json</button>
+                  <span class="dev-scene-dirty-badge" id="sceneDirtyBadge">Synced</span>
+                  <button class="dev-scene-collapse-toggle" id="sceneDockToggleButton" type="button" aria-pressed="false" aria-label="Réduire le dock">⇢</button>
+                </div>
+                <p class="dev-scene-note" id="sceneEditorNote">Source de vérité: <code>Assets/MapScene/layout.json</code>. Le bouton Save exporte le JSON mis à jour pour le prochain build.</p>
+                <div class="dev-scene-dock-tabs" id="sceneDockTabs">
+                  <button class="dev-scene-dock-tab is-active" type="button" data-scene-editor-tab="assets" aria-pressed="true">Assets</button>
+                  <button class="dev-scene-dock-tab" type="button" data-scene-editor-tab="layers" aria-pressed="false">Layers</button>
+                  <button class="dev-scene-dock-tab" type="button" data-scene-editor-tab="inspector" aria-pressed="false">Inspector</button>
+                </div>
+                <div class="dev-scene-grid">
+                  <section class="dev-scene-pane is-active" data-scene-editor-panel="assets">
+                    <div class="dev-scene-pane-head">
+                      <span class="mono">Marketplace</span>
+                      <strong>Assets disponibles</strong>
+                    </div>
+                    <div class="dev-scene-filters">
+                      <input class="dev-scene-input" id="sceneAssetSearch" type="search" placeholder="Rechercher un asset">
+                      <select class="dev-scene-select" id="sceneSourceFilter"></select>
+                      <select class="dev-scene-select" id="sceneRoleFilter"></select>
+                    </div>
+                    <div class="dev-scene-catalog" id="sceneAssetCatalog"></div>
+                  </section>
+
+                  <section class="dev-scene-pane" data-scene-editor-panel="layers" hidden>
+                    <div class="dev-scene-pane-head">
+                      <span class="mono">Layers</span>
+                      <strong>Hiérarchie du scope</strong>
+                    </div>
+                    <div class="dev-scene-layer-tools">
+                      <button class="dev-palette-inline-toggle" id="sceneAddLayerButton" type="button">New layer</button>
+                    </div>
+                    <div class="dev-scene-layer-list" id="sceneLayerList"></div>
+                  </section>
+
+                  <section class="dev-scene-pane dev-scene-pane-inspector" data-scene-editor-panel="inspector" hidden>
+                    <div class="dev-scene-pane-head">
+                      <span class="mono">Inspector</span>
+                      <strong>Objet sélectionné</strong>
+                    </div>
+                    <p class="dev-scene-empty" id="sceneInspectorEmpty">Sélectionnez un asset sur la carte ou déposez-en un nouveau.</p>
+                    <form class="dev-scene-inspector" id="sceneInspectorForm" hidden>
+                      <div class="dev-scene-field-grid">
+                        <label class="dev-scene-field">
+                          <span>ID</span>
+                          <input class="dev-scene-input" id="sceneObjectId" type="text" readonly>
+                        </label>
+                        <label class="dev-scene-field">
+                          <span>Asset</span>
+                          <select class="dev-scene-select" id="sceneObjectAssetId"></select>
+                        </label>
+                        <label class="dev-scene-field">
+                          <span>Scope</span>
+                          <select class="dev-scene-select" id="sceneObjectScope"></select>
+                        </label>
+                        <label class="dev-scene-field">
+                          <span>Layer</span>
+                          <select class="dev-scene-select" id="sceneObjectLayerId"></select>
+                        </label>
+                        <label class="dev-scene-field">
+                          <span>Role</span>
+                          <input class="dev-scene-input" id="sceneObjectRole" type="text">
+                        </label>
+                        <label class="dev-scene-field">
+                          <span>Order</span>
+                          <input class="dev-scene-input" id="sceneObjectOrder" type="number" step="1">
+                        </label>
+                        <label class="dev-scene-field">
+                          <span>X</span>
+                          <input class="dev-scene-input" id="sceneObjectX" type="number" step="0.001">
+                        </label>
+                        <label class="dev-scene-field">
+                          <span>Y</span>
+                          <input class="dev-scene-input" id="sceneObjectY" type="number" step="0.001">
+                        </label>
+                        <label class="dev-scene-field">
+                          <span>Width</span>
+                          <input class="dev-scene-input" id="sceneObjectWidth" type="number" step="0.001">
+                        </label>
+                        <label class="dev-scene-field">
+                          <span>Height</span>
+                          <input class="dev-scene-input" id="sceneObjectHeight" type="number" step="0.001">
+                        </label>
+                        <label class="dev-scene-field">
+                          <span>Rotation</span>
+                          <input class="dev-scene-input" id="sceneObjectRotation" type="number" step="1">
+                        </label>
+                        <label class="dev-scene-field">
+                          <span>Opacity</span>
+                          <input class="dev-scene-input" id="sceneObjectOpacity" type="number" min="0" max="1" step="0.01">
+                        </label>
+                      </div>
+
+                      <div class="dev-scene-subgroup">
+                        <span class="mono">Visible phases</span>
+                        <label class="dev-scene-check"><input id="scenePhaseLanding" type="checkbox" value="landing"> Landing</label>
+                        <label class="dev-scene-check"><input id="scenePhaseNational" type="checkbox" value="national"> National</label>
+                      </div>
+
+                      <div class="dev-scene-subgroup">
+                        <span class="mono">Crop</span>
+                        <div class="dev-scene-field-grid">
+                          <label class="dev-scene-field">
+                            <span>Crop X</span>
+                            <input class="dev-scene-input" id="sceneCropX" type="number" step="1">
+                          </label>
+                          <label class="dev-scene-field">
+                            <span>Crop Y</span>
+                            <input class="dev-scene-input" id="sceneCropY" type="number" step="1">
+                          </label>
+                          <label class="dev-scene-field">
+                            <span>Crop W</span>
+                            <input class="dev-scene-input" id="sceneCropWidth" type="number" step="1">
+                          </label>
+                          <label class="dev-scene-field">
+                            <span>Crop H</span>
+                            <input class="dev-scene-input" id="sceneCropHeight" type="number" step="1">
+                          </label>
+                        </div>
+                      </div>
+
+                      <div class="dev-scene-subgroup">
+                        <span class="mono">Motion</span>
+                        <div class="dev-scene-field-grid">
+                          <label class="dev-scene-field">
+                            <span>Type</span>
+                            <input class="dev-scene-input" id="sceneMotionType" type="text" placeholder="drift">
+                          </label>
+                          <label class="dev-scene-field">
+                            <span>Ease</span>
+                            <input class="dev-scene-input" id="sceneMotionEase" type="text" placeholder="sine.inOut">
+                          </label>
+                          <label class="dev-scene-field">
+                            <span>dx</span>
+                            <input class="dev-scene-input" id="sceneMotionDx" type="number" step="0.1">
+                          </label>
+                          <label class="dev-scene-field">
+                            <span>dy</span>
+                            <input class="dev-scene-input" id="sceneMotionDy" type="number" step="0.1">
+                          </label>
+                          <label class="dev-scene-field">
+                            <span>Duration</span>
+                            <input class="dev-scene-input" id="sceneMotionDuration" type="number" step="0.1">
+                          </label>
+                          <label class="dev-scene-field">
+                            <span>Delay</span>
+                            <input class="dev-scene-input" id="sceneMotionDelay" type="number" step="0.1">
+                          </label>
+                          <label class="dev-scene-field">
+                            <span>Scale</span>
+                            <input class="dev-scene-input" id="sceneMotionScale" type="number" step="0.01">
+                          </label>
+                          <label class="dev-scene-field">
+                            <span>Motion opacity</span>
+                            <input class="dev-scene-input" id="sceneMotionOpacity" type="number" step="0.01">
+                          </label>
+                        </div>
+                        <label class="dev-scene-check"><input id="sceneMotionYoyo" type="checkbox"> Yoyo</label>
+                      </div>
+
+                      <div class="dev-scene-actions">
+                        <button class="dev-palette-inline-toggle" id="sceneDeleteObjectButton" type="button">Delete object</button>
+                      </div>
+                    </form>
+                  </section>
+                </div>
+              </section>
             </div>
           </div>

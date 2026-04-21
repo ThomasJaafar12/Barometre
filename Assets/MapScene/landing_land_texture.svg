@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 860">
+  <defs>
+    <linearGradient id="forestDeep" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#183b34"/>
+      <stop offset="100%" stop-color="#28534a"/>
+    </linearGradient>
+    <linearGradient id="forestSoft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#325f54"/>
+      <stop offset="100%" stop-color="#4f7d6d"/>
+    </linearGradient>
+    <linearGradient id="fieldGold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#d4bc75"/>
+      <stop offset="100%" stop-color="#e8d79f"/>
+    </linearGradient>
+    <linearGradient id="mountainStone" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#59626c"/>
+      <stop offset="50%" stop-color="#8b96a1"/>
+      <stop offset="100%" stop-color="#434a52"/>
+    </linearGradient>
+    <radialGradient id="coastAura" cx="40%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#6be2ff" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#6be2ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="860" fill="transparent"/>
+
+  <g opacity="0.96">
+    <path d="M210 174c88-56 178-66 276-30s166 34 246 4 140-16 196 26-4 108-56 132-100 42-140 82-44 122-96 160-150 58-256 36-186-70-232-132-48-182 2-278 24-144 60-200Z" fill="url(#forestDeep)"/>
+    <path d="M238 198c76-50 162-56 250-24s148 32 220 8 128-14 176 18-2 86-48 106-90 34-128 72-42 108-88 140-134 50-226 30-164-60-202-112-40-154 2-234 20-120 44-164Z" fill="url(#forestSoft)" opacity="0.92"/>
+
+    <path d="M244 254 332 220 418 248 360 292Z" fill="#86b696" opacity="0.42"/>
+    <path d="M338 300 464 250 580 300 470 358Z" fill="#a0c4a4" opacity="0.24"/>
+    <path d="M286 474 390 422 498 470 392 536Z" fill="#456784" opacity="0.38"/>
+    <path d="M388 650 500 598 622 648 514 714Z" fill="#4d7468" opacity="0.42"/>
+    <path d="M514 216 624 166 742 214 630 272Z" fill="#8d8ab6" opacity="0.32"/>
+    <path d="M720 474 854 424 976 470 842 544Z" fill="#7c775f" opacity="0.34"/>
+    <path d="M710 620 844 570 952 618 818 680Z" fill="#7876a4" opacity="0.28"/>
+    <path d="M548 350 642 306 738 352 650 402Z" fill="#314969" opacity="0.36"/>
+  </g>
+
+  <g opacity="0.88">
+    <path d="M182 302c34-14 72-18 118-4 28 8 48 22 68 28 34 12 74 12 114 4-30 24-72 38-124 36-58-2-110-30-176-64Z" fill="#3d6967" opacity="0.38"/>
+    <path d="M258 556c42-14 90-10 146 8 28 8 52 22 80 24 32 2 60-4 88-18-30 30-74 48-136 50-70 2-132-20-178-64Z" fill="#6f92a4" opacity="0.34"/>
+    <path d="M452 682c42-18 86-24 132-14 40 8 78 24 110 26 46 2 86-8 122-28-42 36-94 58-162 60-78 2-146-18-202-44Z" fill="#245044" opacity="0.3"/>
+    <path d="M634 274c40-18 82-24 126-16 36 8 70 24 102 26 42 2 80-6 114-24-40 34-88 54-150 56-72 2-134-16-192-42Z" fill="#cbb98c" opacity="0.18"/>
+  </g>
+
+  <g>
+    <path d="M696 336 736 268 780 336Z" fill="url(#mountainStone)"/>
+    <path d="M736 250 792 352H680Z" fill="url(#mountainStone)"/>
+    <path d="M736 250 754 284H718Z" fill="#eef3f7" opacity="0.78"/>
+
+    <path d="M666 586 702 528 742 586Z" fill="url(#mountainStone)" opacity="0.96"/>
+    <path d="M704 514 758 598H644Z" fill="url(#mountainStone)"/>
+    <path d="M704 514 722 546H686Z" fill="#eef3f7" opacity="0.72"/>
+  </g>
+
+  <g opacity="0.54">
+    <path d="M520 198c64-10 124-8 182 18" stroke="#f0dba7" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M214 324c60-10 122-2 176 18" stroke="#84c7b4" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M272 678c58-18 120-20 188 6" stroke="#9ac0d2" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M612 640c54-16 114-16 174 4" stroke="#ddc688" stroke-width="8" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <g opacity="0.78">
+    <path d="M184 246c18-24 54-38 92-30-20 20-46 32-82 40Z" fill="#2d5c62"/>
+    <path d="M236 686c28-28 76-42 122-34-28 24-62 38-114 46Z" fill="#25495d"/>
+    <path d="M800 666c30-26 72-38 116-30-26 24-58 36-108 42Z" fill="#474657"/>
+  </g>
+
+  <g opacity="0.2">
+    <ellipse cx="514" cy="398" rx="250" ry="220" fill="url(#coastAura)"/>
+    <ellipse cx="928" cy="322" rx="84" ry="50" fill="url(#coastAura)"/>
+    <ellipse cx="930" cy="474" rx="84" ry="50" fill="url(#coastAura)"/>
+    <ellipse cx="934" cy="610" rx="84" ry="50" fill="url(#coastAura)"/>
+    <ellipse cx="938" cy="740" rx="84" ry="50" fill="url(#coastAura)"/>
+  </g>
+</svg>

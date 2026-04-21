@@ -8,6 +8,15 @@ from .config import EXPERIENCE_REGION_CODES
 COLOR_DEVTOOL_ENABLED = True
 DEFAULT_PALETTE_KEY = "nocturne-lagon"
 
+SCENE_TOKEN_DEFAULTS = {
+    "scene-sea-a": "rgba(34, 110, 146, 0.9)",
+    "scene-sea-b": "rgba(7, 30, 45, 0.98)",
+    "scene-foam": "rgba(226, 246, 255, 0.58)",
+    "scene-relief-shadow": "rgba(5, 14, 20, 0.36)",
+    "scene-cloud": "rgba(248, 252, 255, 0.78)",
+    "scene-monument-glow": "rgba(255, 236, 190, 0.42)",
+}
+
 
 def _theme(accent: str, accent_deep: str, secondary: str, glow: str) -> dict[str, str]:
     return {
@@ -467,11 +476,14 @@ PALETTE_SPECS = [
 
 
 def _build_palette_record(spec: dict[str, object]) -> dict[str, object]:
+    tokens = deepcopy(spec["tokens"])
+    for token_name, value in SCENE_TOKEN_DEFAULTS.items():
+        tokens.setdefault(token_name, value)
     return {
         "key": spec["key"],
         "label": spec["label"],
         "description": spec["description"],
-        "tokens": deepcopy(spec["tokens"]),
+        "tokens": tokens,
         "regionThemes": _expand_region_themes(spec["region_cycle"]),
     }
 

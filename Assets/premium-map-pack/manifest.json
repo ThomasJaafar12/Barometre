@@ -1,0 +1,142 @@
+[
+  {
+    "file": "mountains-alps.png",
+    "role": "terrain",
+    "targetRegion": "Auvergne-Rhone-Alpes / Alps",
+    "suggestedWidthPx": 180,
+    "notes": "Primary mountain cluster for the southeast."
+  },
+  {
+    "file": "mountains-pyrenees.png",
+    "role": "terrain",
+    "targetRegion": "Occitanie / Nouvelle-Aquitaine border",
+    "suggestedWidthPx": 170,
+    "notes": "Secondary mountain cluster for the southwest."
+  },
+  {
+    "file": "ocean-atlantic-overlay.png",
+    "role": "water",
+    "targetRegion": "Atlantic coast",
+    "suggestedWidthPx": 260,
+    "notes": "Use with low opacity behind the western coastline."
+  },
+  {
+    "file": "sea-mediterranean-overlay.png",
+    "role": "water",
+    "targetRegion": "Mediterranean coast",
+    "suggestedWidthPx": 220,
+    "notes": "Calmer water treatment for the southeast."
+  },
+  {
+    "file": "birds-flock.png",
+    "role": "atmosphere",
+    "targetRegion": "Atlantic or Mediterranean",
+    "suggestedWidthPx": 64,
+    "notes": "Keep subtle and sparse."
+  },
+  {
+    "file": "monument-eiffel-tower.png",
+    "role": "landmark",
+    "targetRegion": "Ile-de-France",
+    "suggestedWidthPx": 48,
+    "notes": "Anchor landmark for Paris."
+  },
+  {
+    "file": "monument-mont-saint-michel.png",
+    "role": "landmark",
+    "targetRegion": "Normandy / Brittany coast",
+    "suggestedWidthPx": 52,
+    "notes": "Best placed near the northwest shoreline."
+  },
+  {
+    "file": "monument-loire-chateau.png",
+    "role": "landmark",
+    "targetRegion": "Centre-Val de Loire",
+    "suggestedWidthPx": 56,
+    "notes": "Use as a central heritage accent."
+  },
+  {
+    "file": "monument-provence.png",
+    "role": "landmark",
+    "targetRegion": "Provence-Alpes-Cote d'Azur",
+    "suggestedWidthPx": 58,
+    "notes": "Pairs well with the Mediterranean overlay."
+  },
+  {
+    "file": "monument-cathedral-east.png",
+    "role": "landmark",
+    "targetRegion": "Grand Est / Bourgogne-Franche-Comte",
+    "suggestedWidthPx": 54,
+    "notes": "Eastern architectural accent."
+  },
+  {
+    "file": "nature-forest-cluster.png",
+    "role": "nature",
+    "targetRegion": "Massif Central or eastern regions",
+    "suggestedWidthPx": 90,
+    "notes": "Use for depth in flatter interior areas."
+  },
+  {
+    "file": "nature-vineyard-patch.png",
+    "role": "nature",
+    "targetRegion": "Bordeaux, Bourgogne, Champagne, or Provence",
+    "suggestedWidthPx": 84,
+    "notes": "Works well near wine regions."
+  },
+  {
+    "file": "atmosphere-cloud-haze.png",
+    "role": "atmosphere",
+    "targetRegion": "Interior overlay",
+    "suggestedWidthPx": 240,
+    "notes": "Apply with low opacity so labels stay readable."
+  },
+  {
+    "file": "sprite-bird-glide-a.png",
+    "role": "sprite",
+    "targetRegion": "Atlantic or Mediterranean",
+    "suggestedWidthPx": 52,
+    "notes": "Primary bird glide frame for left-to-right movement."
+  },
+  {
+    "file": "sprite-bird-bank-b.png",
+    "role": "sprite",
+    "targetRegion": "Atlantic or Mediterranean",
+    "suggestedWidthPx": 52,
+    "notes": "Use as a second bird frame or turning variant."
+  },
+  {
+    "file": "sprite-bird-top-c.png",
+    "role": "sprite",
+    "targetRegion": "Atlantic or Mediterranean",
+    "suggestedWidthPx": 56,
+    "notes": "Best used for a higher altitude glide pass."
+  },
+  {
+    "file": "sprite-boat-sail.png",
+    "role": "sprite",
+    "targetRegion": "Atlantic, Brittany, or Mediterranean",
+    "suggestedWidthPx": 72,
+    "notes": "Premium small sailboat for slow drifting animation."
+  },
+  {
+    "file": "sprite-boat-motor.png",
+    "role": "sprite",
+    "targetRegion": "Atlantic or Mediterranean coast",
+    "suggestedWidthPx": 86,
+    "notes": "Motorboat for slightly faster maritime movement."
+  },
+  {
+    "file": "effect-boat-wake.png",
+    "role": "effect",
+    "targetRegion": "Behind moving boats",
+    "suggestedWidthPx": 120,
+    "notes": "Place behind the boat sprite with reduced opacity."
+  },
+  {
+    "file": "effect-water-ripple.png",
+    "role": "effect",
+    "targetRegion": "Under boats or static maritime accents",
+    "suggestedWidthPx": 92,
+    "notes": "Useful for idle boats, buoys, or harbor decoration."
+  }
+]

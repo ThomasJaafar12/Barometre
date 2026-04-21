@@ -1,0 +1,837 @@
+{
+  "version": "1.0",
+  "scopes": {
+    "mainland": {
+      "layers": [
+        {
+          "id": "terrain",
+          "label": "Terrain",
+          "order": 0
+        },
+        {
+          "id": "sprite",
+          "label": "Sprite",
+          "order": 1
+        },
+        {
+          "id": "nature",
+          "label": "Nature",
+          "order": 2
+        },
+        {
+          "id": "water",
+          "label": "Water",
+          "order": 3
+        },
+        {
+          "id": "landmark",
+          "label": "Landmark",
+          "order": 4
+        },
+        {
+          "id": "effect",
+          "label": "Effect",
+          "order": 5
+        }
+      ],
+      "objects": [
+        {
+          "id": "mainland-landmark-12",
+          "assetId": null,
+          "placeholderId": "west-coast-lighthouse",
+          "layerId": "landmark",
+          "order": 0,
+          "role": "landmark",
+          "x": -0.181633,
+          "y": 0.342365,
+          "width": 0.073854,
+          "height": 0.116048,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": null,
+          "motion": null,
+          "opacity": 0,
+          "placeholder": true
+        },
+        {
+          "id": "mainland-landmark-13",
+          "assetId": null,
+          "placeholderId": "pays-loire-shrine-landmark",
+          "layerId": "landmark",
+          "order": 1,
+          "role": "landmark",
+          "x": 0.119756,
+          "y": 0.423593,
+          "width": 0.077851,
+          "height": 0.054162,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": null,
+          "motion": null,
+          "opacity": 0,
+          "placeholder": true
+        },
+        {
+          "id": "mainland-landmark-14",
+          "assetId": null,
+          "placeholderId": "idf-eiffel-landmark",
+          "layerId": "landmark",
+          "order": 2,
+          "role": "landmark",
+          "x": 0.317364,
+          "y": 0.212769,
+          "width": 0.065874,
+          "height": 0.121856,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": null,
+          "motion": null,
+          "opacity": 0,
+          "placeholder": true
+        },
+        {
+          "id": "mainland-landmark-15",
+          "assetId": null,
+          "placeholderId": "idf-cathedral-landmark",
+          "layerId": "landmark",
+          "order": 3,
+          "role": "landmark",
+          "x": 0.385229,
+          "y": 0.218563,
+          "width": 0.079842,
+          "height": 0.102515,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": null,
+          "motion": null,
+          "opacity": 0,
+          "placeholder": true
+        },
+        {
+          "id": "mainland-landmark-16",
+          "assetId": null,
+          "placeholderId": "centre-val-arc-landmark",
+          "layerId": "landmark",
+          "order": 4,
+          "role": "landmark",
+          "x": 0.325344,
+          "y": 0.357829,
+          "width": 0.085831,
+          "height": 0.069626,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": null,
+          "motion": null,
+          "opacity": 0,
+          "placeholder": true
+        },
+        {
+          "id": "mainland-landmark-17",
+          "assetId": null,
+          "placeholderId": "nouvelle-aquitaine-chateau",
+          "layerId": "landmark",
+          "order": 5,
+          "role": "landmark",
+          "x": 0.359284,
+          "y": 0.707934,
+          "width": 0.097808,
+          "height": 0.085105,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": null,
+          "motion": null,
+          "opacity": 0,
+          "placeholder": true
+        },
+        {
+          "id": "mainland-landmark-18",
+          "assetId": null,
+          "placeholderId": "sud-ouest-cathedral",
+          "layerId": "landmark",
+          "order": 6,
+          "role": "landmark",
+          "x": 0.179642,
+          "y": 0.880075,
+          "width": 0.085831,
+          "height": 0.104446,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": null,
+          "motion": null,
+          "opacity": 0,
+          "placeholder": true
+        },
+        {
+          "id": "mainland-landmark-19",
+          "assetId": null,
+          "placeholderId": "occitanie-village",
+          "layerId": "landmark",
+          "order": 7,
+          "role": "landmark",
+          "x": 0.411175,
+          "y": 0.872335,
+          "width": 0.093811,
+          "height": 0.069626,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": null,
+          "motion": null,
+          "opacity": 0,
+          "placeholder": true
+        },
+        {
+          "id": "mainland-landmark-20",
+          "assetId": null,
+          "placeholderId": "alpine-cable-car",
+          "layerId": "landmark",
+          "order": 8,
+          "role": "landmark",
+          "x": 0.746504,
+          "y": 0.520314,
+          "width": 0.107779,
+          "height": 0.114117,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": null,
+          "motion": null,
+          "opacity": 0,
+          "placeholder": true
+        },
+        {
+          "id": "mainland-sprite-33",
+          "assetId": null,
+          "placeholderId": "cargo-ship",
+          "layerId": "sprite",
+          "order": 7,
+          "role": "sprite",
+          "x": -0.123754,
+          "y": 0.678922,
+          "width": 0.083095,
+          "height": 0.032934,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": null,
+          "motion": null,
+          "opacity": 0,
+          "placeholder": true
+        },
+        {
+          "id": "mainland-sprite-34",
+          "assetId": null,
+          "placeholderId": "small-coastal-boat",
+          "layerId": "sprite",
+          "order": 8,
+          "role": "sprite",
+          "x": -0.183639,
+          "y": 0.796901,
+          "width": 0.045845,
+          "height": 0.026946,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": null,
+          "motion": null,
+          "opacity": 0,
+          "placeholder": true
+        },
+        {
+          "id": "mainland-sprite-35",
+          "assetId": null,
+          "placeholderId": "cargo-ship",
+          "layerId": "sprite",
+          "order": 9,
+          "role": "sprite",
+          "x": 0.964069,
+          "y": 1.050284,
+          "width": 0.083095,
+          "height": 0.032934,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": null,
+          "motion": null,
+          "opacity": 0,
+          "placeholder": true
+        },
+        {
+          "id": "mainland-landmark-21",
+          "assetId": "monument-loire-chateau",
+          "layerId": "landmark",
+          "order": 9,
+          "role": "landmark",
+          "x": 0.459885,
+          "y": 0.472056,
+          "width": 0.080229,
+          "height": 0.055888,
+          "rotation": 0,
+          "opacity": 0.82,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": {
+            "x": 0,
+            "y": 0,
+            "width": 1536,
+            "height": 1024
+          }
+        },
+        {
+          "id": "mainland-terrain-14",
+          "assetId": "monument-loire-chateau",
+          "layerId": "terrain",
+          "order": 0,
+          "role": "landmark",
+          "x": 0.361959,
+          "y": 0.384615,
+          "width": 0.183497,
+          "height": 0.128445,
+          "rotation": 0,
+          "opacity": 0.82,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": {
+            "x": 0,
+            "y": 0,
+            "width": 1536,
+            "height": 1024
+          }
+        },
+        {
+          "id": "mainland-terrain-15",
+          "assetId": "monument-provence",
+          "layerId": "terrain",
+          "order": 1,
+          "role": "landmark",
+          "x": 0.604452,
+          "y": 0.686869,
+          "width": 0.188144,
+          "height": 0.149046,
+          "rotation": 0,
+          "opacity": 0.82,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": {
+            "x": 0,
+            "y": 0,
+            "width": 1536,
+            "height": 1024
+          }
+        }
+      ]
+    },
+    "01": {
+      "layers": [
+        {
+          "id": "water",
+          "label": "Water",
+          "order": 0
+        },
+        {
+          "id": "landmark",
+          "label": "Landmark",
+          "order": 1
+        },
+        {
+          "id": "sprite",
+          "label": "Sprite",
+          "order": 2
+        },
+        {
+          "id": "effect",
+          "label": "Effect",
+          "order": 3
+        }
+      ],
+      "objects": [
+        {
+          "id": "01-water-01",
+          "assetId": "ocean-atlantic-overlay",
+          "placeholderId": null,
+          "layerId": "water",
+          "order": 0,
+          "role": "water",
+          "x": 0.025652,
+          "y": 0.247288,
+          "width": 0.938478,
+          "height": 0.655932,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": {
+            "x": 0,
+            "y": 390,
+            "width": 1506,
+            "height": 240
+          },
+          "motion": null,
+          "opacity": 0.36
+        },
+        {
+          "id": "01-sprite-02",
+          "assetId": "sprite-boat-sail",
+          "placeholderId": null,
+          "layerId": "sprite",
+          "order": 0,
+          "role": "sprite",
+          "x": 0.835906,
+          "y": 0.602119,
+          "width": 0.101449,
+          "height": 0.161017,
+          "rotation": -22,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": null,
+          "motion": {
+            "type": "drift",
+            "dx": 4,
+            "dy": -2,
+            "duration": 14,
+            "delay": 0.5
+          },
+          "opacity": 0.74
+        },
+        {
+          "id": "01-effect-03",
+          "assetId": "effect-boat-wake",
+          "placeholderId": null,
+          "layerId": "effect",
+          "order": 0,
+          "role": "effect",
+          "x": 0.858225,
+          "y": 0.708898,
+          "width": 0.091304,
+          "height": 0.04661,
+          "rotation": -22,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": {
+            "x": 360,
+            "y": 470,
+            "width": 620,
+            "height": 170
+          },
+          "motion": {
+            "type": "drift",
+            "dx": 4,
+            "dy": -2,
+            "duration": 14,
+            "delay": 0.5
+          },
+          "opacity": 0.18
+        },
+        {
+          "id": "01-landmark-04",
+          "assetId": null,
+          "placeholderId": "guadeloupe-waterfall-cove-card",
+          "layerId": "landmark",
+          "order": 0,
+          "role": "landmark",
+          "x": 0.082065,
+          "y": 0.322542,
+          "width": 0.333333,
+          "height": 0.542373,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": null,
+          "motion": null,
+          "opacity": 0,
+          "placeholder": true
+        }
+      ]
+    },
+    "02": {
+      "layers": [
+        {
+          "id": "water",
+          "label": "Water",
+          "order": 0
+        },
+        {
+          "id": "landmark",
+          "label": "Landmark",
+          "order": 1
+        },
+        {
+          "id": "sprite",
+          "label": "Sprite",
+          "order": 2
+        },
+        {
+          "id": "effect",
+          "label": "Effect",
+          "order": 3
+        }
+      ],
+      "objects": [
+        {
+          "id": "02-water-01",
+          "assetId": "sea-mediterranean-overlay",
+          "placeholderId": null,
+          "layerId": "water",
+          "order": 0,
+          "role": "water",
+          "x": 0.025652,
+          "y": 0.236525,
+          "width": 0.938478,
+          "height": 0.666695,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": {
+            "x": 0,
+            "y": 520,
+            "width": 1536,
+            "height": 220
+          },
+          "motion": null,
+          "opacity": 0.36
+        },
+        {
+          "id": "02-sprite-02",
+          "assetId": "sprite-boat-motor",
+          "placeholderId": null,
+          "layerId": "sprite",
+          "order": 0,
+          "role": "sprite",
+          "x": 0.174348,
+          "y": 0.612881,
+          "width": 0.094203,
+          "height": 0.144068,
+          "rotation": -18,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": null,
+          "motion": {
+            "type": "drift",
+            "dx": 4,
+            "dy": -2,
+            "duration": 14,
+            "delay": 0.5
+          },
+          "opacity": 0.74
+        },
+        {
+          "id": "02-effect-03",
+          "assetId": "effect-boat-wake",
+          "placeholderId": null,
+          "layerId": "effect",
+          "order": 0,
+          "role": "effect",
+          "x": 0.195072,
+          "y": 0.712034,
+          "width": 0.084783,
+          "height": 0.044746,
+          "rotation": -18,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": {
+            "x": 360,
+            "y": 470,
+            "width": 620,
+            "height": 170
+          },
+          "motion": {
+            "type": "drift",
+            "dx": 4,
+            "dy": -2,
+            "duration": 14,
+            "delay": 0.5
+          },
+          "opacity": 0.18
+        },
+        {
+          "id": "02-landmark-04",
+          "assetId": null,
+          "placeholderId": "martinique-beach-palms-card",
+          "layerId": "landmark",
+          "order": 0,
+          "role": "landmark",
+          "x": 0.794855,
+          "y": 0.258051,
+          "width": 0.376812,
+          "height": 0.661017,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": null,
+          "motion": null,
+          "opacity": 0,
+          "placeholder": true
+        }
+      ]
+    },
+    "03": {
+      "layers": [
+        {
+          "id": "water",
+          "label": "Water",
+          "order": 0
+        },
+        {
+          "id": "landmark",
+          "label": "Landmark",
+          "order": 1
+        }
+      ],
+      "objects": [
+        {
+          "id": "03-water-01",
+          "assetId": "ocean-atlantic-overlay",
+          "placeholderId": null,
+          "layerId": "water",
+          "order": 0,
+          "role": "water",
+          "x": 0.030761,
+          "y": 0.225847,
+          "width": 0.938478,
+          "height": 0.677458,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": {
+            "x": 460,
+            "y": 410,
+            "width": 620,
+            "height": 220
+          },
+          "motion": null,
+          "opacity": 0
+        },
+        {
+          "id": "03-landmark-02",
+          "assetId": null,
+          "placeholderId": "guyane-river-launch-card",
+          "layerId": "landmark",
+          "order": 0,
+          "role": "landmark",
+          "x": 0.820507,
+          "y": 0.387119,
+          "width": 0.442029,
+          "height": 0.694915,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": null,
+          "motion": null,
+          "opacity": 0,
+          "placeholder": true
+        }
+      ]
+    },
+    "04": {
+      "layers": [
+        {
+          "id": "water",
+          "label": "Water",
+          "order": 0
+        },
+        {
+          "id": "landmark",
+          "label": "Landmark",
+          "order": 1
+        }
+      ],
+      "objects": [
+        {
+          "id": "04-water-01",
+          "assetId": "sea-mediterranean-overlay",
+          "placeholderId": null,
+          "layerId": "water",
+          "order": 0,
+          "role": "water",
+          "x": 0.030761,
+          "y": 0.225847,
+          "width": 0.938478,
+          "height": 0.677458,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": {
+            "x": 0,
+            "y": 520,
+            "width": 1536,
+            "height": 220
+          },
+          "motion": null,
+          "opacity": 0.36
+        },
+        {
+          "id": "04-landmark-02",
+          "assetId": null,
+          "placeholderId": "reunion-volcano-island-card",
+          "layerId": "landmark",
+          "order": 0,
+          "role": "landmark",
+          "x": 0.558986,
+          "y": 0.45161,
+          "width": 0.434783,
+          "height": 0.762712,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": null,
+          "motion": null,
+          "opacity": 0,
+          "placeholder": true
+        }
+      ]
+    },
+    "06": {
+      "layers": [
+        {
+          "id": "water",
+          "label": "Water",
+          "order": 0
+        },
+        {
+          "id": "landmark",
+          "label": "Landmark",
+          "order": 1
+        },
+        {
+          "id": "sprite",
+          "label": "Sprite",
+          "order": 2
+        }
+      ],
+      "objects": [
+        {
+          "id": "06-water-01",
+          "assetId": "sea-mediterranean-overlay",
+          "placeholderId": null,
+          "layerId": "water",
+          "order": 0,
+          "role": "water",
+          "x": 0.025652,
+          "y": 0.215085,
+          "width": 0.938478,
+          "height": 0.688136,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": {
+            "x": 180,
+            "y": 520,
+            "width": 1180,
+            "height": 220
+          },
+          "motion": null,
+          "opacity": 0.36
+        },
+        {
+          "id": "06-sprite-02",
+          "assetId": "sprite-bird-top-c",
+          "placeholderId": null,
+          "layerId": "sprite",
+          "order": 0,
+          "role": "sprite",
+          "x": 0.825652,
+          "y": 0.376356,
+          "width": 0.115942,
+          "height": 0.254237,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": null,
+          "motion": {
+            "type": "drift",
+            "dx": 4,
+            "dy": -2,
+            "duration": 14,
+            "delay": 0.5
+          },
+          "opacity": 0.74
+        },
+        {
+          "id": "06-landmark-03",
+          "assetId": null,
+          "placeholderId": "mayotte-foam-ring-card",
+          "layerId": "landmark",
+          "order": 0,
+          "role": "landmark",
+          "x": 0.164094,
+          "y": 0.516102,
+          "width": 0.391304,
+          "height": 0.525424,
+          "rotation": 0,
+          "visiblePhases": [
+            "landing",
+            "national"
+          ],
+          "crop": null,
+          "motion": null,
+          "opacity": 0,
+          "placeholder": true
+        }
+      ]
+    }
+  }
+}

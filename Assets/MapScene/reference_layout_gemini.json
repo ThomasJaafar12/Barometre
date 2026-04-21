@@ -1,0 +1,595 @@
+{
+  "version": "1.0",
+  "id": "gemini-reference-layout",
+  "title": "Reference placement contract extracted from Gemini mockup",
+  "sourceImage": {
+    "path": "C:/Users/ac75009764/Downloads/Gemini_Generated_Image_futatzfutatzfuta.png",
+    "width": 2738,
+    "height": 1568
+  },
+  "coordinateSystem": {
+    "origin": "top-left",
+    "units": "pixels",
+    "note": "All coordinates are approximate visual anchors traced from the reference image. They are meant for art direction and scene composition, not as exact geo coordinates."
+  },
+  "recommendedSceneCrop": {
+    "x": 40,
+    "y": 218,
+    "width": 2658,
+    "height": 1310,
+    "note": "Use the inner dark scene panel as the layout frame rather than the full screenshot."
+  },
+  "targetHints": {
+    "currentMapViewBox": {
+      "width": 1200,
+      "height": 860
+    },
+    "integrationStrategy": "Reproject anchors proportionally from recommendedSceneCrop into the live stage after the final crop and DOM column widths are locked."
+  },
+  "styleContract": {
+    "water": "Water is a background mass, not a sticker on top of the map. Keep it behind coastlines and use it to carve bays, channels, and DOM cards.",
+    "terrain": "Mountains are clustered and directional. They sit on borders and relief zones, not in region centers.",
+    "landmarks": "Landmarks are sparse, region-signifying, and vertically oriented. Avoid toy-island bases.",
+    "nature": "Small tree groups are used as punctuation near coasts and borders, not as broad fill textures.",
+    "motion": "Boats and birds are secondary atmospheric accents. They should reinforce coastlines and sea lanes, not compete with region labels."
+  },
+  "layout": {
+    "mainland": {
+      "footprint": {
+        "x": 742,
+        "y": 366,
+        "width": 1002,
+        "height": 1034
+      },
+      "waterZones": [
+        {
+          "id": "atlantic_northwest",
+          "x": 46,
+          "y": 220,
+          "width": 1010,
+          "height": 758,
+          "purpose": "Broad water mass covering Brittany, the Channel approach, and the Bay of Biscay shoulder."
+        },
+        {
+          "id": "atlantic_southwest",
+          "x": 42,
+          "y": 846,
+          "width": 1048,
+          "height": 614,
+          "purpose": "Deep Atlantic water below Nouvelle-Aquitaine."
+        },
+        {
+          "id": "channel_north",
+          "x": 1000,
+          "y": 220,
+          "width": 310,
+          "height": 356,
+          "purpose": "Narrow northern water slot above Hauts-de-France."
+        },
+        {
+          "id": "mediterranean_arc",
+          "x": 1186,
+          "y": 1152,
+          "width": 888,
+          "height": 326,
+          "purpose": "Mediterranean basin under PACA and around Corse."
+        },
+        {
+          "id": "corse_channel",
+          "x": 1878,
+          "y": 1086,
+          "width": 248,
+          "height": 410,
+          "purpose": "Separate water treatment around Corse."
+        }
+      ],
+      "terrainZones": [
+        {
+          "id": "alps_cluster",
+          "regionCode": "84",
+          "x": 1438,
+          "y": 900,
+          "width": 320,
+          "height": 310,
+          "purpose": "Dense southeast mountain cluster spanning Auvergne-Rhone-Alpes into PACA."
+        },
+        {
+          "id": "pyrenees_ridge",
+          "regionCode": "76",
+          "x": 1120,
+          "y": 1260,
+          "width": 420,
+          "height": 168,
+          "purpose": "Long ridge hugging the southern border of Occitanie."
+        },
+        {
+          "id": "corse_relief",
+          "regionCode": "94",
+          "x": 1918,
+          "y": 1282,
+          "width": 126,
+          "height": 182,
+          "purpose": "Compact mountain treatment on Corse."
+        }
+      ],
+      "anchors": [
+        {
+          "id": "bretagne_lighthouse",
+          "regionCode": "53",
+          "kind": "landmark",
+          "x": 560,
+          "y": 720,
+          "width": 74,
+          "height": 120,
+          "priority": "high",
+          "notes": "Primary west-coast landmark. Sits just offshore, aligned to Brittany."
+        },
+        {
+          "id": "normandie_grove",
+          "regionCode": "28",
+          "kind": "nature",
+          "x": 846,
+          "y": 616,
+          "width": 96,
+          "height": 46,
+          "priority": "medium",
+          "notes": "Small coastal tree group between Brittany and Ile-de-France cluster."
+        },
+        {
+          "id": "pays_loire_shrine",
+          "regionCode": "52",
+          "kind": "landmark",
+          "x": 862,
+          "y": 804,
+          "width": 78,
+          "height": 56,
+          "priority": "medium",
+          "notes": "Low-profile regional marker near the Loire axis."
+        },
+        {
+          "id": "idf_eiffel",
+          "regionCode": "11",
+          "kind": "landmark",
+          "x": 1060,
+          "y": 586,
+          "width": 66,
+          "height": 126,
+          "priority": "high",
+          "notes": "Tallest landmark in the center-north composition."
+        },
+        {
+          "id": "idf_cathedral",
+          "regionCode": "11",
+          "kind": "landmark",
+          "x": 1128,
+          "y": 592,
+          "width": 80,
+          "height": 106,
+          "priority": "high",
+          "notes": "Second anchor paired with Eiffel, slightly to the east."
+        },
+        {
+          "id": "centre_val_arc",
+          "regionCode": "24",
+          "kind": "landmark",
+          "x": 1068,
+          "y": 736,
+          "width": 86,
+          "height": 72,
+          "priority": "high",
+          "notes": "Compact architectural marker centered below Ile-de-France."
+        },
+        {
+          "id": "grand_est_trees",
+          "regionCode": "44",
+          "kind": "nature",
+          "x": 1494,
+          "y": 694,
+          "width": 46,
+          "height": 70,
+          "priority": "low",
+          "notes": "Sparse vertical tree accent at the eastern edge."
+        },
+        {
+          "id": "nouvelle_aquitaine_vineyard",
+          "regionCode": "75",
+          "kind": "nature",
+          "x": 1008,
+          "y": 1008,
+          "width": 116,
+          "height": 76,
+          "priority": "high",
+          "notes": "Main southwest agriculture patch."
+        },
+        {
+          "id": "nouvelle_aquitaine_chateau",
+          "regionCode": "75",
+          "kind": "landmark",
+          "x": 1102,
+          "y": 1098,
+          "width": 98,
+          "height": 88,
+          "priority": "high",
+          "notes": "Hero landmark for southwest inland placement."
+        },
+        {
+          "id": "sud_ouest_cathedral",
+          "regionCode": "75",
+          "kind": "landmark",
+          "x": 922,
+          "y": 1276,
+          "width": 86,
+          "height": 108,
+          "priority": "medium",
+          "notes": "Secondary southwest vertical anchor near the lower left of the mainland."
+        },
+        {
+          "id": "occitanie_village",
+          "regionCode": "76",
+          "kind": "landmark",
+          "x": 1154,
+          "y": 1268,
+          "width": 94,
+          "height": 72,
+          "priority": "medium",
+          "notes": "Low village mass placed above the Mediterranean edge and before the Pyrenees ridge."
+        },
+        {
+          "id": "ara_cable_car",
+          "regionCode": "84",
+          "kind": "landmark",
+          "x": 1490,
+          "y": 904,
+          "width": 108,
+          "height": 118,
+          "priority": "medium",
+          "notes": "Vertical transport accent in the alpine zone."
+        },
+        {
+          "id": "ara_mountain_mass",
+          "regionCode": "84",
+          "kind": "terrain",
+          "x": 1508,
+          "y": 1112,
+          "width": 256,
+          "height": 240,
+          "priority": "high",
+          "notes": "Main relief cluster. Dominant southeast visual anchor."
+        },
+        {
+          "id": "paca_arena",
+          "regionCode": "93",
+          "kind": "landmark",
+          "x": 1432,
+          "y": 1262,
+          "width": 110,
+          "height": 88,
+          "priority": "high",
+          "notes": "Round amphitheater-like landmark at the Mediterranean edge."
+        },
+        {
+          "id": "corse_mount",
+          "regionCode": "94",
+          "kind": "terrain",
+          "x": 1986,
+          "y": 1318,
+          "width": 126,
+          "height": 184,
+          "priority": "medium",
+          "notes": "Single compact relief cluster on Corse."
+        }
+      ],
+      "birdClusters": [
+        {
+          "id": "west_channel_cluster",
+          "x": 618,
+          "y": 562,
+          "width": 168,
+          "height": 132,
+          "countHint": 14,
+          "notes": "Birds between Brittany and Normandy waterline."
+        },
+        {
+          "id": "biscay_cluster",
+          "x": 548,
+          "y": 718,
+          "width": 250,
+          "height": 196,
+          "countHint": 18,
+          "notes": "Main Atlantic bird spread below Brittany."
+        },
+        {
+          "id": "pyrenees_cluster",
+          "x": 1184,
+          "y": 1328,
+          "width": 214,
+          "height": 84,
+          "countHint": 7,
+          "notes": "Small bird run above the southern ridge."
+        }
+      ],
+      "navigation": [
+        {
+          "id": "channel_ferry",
+          "x": 956,
+          "y": 504,
+          "kind": "boat",
+          "headingDegrees": 335,
+          "importance": "medium"
+        },
+        {
+          "id": "biscay_cargo",
+          "x": 618,
+          "y": 1068,
+          "kind": "ship",
+          "headingDegrees": 18,
+          "importance": "high"
+        },
+        {
+          "id": "biscay_fishing_boat",
+          "x": 558,
+          "y": 1190,
+          "kind": "boat",
+          "headingDegrees": 0,
+          "importance": "medium"
+        },
+        {
+          "id": "atlantic_skiff",
+          "x": 764,
+          "y": 1112,
+          "kind": "boat",
+          "headingDegrees": 308,
+          "importance": "low"
+        },
+        {
+          "id": "mediterranean_boat",
+          "x": 1450,
+          "y": 1288,
+          "kind": "boat",
+          "headingDegrees": 220,
+          "importance": "medium"
+        },
+        {
+          "id": "mediterranean_cargo",
+          "x": 1708,
+          "y": 1452,
+          "kind": "ship",
+          "headingDegrees": 180,
+          "importance": "medium"
+        },
+        {
+          "id": "south_east_speedboat",
+          "x": 2018,
+          "y": 1520,
+          "kind": "boat",
+          "headingDegrees": 142,
+          "importance": "low"
+        }
+      ]
+    },
+    "domColumn": {
+      "frame": {
+        "x": 1710,
+        "y": 408,
+        "width": 390,
+        "height": 1030
+      },
+      "cards": {
+        "01": {
+          "regionCode": "01",
+          "label": "Guadeloupe",
+          "frame": {
+            "x": 1710,
+            "y": 408,
+            "width": 390,
+            "height": 186
+          },
+          "composition": {
+            "waterArea": {
+              "x": 1720,
+              "y": 454,
+              "width": 366,
+              "height": 122
+            },
+            "landmassArea": {
+              "x": 1844,
+              "y": 462,
+              "width": 170,
+              "height": 70
+            },
+            "accentAnchors": [
+              {
+                "id": "waterfall_cove",
+                "x": 1742,
+                "y": 468,
+                "kind": "landmark"
+              },
+              {
+                "id": "sailboat",
+                "x": 2036,
+                "y": 520,
+                "kind": "boat"
+              }
+            ]
+          }
+        },
+        "02": {
+          "regionCode": "02",
+          "label": "Martinique",
+          "frame": {
+            "x": 1710,
+            "y": 612,
+            "width": 390,
+            "height": 186
+          },
+          "composition": {
+            "waterArea": {
+              "x": 1720,
+              "y": 656,
+              "width": 366,
+              "height": 124
+            },
+            "landmassArea": {
+              "x": 1848,
+              "y": 664,
+              "width": 154,
+              "height": 78
+            },
+            "accentAnchors": [
+              {
+                "id": "beach_palm_cluster",
+                "x": 2020,
+                "y": 660,
+                "kind": "nature"
+              },
+              {
+                "id": "boat",
+                "x": 1778,
+                "y": 726,
+                "kind": "boat"
+              }
+            ]
+          }
+        },
+        "03": {
+          "regionCode": "03",
+          "label": "Guyane",
+          "frame": {
+            "x": 1710,
+            "y": 816,
+            "width": 390,
+            "height": 186
+          },
+          "composition": {
+            "landArea": {
+              "x": 1722,
+              "y": 858,
+              "width": 366,
+              "height": 126
+            },
+            "silhouetteArea": {
+              "x": 1888,
+              "y": 860,
+              "width": 96,
+              "height": 104
+            },
+            "accentAnchors": [
+              {
+                "id": "river_left",
+                "x": 1762,
+                "y": 906,
+                "kind": "water"
+              },
+              {
+                "id": "launch_pad_right",
+                "x": 2030,
+                "y": 888,
+                "kind": "landmark"
+              }
+            ]
+          }
+        },
+        "04": {
+          "regionCode": "04",
+          "label": "La Reunion",
+          "frame": {
+            "x": 1710,
+            "y": 1020,
+            "width": 390,
+            "height": 186
+          },
+          "composition": {
+            "waterArea": {
+              "x": 1722,
+              "y": 1062,
+              "width": 366,
+              "height": 126
+            },
+            "islandArea": {
+              "x": 1840,
+              "y": 1082,
+              "width": 168,
+              "height": 96
+            },
+            "accentAnchors": [
+              {
+                "id": "volcano_center",
+                "x": 1928,
+                "y": 1104,
+                "kind": "landmark"
+              }
+            ]
+          }
+        },
+        "06": {
+          "regionCode": "06",
+          "label": "Mayotte",
+          "frame": {
+            "x": 1710,
+            "y": 1228,
+            "width": 390,
+            "height": 186
+          },
+          "composition": {
+            "waterArea": {
+              "x": 1720,
+              "y": 1268,
+              "width": 366,
+              "height": 128
+            },
+            "landmassArea": {
+              "x": 1888,
+              "y": 1286,
+              "width": 110,
+              "height": 84
+            },
+            "accentAnchors": [
+              {
+                "id": "foam_ring_left",
+                "x": 1774,
+                "y": 1324,
+                "kind": "effect"
+              },
+              {
+                "id": "bird_arc",
+                "x": 2032,
+                "y": 1298,
+                "kind": "sprite"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "useWithCurrentPremiumPack": {
+    "usableNow": [
+      "ocean-atlantic-overlay",
+      "sea-mediterranean-overlay",
+      "mountains-alps",
+      "mountains-pyrenees",
+      "nature-forest-cluster",
+      "birds-flock",
+      "sprite-bird-glide-a",
+      "sprite-bird-bank-b",
+      "sprite-bird-top-c",
+      "sprite-boat-sail",
+      "sprite-boat-motor",
+      "effect-boat-wake",
+      "effect-water-ripple"
+    ],
+    "notRepresentedInCurrentPack": [
+      "west-coast lighthouse",
+      "Ile-de-France monuments without island bases",
+      "central arch / shrine landmarks",
+      "southwest cathedral / chateau variants that sit directly on land",
+      "cable car installation",
+      "PACA amphitheater",
+      "Guadeloupe waterfall cove",
+      "Martinique beach and palms",
+      "Guyane river and launch pads",
+      "La Reunion volcano island",
+      "Mayotte foam ring and island-specific card relief"
+    ]
+  }
+}

@@ -44,6 +44,12 @@
       --map-unavailable: rgba(255,255,255,0.08);
       --focus-stroke: rgba(255,255,255,0.76);
       --focus-glow: rgba(255,255,255,0.18);
+      --scene-sea-a: rgba(34, 110, 146, 0.9);
+      --scene-sea-b: rgba(7, 30, 45, 0.98);
+      --scene-foam: rgba(226, 246, 255, 0.58);
+      --scene-relief-shadow: rgba(5, 14, 20, 0.36);
+      --scene-cloud: rgba(248, 252, 255, 0.78);
+      --scene-monument-glow: rgba(255, 236, 190, 0.42);
       --shell-width: min(calc(100% - 28px), 1520px);
       --chapter-rail-top: 18px;
       --chapter-scroll-margin: 168px;
@@ -283,6 +289,88 @@
     .map-stage.is-hidden {
       opacity: 0;
       pointer-events: none;
+    }
+
+    .mainland-scene-layer,
+    .mainland-scene-layer *,
+    .inset-scene-layer,
+    .inset-scene-layer * {
+      pointer-events: none;
+    }
+    .mainland-scene-layer,
+    .inset-scene-layer {
+      isolation: isolate;
+    }
+    .map-scene-object-image {
+      transform-box: fill-box;
+      transform-origin: center;
+      filter: drop-shadow(0 16px 32px rgba(0,0,0,0.28));
+      image-rendering: auto;
+      transition: opacity 220ms ease, filter 220ms ease;
+    }
+    .map-scene-object-image.is-placeholder {
+      filter: none;
+    }
+    .mainland-scene-layer .map-scene-object-image {
+      opacity: 0.94;
+    }
+    .inset-scene-layer .map-scene-object-image {
+      opacity: 0.9;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.24));
+    }
+    .map-scene-object-image.is-role-water {
+      mix-blend-mode: screen;
+      filter: drop-shadow(0 8px 24px rgba(46,128,158,0.18));
+    }
+    .map-scene-object-image.is-role-atmosphere,
+    .map-scene-object-image.is-role-effect {
+      mix-blend-mode: screen;
+    }
+    .map-scene-object-image.is-role-terrain,
+    .map-scene-object-image.is-role-landmark {
+      filter: drop-shadow(0 18px 36px rgba(0,0,0,0.34));
+    }
+    .inset-scene-layer .map-scene-object-image.is-role-terrain,
+    .inset-scene-layer .map-scene-object-image.is-role-landmark,
+    .inset-scene-layer .map-scene-object-image.is-role-sprite {
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.26));
+    }
+    .mainland-scene-layer .map-scene-object-image.is-role-water {
+      opacity: 0.46;
+    }
+    .mainland-scene-layer .map-scene-object-image.is-role-atmosphere {
+      opacity: 0.3;
+    }
+    .mainland-scene-layer .map-scene-object-image.is-role-effect {
+      opacity: 0.34;
+    }
+    .mainland-scene-layer .map-scene-object-image.is-role-terrain,
+    .mainland-scene-layer .map-scene-object-image.is-role-landmark,
+    .mainland-scene-layer .map-scene-object-image.is-role-nature,
+    .mainland-scene-layer .map-scene-object-image.is-role-sprite {
+      opacity: 0.94;
+    }
+    .inset-scene-layer .map-scene-object-image.is-role-water {
+      opacity: 0.3;
+    }
+    .inset-scene-layer .map-scene-object-image.is-role-atmosphere {
+      opacity: 0.2;
+    }
+    .inset-scene-layer .map-scene-object-image.is-role-effect {
+      opacity: 0.24;
+    }
+    .inset-scene-layer .map-scene-object-image.is-role-sprite {
+      opacity: 0.82;
+    }
+    .mainland-scene-layer[data-scene-phase="national"] .map-scene-object-image,
+    .inset-scene-layer[data-scene-phase="national"] .map-scene-object-image {
+      opacity: 0.82;
+    }
+    .mainland-scene-layer[data-scene-phase="national"] .map-scene-object-image.is-role-water {
+      opacity: 0.38;
+    }
+    .inset-scene-layer[data-scene-phase="national"] .map-scene-object-image.is-role-water {
+      opacity: 0.24;
     }
 
     .stage-copy {
@@ -1318,6 +1406,19 @@
       stroke-width: 4px;
       stroke-linejoin: round;
     }
+
+    @media (max-width: 1180px) {
+      .scene-detail-optional {
+        display: none;
+      }
+    }
+
+    @media (max-width: 960px) {
+      .scene-detail-compact-hide {
+        display: none;
+      }
+    }
+
     .ripple-ring {
       fill: none;
       stroke: rgba(255,255,255,0.25);
@@ -1576,6 +1677,7 @@ __CHAPTER_SECTIONS_HTML__
       const tooltipLabel = document.getElementById("tooltipLabel");
       const tooltipValue = document.getElementById("tooltipValue");
       const landingMapSvg = d3.select("#landingMap");
+      const mapSceneConfig = DATA.mapScene || { enabled: false, mode: "premium-raster", modeDefault: "off", visiblePhases: [], assets: {}, scopes: {}, storageKey: "barometre.dev.sceneMode" };
 
       const state = {
         phase: "landing",
@@ -1589,7 +1691,23 @@ __CHAPTER_SECTIONS_HTML__
       };
 
       const chartRefs = {
-        regionMap: { cameraGroup: null, cameraState: { scale: 1, x: 0, y: 0 }, focusGroup: null, pathByCode: new Map(), labelByCode: new Map(), rootGroup: null, pathGeneratorByCode: new Map() },
+        regionMap: {
+          cameraGroup: null,
+          cameraState: { scale: 1, x: 0, y: 0 },
+          domSceneGroups: new Map(),
+          focusGroup: null,
+          mainlandSceneBackdropGroup: null,
+          mainlandSceneOverlayGroup: null,
+          pathByCode: new Map(),
+          labelByCode: new Map(),
+          rootGroup: null,
+          pathGeneratorByCode: new Map(),
+        },
+      };
+      const sceneState = {
+        activeMotions: [],
+        runtimeEnabled: null,
+        preloadedSources: null,
       };
       let storyRenderHandle = null;
       let scrollRevealMounted = false;
@@ -1710,12 +1828,18 @@ __CHAPTER_REGISTRY_SCRIPT__
       }
 
       function scrollActiveChapterTabIntoView() {
+        if (!subjectNav) return;
         const activeButton = subjectNav.querySelector(`.chapter-tab[data-key="${activeChapterKey}"]`);
         if (!activeButton) return;
-        activeButton.scrollIntoView({
+        const navRect = subjectNav.getBoundingClientRect();
+        const buttonRect = activeButton.getBoundingClientRect();
+        const delta = (buttonRect.left + buttonRect.width / 2) - (navRect.left + navRect.width / 2);
+        if (Math.abs(delta) < 1) return;
+        const maxScrollLeft = Math.max(0, subjectNav.scrollWidth - subjectNav.clientWidth);
+        const nextScrollLeft = Math.min(maxScrollLeft, Math.max(0, subjectNav.scrollLeft + delta));
+        subjectNav.scrollTo({
+          left: nextScrollLeft,
           behavior: REDUCED_MOTION ? "auto" : "smooth",
-          block: "nearest",
-          inline: "center",
         });
       }
 
@@ -2009,6 +2133,291 @@ __CHAPTER_REGISTRY_SCRIPT__
       const displayRegionsGeojson = { ...DATA.geography.regions, features: displayRegionFeatures };
       const displayRegionFeatureByCode = new Map(displayRegionFeatures.map((feature) => [feature.properties.code, feature]));
 
+      function readStoredSceneMode() {
+        try {
+          return window.localStorage.getItem(mapSceneConfig.storageKey || "barometre.dev.sceneMode");
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function writeStoredSceneMode(value) {
+        try {
+          window.localStorage.setItem(mapSceneConfig.storageKey || "barometre.dev.sceneMode", value);
+        } catch (error) {
+          // Ignore storage failures in static exports.
+        }
+      }
+
+      function sceneCanToggle() {
+        return Boolean(mapSceneConfig && mapSceneConfig.enabled && mapSceneConfig.assets && Object.keys(mapSceneConfig.assets).length);
+      }
+
+      function sceneMode() {
+        if (!sceneCanToggle()) return "off";
+        if (sceneState.runtimeEnabled == null) {
+          const stored = readStoredSceneMode();
+          sceneState.runtimeEnabled = stored || mapSceneConfig.modeDefault || "premium";
+        }
+        return sceneState.runtimeEnabled;
+      }
+
+      function sceneRuntimeEnabled() {
+        return sceneMode() !== "off";
+      }
+
+      function sceneEnabled() {
+        return sceneCanToggle() && sceneMode() === "premium";
+      }
+
+      function scenePhaseVisible(phase = state.phase) {
+        return sceneEnabled() && Array.isArray(mapSceneConfig.visiblePhases) && mapSceneConfig.visiblePhases.includes(phase);
+      }
+
+      function setSceneMode(mode) {
+        sceneState.runtimeEnabled = mode === "premium" ? "premium" : "off";
+        writeStoredSceneMode(sceneState.runtimeEnabled);
+        rerenderPremiumScene();
+      }
+
+      function setSceneRuntimeEnabled(value) {
+        setSceneMode(value ? "premium" : "off");
+      }
+
+      function stopSceneMotion() {
+        (sceneState.activeMotions || []).forEach((animation) => {
+          if (animation && typeof animation.kill === "function") {
+            animation.kill();
+          }
+        });
+        sceneState.activeMotions = [];
+      }
+
+      function clearPremiumScene() {
+        stopSceneMotion();
+        if (chartRefs.regionMap.mainlandSceneBackdropGroup) {
+          chartRefs.regionMap.mainlandSceneBackdropGroup.selectAll("*").remove();
+        }
+        if (chartRefs.regionMap.mainlandSceneOverlayGroup) {
+          chartRefs.regionMap.mainlandSceneOverlayGroup.selectAll("*").remove();
+        }
+        if (chartRefs.regionMap.domSceneGroups) {
+          chartRefs.regionMap.domSceneGroups.forEach((groups) => {
+            groups.backdrop.selectAll("*").remove();
+            groups.overlay.selectAll("*").remove();
+          });
+        }
+      }
+
+      function clearMapScene() {
+        clearPremiumScene();
+      }
+
+      function preloadPremiumSceneAssets() {
+        if (!sceneCanToggle()) return;
+        if (!sceneState.preloadedSources) {
+          sceneState.preloadedSources = new Set();
+        }
+        Object.values(mapSceneConfig.assets || {}).forEach((asset) => {
+          if (!asset || !asset.src || sceneState.preloadedSources.has(asset.src)) return;
+          const image = new Image();
+          image.decoding = "async";
+          image.src = asset.src;
+          sceneState.preloadedSources.add(asset.src);
+        });
+      }
+
+      function sceneAssetForObject(object) {
+        const assetId = object.asset || object.assetId;
+        return mapSceneConfig.assets && mapSceneConfig.assets[assetId];
+      }
+
+      function objectVisibleInPhase(object, phase = state.phase) {
+        return !object.visiblePhases || object.visiblePhases.includes(phase);
+      }
+
+      function sceneObjectCrop(object, asset) {
+        const fallback = asset && asset.contentBox
+          ? asset.contentBox
+          : { x: 0, y: 0, width: asset && asset.width ? asset.width : 1, height: asset && asset.height ? asset.height : 1 };
+        const crop = object.crop || fallback;
+        return {
+          x: crop.x,
+          y: crop.y,
+          width: crop.width,
+          height: crop.height,
+        };
+      }
+
+      function sceneObjectPlacement(scopeKey, object, asset) {
+        const crop = sceneObjectCrop(object, asset);
+        const width = object.width;
+        const height = object.height || (crop && crop.width && crop.height ? (width * crop.height) / crop.width : null);
+        if (!Number.isFinite(width) || !Number.isFinite(height)) return null;
+        if (scopeKey === "mainland") {
+          return { crop, x: object.x, y: object.y, width, height };
+        }
+        const inset = mapLayout.domInsets[scopeKey];
+        if (!inset) return null;
+        return {
+          crop,
+          x: inset.x + object.x,
+          y: inset.y + object.y,
+          width,
+          height,
+        };
+      }
+
+      function registerSceneMotion(animation) {
+        if (!animation) return;
+        sceneState.activeMotions.push(animation);
+      }
+
+      function sceneObjectOpacity(entry) {
+        const isMainland = entry.scopeKey === "mainland";
+        const phaseMultiplier = state.phase === "national" ? 0.84 : 1;
+        const roleDefaults = isMainland
+          ? { water: 0.46, atmosphere: 0.3, effect: 0.34, terrain: 0.94, landmark: 0.94, nature: 0.94, sprite: 0.94, decor: 0.9 }
+          : { water: 0.3, atmosphere: 0.2, effect: 0.24, terrain: 0.84, landmark: 0.84, nature: 0.8, sprite: 0.82, decor: 0.78 };
+        const baseOpacity = Number.isFinite(entry.object.opacity) ? entry.object.opacity : (roleDefaults[entry.role] ?? roleDefaults.decor);
+        if (baseOpacity <= 0) return 0;
+        return Math.max(0.08, Math.min(1, baseOpacity * phaseMultiplier));
+      }
+
+      function applySceneMotion(image, object) {
+        if (REDUCED_MOTION || !object.motion) return;
+        const motion = object.motion;
+        const vars = {
+          duration: motion.duration || 16,
+          ease: motion.ease || "sine.inOut",
+          repeat: -1,
+          yoyo: motion.yoyo !== false,
+          delay: motion.delay || 0,
+          force3D: true,
+        };
+        if (Number.isFinite(motion.dx)) vars.x = motion.dx;
+        if (Number.isFinite(motion.dy)) vars.y = motion.dy;
+        if (Number.isFinite(motion.scale)) vars.scale = motion.scale;
+        if (Number.isFinite(motion.opacity)) vars.opacity = motion.opacity;
+        registerSceneMotion(gsap.to(image.node(), vars));
+      }
+
+      function buildSceneEntries() {
+        const entries = [];
+        Object.entries(mapSceneConfig.scopes || {}).forEach(([scopeKey, scope]) => {
+          (scope && scope.objects ? scope.objects : []).forEach((object, index) => {
+            const asset = sceneAssetForObject(object);
+            const isPlaceholder = Boolean(object.placeholder);
+            if ((!asset || !asset.src) && !isPlaceholder) return;
+            if (!objectVisibleInPhase(object)) return;
+            const placement = sceneObjectPlacement(scopeKey, object, asset);
+            if (!placement) return;
+            entries.push({
+              asset,
+              index,
+              object,
+              isPlaceholder,
+              placement,
+              crop: placement.crop,
+              role: object.role || asset.role || "decor",
+              scopeKey,
+              zIndex: object.zIndex || 0,
+            });
+          });
+        });
+        entries.sort((left, right) => left.zIndex - right.zIndex || left.index - right.index);
+        const maxObjectCount = mapSceneConfig.budget && Number.isFinite(mapSceneConfig.budget.maxObjectCount)
+          ? mapSceneConfig.budget.maxObjectCount
+          : Number.POSITIVE_INFINITY;
+        return entries.slice(0, maxObjectCount);
+      }
+
+      function sceneTargetGroup(entry) {
+        const sceneSlot = entry.object.layer === "water" ? "backdrop" : "overlay";
+        if (entry.scopeKey === "mainland") {
+          return sceneSlot === "backdrop"
+            ? chartRefs.regionMap.mainlandSceneBackdropGroup
+            : chartRefs.regionMap.mainlandSceneOverlayGroup;
+        }
+        const scopeGroups = chartRefs.regionMap.domSceneGroups && chartRefs.regionMap.domSceneGroups.get(entry.scopeKey);
+        return scopeGroups ? scopeGroups[sceneSlot] : null;
+      }
+
+      function renderPremiumScene() {
+        clearPremiumScene();
+        if (!scenePhaseVisible(state.phase) || !chartRefs.regionMap.rootGroup) return;
+        if (chartRefs.regionMap.mainlandSceneBackdropGroup) {
+          chartRefs.regionMap.mainlandSceneBackdropGroup.attr("data-scene-phase", state.phase);
+        }
+        if (chartRefs.regionMap.mainlandSceneOverlayGroup) {
+          chartRefs.regionMap.mainlandSceneOverlayGroup.attr("data-scene-phase", state.phase);
+        }
+        if (chartRefs.regionMap.domSceneGroups) {
+          chartRefs.regionMap.domSceneGroups.forEach((groups) => {
+            groups.backdrop.attr("data-scene-phase", state.phase);
+            groups.overlay.attr("data-scene-phase", state.phase);
+          });
+        }
+        buildSceneEntries().forEach((entry) => {
+          const targetGroup = sceneTargetGroup(entry);
+          if (!targetGroup) return;
+          const frame = targetGroup.append("svg")
+            .attr("class", `map-scene-object-image map-scene-object-${entry.scopeKey === "mainland" ? "mainland" : "dom"} is-role-${entry.role} is-layer-${entry.object.layer || "decor"}${entry.isPlaceholder ? " is-placeholder" : ""}`)
+            .attr("x", entry.placement.x)
+            .attr("y", entry.placement.y)
+            .attr("width", entry.placement.width)
+            .attr("height", entry.placement.height)
+            .attr("data-role", entry.role)
+            .attr("data-layer", entry.object.layer || "decor")
+            .attr("data-scene-object-id", entry.object.id || "")
+            .attr("data-scene-scope", entry.scopeKey)
+            .attr("data-scene-layer-id", entry.object.layerId || entry.object.layer || "")
+            .attr("preserveAspectRatio", "none")
+            .attr("overflow", "hidden");
+          if (entry.isPlaceholder) {
+            frame.append("rect")
+              .attr("x", 0)
+              .attr("y", 0)
+              .attr("width", entry.placement.width)
+              .attr("height", entry.placement.height)
+              .attr("fill", "transparent");
+          } else {
+            frame.attr("viewBox", `${entry.crop.x} ${entry.crop.y} ${entry.crop.width} ${entry.crop.height}`);
+            frame.append("image")
+              .attr("href", entry.asset.src)
+              .attr("x", 0)
+              .attr("y", 0)
+              .attr("width", entry.asset.width)
+              .attr("height", entry.asset.height)
+              .attr("preserveAspectRatio", "none");
+          }
+          frame.style("opacity", sceneObjectOpacity(entry));
+          if (entry.object.rotation) {
+            frame.attr("transform", `rotate(${entry.object.rotation} ${entry.placement.x + entry.placement.width / 2} ${entry.placement.y + entry.placement.height / 2})`);
+          }
+          applySceneMotion(frame, entry.object);
+          if (typeof bindSceneEditorFrame === "function") {
+            bindSceneEditorFrame(frame, entry);
+          }
+        });
+        if (typeof refreshSceneEditorAfterRender === "function") {
+          refreshSceneEditorAfterRender();
+        }
+      }
+
+      function renderMapScene() {
+        renderPremiumScene();
+      }
+
+      function rerenderPremiumScene() {
+        if (!chartRefs.regionMap.rootGroup) return;
+        renderPremiumScene();
+      }
+
+      function rerenderMapScene() {
+        rerenderPremiumScene();
+      }
+
       function showTooltip(event, label, value) {
         tooltipLabel.textContent = label;
         tooltipValue.textContent = value;
@@ -2038,33 +2447,44 @@ __CHAPTER_REGISTRY_SCRIPT__
         const labelByCode = new Map();
         const pathGeneratorByCode = new Map();
 
+        const mainlandSceneBackdropGroup = featureLayer.append("g").attr("class", "mainland-scene-layer is-backdrop");
         const mainlandGroup = featureLayer.append("g").attr("class", "mainland-layer");
+        const mainlandSceneOverlayGroup = featureLayer.append("g").attr("class", "mainland-scene-layer is-overlay");
+        const labelLayer = config.showMainlandLabels ? featureLayer.append("g").attr("class", "mainland-label-layer") : null;
+        const domSceneGroups = new Map();
         mainlandFeatures.forEach((feature) => {
           const key = config.keyResolver(feature);
           const element = mainlandGroup.append("path")
             .datum(feature)
             .attr("class", config.className(feature))
             .attr("d", path)
-            .attr("fill", config.fillResolver(feature))
-            .attr("data-code", key)
-            .on("mouseenter", (event, datum) => {
-              element.raise();
-              const tooltipText = config.tooltipResolver(datum);
-              showTooltip(event, tooltipText.label, tooltipText.value);
-            })
-            .on("mousemove", (event, datum) => {
-              const tooltipText = config.tooltipResolver(datum);
-              showTooltip(event, tooltipText.label, tooltipText.value);
-            })
-            .on("mouseleave", hideTooltip);
+              .attr("fill", config.fillResolver(feature))
+              .attr("data-code", key)
+              .on("mouseenter", (event, datum) => {
+                if (typeof sceneStudioActive === "function" && sceneStudioActive()) return;
+                element.raise();
+                const tooltipText = config.tooltipResolver(datum);
+                showTooltip(event, tooltipText.label, tooltipText.value);
+              })
+              .on("mousemove", (event, datum) => {
+                if (typeof sceneStudioActive === "function" && sceneStudioActive()) return;
+                const tooltipText = config.tooltipResolver(datum);
+                showTooltip(event, tooltipText.label, tooltipText.value);
+              })
+              .on("mouseleave", () => {
+                if (typeof sceneStudioActive === "function" && sceneStudioActive()) return;
+                hideTooltip();
+              });
           if (config.clickable) {
-            element.on("click", () => config.onClick(key));
+            element.on("click", () => {
+              if (typeof sceneStudioActive === "function" && sceneStudioActive()) return;
+              config.onClick(key);
+            });
           }
           pathByCode.set(key, element);
           pathGeneratorByCode.set(key, path);
         });
-        if (config.showMainlandLabels) {
-          const labelLayer = featureLayer.append("g").attr("class", "mainland-label-layer");
+        if (labelLayer) {
           mainlandFeatures.forEach((feature) => {
             const code = config.regionResolver(feature);
             const region = regionsByCode.get(code);
@@ -2097,6 +2517,10 @@ __CHAPTER_REGISTRY_SCRIPT__
           const insetFeatures = features.filter((feature) => config.regionResolver(feature) === regionCode);
           const group = featureLayer.append("g").attr("class", `inset inset-${regionCode}`);
           group.append("rect").attr("class", "inset-card").attr("x", inset.x).attr("y", inset.y).attr("width", inset.width).attr("height", inset.height).attr("rx", 24);
+          const backdropGroup = group.append("g").attr("class", "inset-scene-layer is-backdrop");
+          const pathGroup = group.append("g").attr("class", "inset-path-layer");
+          const overlayGroup = group.append("g").attr("class", "inset-scene-layer is-overlay");
+          domSceneGroups.set(regionCode, { backdrop: backdropGroup, overlay: overlayGroup });
           group.append("text").attr("class", "inset-label").attr("x", inset.x + 16).attr("y", inset.y + 22).text(regionsByCode.get(regionCode).name);
           const insetProjection = d3.geoMercator().fitExtent(
             [[inset.x + 18, inset.y + 34], [inset.x + inset.width - 18, inset.y + inset.height - 18]],
@@ -2105,31 +2529,51 @@ __CHAPTER_REGISTRY_SCRIPT__
           const insetPath = d3.geoPath(insetProjection);
           insetFeatures.forEach((feature) => {
             const key = config.keyResolver(feature);
-            const element = group.append("path")
+            const element = pathGroup.append("path")
               .datum(feature)
               .attr("class", config.className(feature))
               .attr("d", insetPath)
               .attr("fill", config.fillResolver(feature))
               .attr("data-code", key)
               .on("mouseenter", (event, datum) => {
+                if (typeof sceneStudioActive === "function" && sceneStudioActive()) return;
                 element.raise();
                 const tooltipText = config.tooltipResolver(datum);
                 showTooltip(event, tooltipText.label, tooltipText.value);
               })
               .on("mousemove", (event, datum) => {
+                if (typeof sceneStudioActive === "function" && sceneStudioActive()) return;
                 const tooltipText = config.tooltipResolver(datum);
                 showTooltip(event, tooltipText.label, tooltipText.value);
               })
-              .on("mouseleave", hideTooltip);
+              .on("mouseleave", () => {
+                if (typeof sceneStudioActive === "function" && sceneStudioActive()) return;
+                hideTooltip();
+              });
             if (config.clickable) {
-              element.on("click", () => config.onClick(key));
+              element.on("click", () => {
+                if (typeof sceneStudioActive === "function" && sceneStudioActive()) return;
+                config.onClick(key);
+              });
             }
             pathByCode.set(key, element);
             pathGeneratorByCode.set(key, insetPath);
           });
         });
 
-        return { rootGroup: root, cameraGroup, cameraState: { scale: 1, x: 0, y: 0 }, featureLayer, focusGroup, pathByCode, labelByCode, pathGeneratorByCode };
+        return {
+          rootGroup: root,
+          cameraGroup,
+          cameraState: { scale: 1, x: 0, y: 0 },
+          domSceneGroups,
+          featureLayer,
+          focusGroup,
+          mainlandSceneBackdropGroup,
+          mainlandSceneOverlayGroup,
+          pathByCode,
+          labelByCode,
+          pathGeneratorByCode,
+        };
       }
 
       function renderLandingMap() {
@@ -2162,6 +2606,7 @@ __CHAPTER_REGISTRY_SCRIPT__
           },
           onClick: (code) => transitionToRegion(code, false),
         });
+        renderMapScene();
         highlightSelectedRegion();
       }
 
@@ -2352,10 +2797,10 @@ __CHAPTER_REGISTRY_SCRIPT__
           return;
         }
         if (mode === "national") {
-          mapStage.classList.add("is-hidden");
-          gsap.set(mapStage, { opacity: 0 });
+          gsap.set(mapStage, { opacity: 1 });
           return;
         }
+        clearPremiumScene();
         mapStage.classList.add("is-hidden");
         gsap.set(mapStage, { opacity: 0 });
       }
@@ -2426,6 +2871,7 @@ __CHAPTER_REGISTRY_SCRIPT__
       function transitionToLanding() {
         regionTransitionToken += 1;
         clearFocusOverlay();
+        clearMapScene();
         gsap.killTweensOf(chartRefs.regionMap.cameraState);
         gsap.killTweensOf(mapStage);
         stageVideo.pause();
@@ -2442,6 +2888,7 @@ __CHAPTER_REGISTRY_SCRIPT__
       function transitionToNational(fromRail) {
         regionTransitionToken += 1;
         clearFocusOverlay();
+        clearPremiumScene();
         gsap.killTweensOf(chartRefs.regionMap.cameraState);
         gsap.killTweensOf(mapStage);
         resetCamera();
@@ -2477,6 +2924,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         renderSwitchRail();
         updateVideo(regionCode);
         clearFocusOverlay();
+        clearPremiumScene();
         gsap.killTweensOf(chartRefs.regionMap.cameraState);
         gsap.killTweensOf(mapStage);
 
@@ -2593,6 +3041,7 @@ __CHAPTER_MODULES_SCRIPT__
         renderHeaderActions();
         stageVideo.muted = true;
         setMapStageMode("landing");
+        preloadPremiumSceneAssets();
         ensureDeferredData().catch((error) => console.error("Deferred payload error", error));
       }
 

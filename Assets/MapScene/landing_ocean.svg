@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 860">
+  <defs>
+    <linearGradient id="seaBase" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#123f59"/>
+      <stop offset="38%" stop-color="#0f3147"/>
+      <stop offset="100%" stop-color="#071b2a"/>
+    </linearGradient>
+    <radialGradient id="seaGlowNorth" cx="36%" cy="26%" r="34%">
+      <stop offset="0%" stop-color="#7dd7ff" stop-opacity="0.22"/>
+      <stop offset="50%" stop-color="#56b9de" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#56b9de" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="seaGlowWest" cx="18%" cy="44%" r="22%">
+      <stop offset="0%" stop-color="#85f1de" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#85f1de" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="seaGlowSouth" cx="56%" cy="82%" r="28%">
+      <stop offset="0%" stop-color="#a0f4e7" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#a0f4e7" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="860" fill="url(#seaBase)"/>
+  <rect width="1200" height="860" fill="url(#seaGlowNorth)"/>
+  <rect width="1200" height="860" fill="url(#seaGlowWest)"/>
+  <rect width="1200" height="860" fill="url(#seaGlowSouth)"/>
+
+  <g fill="none" stroke="#d8f6ff" stroke-linecap="round" opacity="0.18">
+    <path d="M30 156c48-18 92-18 136 0s86 18 130 0 90-18 138 0 94 18 140 0 92-18 120 0" stroke-width="1.2"/>
+    <path d="M8 212c64-24 120-24 182 0s120 24 182 0 122-24 186 0 124 24 170 0" stroke-width="1"/>
+    <path d="M34 278c42-16 80-16 122 0s84 16 126 0 86-16 130 0 88 16 124 0 76-12 108 0" stroke-width="0.9" opacity="0.6"/>
+    <path d="M18 604c72-28 132-28 192 0s122 28 188 0 128-28 172 0" stroke-width="1"/>
+    <path d="M64 676c58-24 114-24 170 0s112 24 170 0 114-24 160 0" stroke-width="1.1"/>
+  </g>
+
+  <g fill="none" stroke="#ffffff" stroke-opacity="0.14" stroke-linecap="round">
+    <path d="M74 130c22-8 42-8 62 0s40 8 62 0" stroke-width="1.4"/>
+    <path d="M142 740c20-8 38-8 58 0s40 8 60 0" stroke-width="1.2"/>
+  </g>
+
+  <g opacity="0.08" fill="#ffffff">
+    <ellipse cx="520" cy="116" rx="156" ry="34"/>
+  </g>
+</svg>

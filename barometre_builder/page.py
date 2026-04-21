@@ -6,6 +6,7 @@ from .chapters import build_chapter_fragments
 from .config import DOM_REGION_CODES, EXPERIENCE_REGION_CODES, LOGO_PATH, MAP_LAYOUT, OUTPUT_HTML_PATH, TEMPLATE_PATH
 from .export_ui import build_export_ui_fragments
 from .geometry import build_geographies
+from .map_scene import build_map_scene
 from .modules import build_modules
 from .palettes import build_color_system
 from .utils import dump_json, gzip_base64_json, relative_asset
@@ -24,6 +25,7 @@ def build_payloads() -> tuple[dict, dict]:
         },
         "assets": {"logo": relative_asset(LOGO_PATH), "videos": bundle["videos"]},
         "colorSystem": color_system,
+        "mapScene": build_map_scene(region_meta),
         "regions": hero["regions"],
         "nationalHero": hero["national"],
         "geography": {"regions": regions_geojson},

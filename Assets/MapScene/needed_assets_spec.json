@@ -1,0 +1,114 @@
+[
+  {
+    "id": "west-coast-lighthouse",
+    "usage": "Bretagne offshore lighthouse",
+    "regions": ["53"],
+    "targetSizePx": { "width": 74, "height": 120 },
+    "style": "2.5D isolated landmark, dark stone base, red cap, no island pedestal, transparent background."
+  },
+  {
+    "id": "idf-eiffel-landmark",
+    "usage": "Ile-de-France hero landmark",
+    "regions": ["11"],
+    "targetSizePx": { "width": 66, "height": 126 },
+    "style": "2.5D Eiffel Tower, clean transparent background, no square island base, front-facing enough for map placement."
+  },
+  {
+    "id": "idf-cathedral-landmark",
+    "usage": "Ile-de-France secondary monument",
+    "regions": ["11"],
+    "targetSizePx": { "width": 80, "height": 106 },
+    "style": "2.5D cathedral / Notre-Dame style facade, transparent background, no pedestal or ground tile."
+  },
+  {
+    "id": "centre-val-arc-landmark",
+    "usage": "Centre-Val de Loire central monument",
+    "regions": ["24"],
+    "targetSizePx": { "width": 86, "height": 72 },
+    "style": "Compact 2.5D arch or heritage gate, land-ready, transparent background."
+  },
+  {
+    "id": "pays-loire-shrine-landmark",
+    "usage": "Pays de la Loire low-profile landmark",
+    "regions": ["52"],
+    "targetSizePx": { "width": 78, "height": 56 },
+    "style": "Small 2.5D stone shrine / abbey-like marker, transparent background, top-lit, no island base."
+  },
+  {
+    "id": "nouvelle-aquitaine-chateau",
+    "usage": "Nouvelle-Aquitaine inland landmark",
+    "regions": ["75"],
+    "targetSizePx": { "width": 98, "height": 88 },
+    "style": "2.5D chateau / estate on land, transparent background, not floating in water."
+  },
+  {
+    "id": "sud-ouest-cathedral",
+    "usage": "Southwest secondary vertical landmark",
+    "regions": ["75"],
+    "targetSizePx": { "width": 86, "height": 108 },
+    "style": "2.5D cathedral or citadel tower, transparent background, suited for map-ground placement."
+  },
+  {
+    "id": "occitanie-village",
+    "usage": "Occitanie village landmark",
+    "regions": ["76"],
+    "targetSizePx": { "width": 94, "height": 72 },
+    "style": "Low Mediterranean village cluster, terracotta roofs, transparent background."
+  },
+  {
+    "id": "alpine-cable-car",
+    "usage": "Auvergne-Rhone-Alpes transport accent",
+    "regions": ["84"],
+    "targetSizePx": { "width": 108, "height": 118 },
+    "style": "2.5D cable-car tower and cabin, transparent background, vertical silhouette."
+  },
+  {
+    "id": "paca-amphitheater",
+    "usage": "PACA coastal arena",
+    "regions": ["93"],
+    "targetSizePx": { "width": 110, "height": 88 },
+    "style": "2.5D Roman amphitheater / arena, transparent background, low wide silhouette."
+  },
+  {
+    "id": "cargo-ship",
+    "usage": "Atlantic and Mediterranean cargo navigation",
+    "regions": ["75", "93", "94"],
+    "targetSizePx": { "width": 72, "height": 30 },
+    "style": "Top-down or isometric cargo ship, transparent background, dark-hull variant, subtle wake compatibility."
+  },
+  {
+    "id": "guadeloupe-waterfall-cove-card",
+    "usage": "Guadeloupe DOM card environment",
+    "regions": ["01"],
+    "targetSizePx": { "width": 108, "height": 74 },
+    "style": "2.5D waterfall cove with rocky vegetation edge, transparent background or integrated card-ready patch."
+  },
+  {
+    "id": "martinique-beach-palms-card",
+    "usage": "Martinique DOM card environment",
+    "regions": ["02"],
+    "targetSizePx": { "width": 112, "height": 86 },
+    "style": "2.5D beach cove with palms and sand, transparent background or card-ready edge."
+  },
+  {
+    "id": "guyane-river-launch-card",
+    "usage": "Guyane DOM card environment",
+    "regions": ["03"],
+    "targetSizePx": { "width": 132, "height": 88 },
+    "style": "Stylized river bend plus launch-pad / rocket accent, transparent background or card-ready patch."
+  },
+  {
+    "id": "reunion-volcano-island-card",
+    "usage": "La Reunion DOM card hero island",
+    "regions": ["04"],
+    "targetSizePx": { "width": 132, "height": 96 },
+    "style": "2.5D volcanic island with crater smoke, transparent background or card-ready patch."
+  },
+  {
+    "id": "mayotte-foam-ring-card",
+    "usage": "Mayotte DOM card foam and reef accent",
+    "regions": ["06"],
+    "targetSizePx": { "width": 118, "height": 72 },
+    "style": "White foam ring / reef wake effect around lagoon islands, transparent background."
+  }
+]

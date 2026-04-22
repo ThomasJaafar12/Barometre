@@ -928,6 +928,18 @@
       grid-template-columns: minmax(0, 1.32fr) minmax(320px, 0.72fr);
       align-items: stretch;
     }
+    .employment-stack {
+      display: grid;
+      gap: 22px;
+    }
+    .employment-block {
+      display: grid;
+      gap: 18px;
+    }
+    .employment-map-grid {
+      grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
+      align-items: stretch;
+    }
     .employment-main,
     .employment-side {
       position: relative;
@@ -956,11 +968,8 @@
     .employment-intro {
       position: relative;
       z-index: 1;
-      display: flex;
-      justify-content: space-between;
-      gap: 18px;
-      align-items: flex-start;
-      flex-wrap: wrap;
+      display: grid;
+      gap: 14px;
     }
     .employment-title strong {
       font-size: clamp(1.35rem, 2vw, 1.8rem);
@@ -972,20 +981,25 @@
       max-width: 62ch;
     }
     .employment-controls {
-      display: grid;
-      gap: 12px;
-      justify-items: end;
-      min-width: min(100%, 320px);
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 14px;
+      width: 100%;
+      min-width: 0;
     }
     .employment-select-wrap {
       display: grid;
-      gap: 8px;
-      width: min(100%, 320px);
+      gap: 6px;
+      width: min(100%, 240px);
+      flex: 0 0 240px;
       color: inherit;
       text-decoration: none;
     }
     .employment-select-label {
       color: rgba(238,247,255,0.56);
+      font-size: 10px;
+      letter-spacing: 0.12em;
     }
     .employment-select-wrap select {
       width: 100%;
@@ -996,20 +1010,30 @@
         linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)),
         var(--panel-faint);
       color: var(--text);
-      padding: 12px 16px;
-      font: 600 0.96rem "Manrope", sans-serif;
+      padding: 10px 14px;
+      font: 600 0.92rem "Manrope", sans-serif;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
       cursor: pointer;
+    }
+    .employment-select-wrap select option,
+    .select-wrap select option {
+      color: #13202c;
+      background: #f6efe5;
     }
     .employment-select-wrap select:focus-visible {
       outline: 2px solid rgba(159,194,255,0.34);
       outline-offset: 2px;
     }
+    .employment-select-wrap--compact {
+      width: min(100%, 340px);
+    }
     .employment-focus-switch {
       display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
+      flex-wrap: nowrap;
+      gap: 8px;
       justify-content: flex-end;
+      align-items: center;
+      min-width: 0;
     }
     .employment-focus-button {
       appearance: none;
@@ -1017,8 +1041,9 @@
       background: rgba(255,255,255,0.06);
       color: var(--text);
       border-radius: 999px;
-      padding: 9px 14px;
-      font: 700 0.84rem "Manrope", sans-serif;
+      padding: 8px 12px;
+      font: 700 0.8rem "Manrope", sans-serif;
+      white-space: nowrap;
       cursor: pointer;
       transition: background 180ms ease, color 180ms ease, transform 180ms ease, border-color 180ms ease;
     }
@@ -1131,6 +1156,30 @@
     .employment-principles {
       display: grid;
       gap: 12px;
+    }
+    .employment-map-panel,
+    .employment-ranking-panel {
+      min-height: 420px;
+    }
+    .employment-map-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .employment-map-controls {
+      display: grid;
+      gap: 12px;
+      justify-items: end;
+    }
+    .employment-map-shell {
+      min-height: 320px;
+      display: grid;
+      align-items: center;
+    }
+    .employment-map-shell svg {
+      min-height: 320px;
     }
     .employment-note-card {
       display: grid;
@@ -1443,14 +1492,27 @@
       .employment-grid {
         grid-template-columns: 1fr;
       }
+      .employment-map-grid {
+        grid-template-columns: 1fr;
+      }
       .employment-intro {
         flex-direction: column;
       }
       .employment-controls {
         width: 100%;
+        display: grid;
+        gap: 12px;
+      }
+      .employment-select-wrap {
+        width: min(100%, 320px);
+        flex: 0 0 auto;
+      }
+      .employment-map-controls {
+        width: 100%;
         justify-items: stretch;
       }
       .employment-focus-switch {
+        flex-wrap: wrap;
         justify-content: flex-start;
       }
       .hero-panel {
@@ -1682,9 +1744,12 @@ __CHAPTER_SECTIONS_HTML__
       const state = {
         phase: "landing",
         selectedRegion: "11",
-        sectorMetric: "effectifs_cvs",
-        sectorSeriesKey: null,
-        sectorFocusKey: "rebound",
+        sectorEffectifsSeriesKey: null,
+        sectorEffectifsFocusKey: "rebound",
+        sectorPayrollSeriesKey: null,
+        sectorPayrollFocusKey: "rebound",
+        sectorDepartmentMetric: "effectifs_cvs",
+        sectorDepartmentSectorKey: null,
         autoMetric: "economically_active",
         autoSector: null,
         rarMetric: "rar_90",
@@ -2776,7 +2841,9 @@ __CHAPTER_REGISTRY_SCRIPT__
         deferredDataPromise ??= parseDeferredData().then((deferred) => {
           DATA.geography = { ...DATA.geography, ...deferred.geography };
           DATA.modules = deferred.modules;
-          state.sectorSeriesKey ??= DATA.modules.sector.national.defaultSeriesKey;
+          state.sectorEffectifsSeriesKey ??= DATA.modules.sector.regional.national.defaultSeriesKey;
+          state.sectorPayrollSeriesKey ??= DATA.modules.sector.regional.national.defaultSeriesKey;
+          state.sectorDepartmentSectorKey ??= DATA.modules.sector.departmental.defaultSectorKey;
           state.autoSector ??= DATA.modules.auto.defaultSector;
           return DATA;
         });

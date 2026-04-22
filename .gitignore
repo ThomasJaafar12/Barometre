@@ -3,3 +3,5 @@ __pycache__/builder.cpython-314.pyc
 *.pyo
 *.pyd
 *.pyc3
+
+dist/

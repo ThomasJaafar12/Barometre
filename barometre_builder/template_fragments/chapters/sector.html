@@ -9,86 +9,199 @@
               <span class="section-title-meta" data-chapter-meta></span>
               <p class="section-note" id="sectorSubtitle"></p>
             </div>
-            <div class="control-row">
-              <div class="metric-switch" id="sectorMetricSwitch"></div>
-            </div>
           </div>
-          <div class="section-grid employment-grid">
-            <div class="viz-panel employment-main">
-              <div class="employment-intro">
-                <div class="viz-title employment-title">
-                  <strong id="employmentChartTitle">Deux mesures, une lecture claire.</strong>
-                  <span id="employmentChartMeta"></span>
-                </div>
-                <div class="employment-controls">
-                  <label class="employment-select-wrap" for="employmentSeriesSelect">
-                    <span class="mono employment-select-label">Population / secteur</span>
-                    <select id="employmentSeriesSelect"></select>
-                  </label>
-                  <div class="employment-focus-switch" id="employmentFocusSwitch"></div>
-                </div>
-              </div>
-              <div class="employment-chart-shell">
-                <svg id="employmentChartSvg" viewBox="0 0 980 560" role="img" aria-labelledby="employmentChartTitleSvg employmentChartDescSvg">
-                  <title id="employmentChartTitleSvg">Evolution trimestrielle, glissement annuel et niveau</title>
-                  <desc id="employmentChartDescSvg">Histogramme du glissement annuel et courbe de niveau pour les effectifs ou la masse salariale.</desc>
-                </svg>
-                <div id="employmentChartTooltip" class="employment-tooltip" aria-hidden="true">
-                  <div class="tooltip-overline"></div>
-                  <div class="tooltip-body"></div>
-                </div>
-              </div>
-              <div class="legend-row employment-legend">
-                <span class="legend-chip"><i class="employment-swatch employment-swatch-positive"></i>Glissement annuel positif</span>
-                <span class="legend-chip"><i class="employment-swatch employment-swatch-negative"></i>Glissement annuel negatif</span>
-                <span class="legend-chip"><i class="legend-line" style="color: var(--accent-secondary)"></i><span id="employmentLegendLine">Niveau</span></span>
-              </div>
-            </div>
-            <div class="viz-panel employment-side">
-              <div class="employment-focus-card">
-                <div class="eyebrow">Lecture editoriale</div>
-                <h3 id="employmentFocusTitle"></h3>
-                <p id="employmentFocusCopy"></p>
-                <div class="employment-stat-grid">
-                  <div class="employment-stat">
-                    <span class="employment-stat-label">Niveau actuel</span>
-                    <strong id="employmentCurrentLevel"></strong>
-                    <small id="employmentCurrentLevelMeta"></small>
+          <div class="employment-stack">
+            <article class="employment-block">
+              <div class="section-grid employment-grid">
+                <div class="viz-panel employment-main">
+                  <div class="employment-intro">
+                    <div class="viz-title employment-title">
+                      <strong id="employmentEffectifsChartTitle">Deux mesures, une lecture claire pour l'emploi privé.</strong>
+                      <span id="employmentEffectifsChartMeta"></span>
+                    </div>
+                    <div class="employment-controls">
+                      <label class="employment-select-wrap" for="employmentEffectifsSeriesSelect">
+                        <span class="mono employment-select-label">Secteur</span>
+                        <select id="employmentEffectifsSeriesSelect" aria-label="Secteur effectifs"></select>
+                      </label>
+                      <div class="employment-focus-switch" id="employmentEffectifsFocusSwitch"></div>
+                    </div>
                   </div>
-                  <div class="employment-stat">
-                    <span class="employment-stat-label">Glissement annuel</span>
-                    <strong id="employmentCurrentYoY"></strong>
-                    <small id="employmentCurrentYoYMeta"></small>
+                  <div class="employment-chart-shell">
+                    <svg id="employmentEffectifsChartSvg" viewBox="0 0 980 560" role="img" aria-labelledby="employmentEffectifsChartTitleSvg employmentEffectifsChartDescSvg">
+                      <title id="employmentEffectifsChartTitleSvg">Évolution trimestrielle des effectifs salariés privés</title>
+                      <desc id="employmentEffectifsChartDescSvg">Histogramme du glissement annuel et courbe de niveau des effectifs salariés privés.</desc>
+                    </svg>
+                    <div id="employmentEffectifsTooltip" class="employment-tooltip" aria-hidden="true">
+                      <div class="tooltip-overline"></div>
+                      <div class="tooltip-body"></div>
+                    </div>
                   </div>
-                  <div class="employment-stat">
-                    <span class="employment-stat-label">Pic de focus</span>
-                    <strong id="employmentFocusPeak"></strong>
-                    <small id="employmentFocusPeakMeta"></small>
-                  </div>
-                  <div class="employment-stat">
-                    <span class="employment-stat-label">Niveau du focus</span>
-                    <strong id="employmentFocusLevel"></strong>
-                    <small id="employmentFocusLevelMeta"></small>
+                  <div class="legend-row employment-legend">
+                    <span class="legend-chip"><i class="employment-swatch employment-swatch-positive"></i>Glissement annuel positif</span>
+                    <span class="legend-chip"><i class="employment-swatch employment-swatch-negative"></i>Glissement annuel négatif</span>
+                    <span class="legend-chip"><i class="legend-line" style="color: var(--accent-secondary)"></i><span id="employmentEffectifsLegendLine">Niveau des effectifs</span></span>
                   </div>
                 </div>
+                <div class="viz-panel employment-side">
+                  <div class="employment-focus-card">
+                    <div class="eyebrow">Lecture éditoriale</div>
+                    <h3 id="employmentEffectifsFocusTitle"></h3>
+                    <p id="employmentEffectifsFocusCopy"></p>
+                    <div class="employment-stat-grid">
+                      <div class="employment-stat">
+                        <span class="employment-stat-label">Niveau actuel</span>
+                        <strong id="employmentEffectifsCurrentLevel"></strong>
+                        <small id="employmentEffectifsCurrentLevelMeta"></small>
+                      </div>
+                      <div class="employment-stat">
+                        <span class="employment-stat-label">Glissement annuel</span>
+                        <strong id="employmentEffectifsCurrentYoY"></strong>
+                        <small id="employmentEffectifsCurrentYoYMeta"></small>
+                      </div>
+                      <div class="employment-stat">
+                        <span class="employment-stat-label">Point de focus</span>
+                        <strong id="employmentEffectifsFocusPeak"></strong>
+                        <small id="employmentEffectifsFocusPeakMeta"></small>
+                      </div>
+                      <div class="employment-stat">
+                        <span class="employment-stat-label">Niveau du focus</span>
+                        <strong id="employmentEffectifsFocusLevel"></strong>
+                        <small id="employmentEffectifsFocusLevelMeta"></small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="employment-principles">
+                    <article class="employment-note-card">
+                      <div class="eyebrow">Axe Y1</div>
+                      <h4>Le rythme du glissement annuel.</h4>
+                      <p>Les barres mesurent l'accélération ou le repli d'une année sur l'autre pour situer le tempo conjoncturel.</p>
+                    </article>
+                    <article class="employment-note-card">
+                      <div class="eyebrow">Axe Y2</div>
+                      <h4>Le niveau conserve le cadrage.</h4>
+                      <p id="employmentEffectifsAxisCopy">La courbe suit le niveau des effectifs en millions.</p>
+                    </article>
+                    <article class="employment-note-card">
+                      <div class="eyebrow">Fenêtre</div>
+                      <h4>Une lecture trimestrielle continue.</h4>
+                      <p>Le cadrage conserve la série 2014-2025 afin de comparer les ruptures, les rebonds et le ralentissement récent dans une même scène.</p>
+                    </article>
+                  </div>
+                </div>
               </div>
-              <div class="employment-principles">
-                <article class="employment-note-card">
-                  <div class="eyebrow">Axe Y1</div>
-                  <h4>Le rythme du glissement annuel.</h4>
-                  <p>Les barres montrent l'acceleration ou le ralentissement d'une annee sur l'autre, sans noyer la lecture du niveau.</p>
-                </article>
-                <article class="employment-note-card">
-                  <div class="eyebrow">Axe Y2</div>
-                  <h4>Le niveau reste l'horizon.</h4>
-                  <p id="employmentAxisCopy">La courbe suit le niveau des effectifs en millions.</p>
-                </article>
-                <article class="employment-note-card">
-                  <div class="eyebrow">Repere</div>
-                  <h4>Le cadrage colle au mock fourni.</h4>
-                  <p>La fenetre affiche 2014-2025 pour rester comparable a votre reference, tout en utilisant les donnees reelles du CSV fourni.</p>
-                </article>
+            </article>
+
+            <article class="employment-block">
+              <div class="section-grid employment-grid">
+                <div class="viz-panel employment-main">
+                  <div class="employment-intro">
+                    <div class="viz-title employment-title">
+                      <strong id="employmentPayrollChartTitle">La masse salariale éclaire la profondeur du cycle.</strong>
+                      <span id="employmentPayrollChartMeta"></span>
+                    </div>
+                    <div class="employment-controls">
+                      <label class="employment-select-wrap" for="employmentPayrollSeriesSelect">
+                        <span class="mono employment-select-label">Secteur</span>
+                        <select id="employmentPayrollSeriesSelect" aria-label="Secteur masse salariale"></select>
+                      </label>
+                      <div class="employment-focus-switch" id="employmentPayrollFocusSwitch"></div>
+                    </div>
+                  </div>
+                  <div class="employment-chart-shell">
+                    <svg id="employmentPayrollChartSvg" viewBox="0 0 980 560" role="img" aria-labelledby="employmentPayrollChartTitleSvg employmentPayrollChartDescSvg">
+                      <title id="employmentPayrollChartTitleSvg">Évolution trimestrielle de la masse salariale</title>
+                      <desc id="employmentPayrollChartDescSvg">Histogramme du glissement annuel et courbe de niveau de la masse salariale privée.</desc>
+                    </svg>
+                    <div id="employmentPayrollTooltip" class="employment-tooltip" aria-hidden="true">
+                      <div class="tooltip-overline"></div>
+                      <div class="tooltip-body"></div>
+                    </div>
+                  </div>
+                  <div class="legend-row employment-legend">
+                    <span class="legend-chip"><i class="employment-swatch employment-swatch-positive"></i>Glissement annuel positif</span>
+                    <span class="legend-chip"><i class="employment-swatch employment-swatch-negative"></i>Glissement annuel négatif</span>
+                    <span class="legend-chip"><i class="legend-line" style="color: var(--accent-secondary)"></i><span id="employmentPayrollLegendLine">Niveau de masse salariale</span></span>
+                  </div>
+                </div>
+                <div class="viz-panel employment-side">
+                  <div class="employment-focus-card">
+                    <div class="eyebrow">Lecture éditoriale</div>
+                    <h3 id="employmentPayrollFocusTitle"></h3>
+                    <p id="employmentPayrollFocusCopy"></p>
+                    <div class="employment-stat-grid">
+                      <div class="employment-stat">
+                        <span class="employment-stat-label">Niveau actuel</span>
+                        <strong id="employmentPayrollCurrentLevel"></strong>
+                        <small id="employmentPayrollCurrentLevelMeta"></small>
+                      </div>
+                      <div class="employment-stat">
+                        <span class="employment-stat-label">Glissement annuel</span>
+                        <strong id="employmentPayrollCurrentYoY"></strong>
+                        <small id="employmentPayrollCurrentYoYMeta"></small>
+                      </div>
+                      <div class="employment-stat">
+                        <span class="employment-stat-label">Point de focus</span>
+                        <strong id="employmentPayrollFocusPeak"></strong>
+                        <small id="employmentPayrollFocusPeakMeta"></small>
+                      </div>
+                      <div class="employment-stat">
+                        <span class="employment-stat-label">Niveau du focus</span>
+                        <strong id="employmentPayrollFocusLevel"></strong>
+                        <small id="employmentPayrollFocusLevelMeta"></small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="employment-principles">
+                    <article class="employment-note-card">
+                      <div class="eyebrow">Axe Y1</div>
+                      <h4>Le signal de variation.</h4>
+                      <p>Le glissement annuel restitue l'intensité du cycle salarial sans perdre le lien avec le niveau atteint sur la période.</p>
+                    </article>
+                    <article class="employment-note-card">
+                      <div class="eyebrow">Axe Y2</div>
+                      <h4>La trajectoire en niveau.</h4>
+                      <p id="employmentPayrollAxisCopy">La courbe suit la masse salariale en milliards d'euros.</p>
+                    </article>
+                    <article class="employment-note-card">
+                      <div class="eyebrow">Fenêtre</div>
+                      <h4>Une base homogène pour comparer.</h4>
+                      <p>La lecture reste trimestrielle et continue afin d'observer la rupture de 2020, le rebond 2021-2022 puis la normalisation récente.</p>
+                    </article>
+                  </div>
+                </div>
               </div>
-            </div>
+            </article>
+
+            <article class="employment-block">
+              <div class="section-grid employment-map-grid">
+                <div class="viz-panel map-card employment-map-panel">
+                  <div class="employment-map-head">
+                    <div class="viz-title">
+                      <strong>Carte départementale</strong>
+                      <span id="employmentDeptMapMeta"></span>
+                    </div>
+                    <div class="employment-map-controls">
+                      <label class="employment-select-wrap employment-select-wrap--compact" for="employmentDeptSectorSelect">
+                        <span class="mono employment-select-label">Population / grand secteur</span>
+                        <select id="employmentDeptSectorSelect"></select>
+                      </label>
+                      <div class="metric-switch" id="employmentDeptMetricSwitch"></div>
+                    </div>
+                  </div>
+                  <div class="employment-map-shell" id="employmentDeptMapShell">
+                    <svg id="employmentDeptMapSvg" viewBox="0 0 900 620"></svg>
+                  </div>
+                  <div class="map-legend" id="employmentDeptLegend"></div>
+                </div>
+                <div class="viz-panel employment-ranking-panel">
+                  <div class="viz-title">
+                    <strong>Classement départemental</strong>
+                    <span id="employmentDeptRankingMeta"></span>
+                  </div>
+                  <div class="ranking-list" id="employmentDeptRanking"></div>
+                </div>
+              </div>
+            </article>
           </div>
         </section>

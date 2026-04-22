@@ -28,7 +28,11 @@ def build_video_manifest(region_meta: dict[str, dict[str, Any]]) -> dict[str, An
     return {"placeholder": placeholder_rel, "byRegion": by_region}
 
 
-def build_sector_module(rows: list[dict[str, str]], region_meta: dict[str, dict[str, Any]]) -> tuple[dict[str, Any], dict[str, Any]]:
+def build_sector_module(
+    rows: list[dict[str, str]],
+    department_rows: list[dict[str, str]],
+    region_meta: dict[str, dict[str, Any]],
+) -> tuple[dict[str, Any], dict[str, Any]]:
     filtered_rows = [row for row in rows if normalize_code(row["Code région"]) in region_meta]
     latest_date = max(row["Dernier jour du trimestre"] for row in filtered_rows)
     aggregate_key = "population-entiere"
@@ -141,15 +145,124 @@ def build_sector_module(rows: list[dict[str, str]], region_meta: dict[str, dict[
     national_scope = build_scope(national_accumulator)
     national_latest = (national_scope["series"].get(aggregate_key, {}).get("points") or [None])[-1]
 
+    filtered_department_rows = [row for row in department_rows if normalize_code(row["Code région"]) in region_meta]
+    department_latest_date = max(row["Dernier jour du Trimestre"] for row in filtered_department_rows)
+    department_sector_labels = sorted({row["Grand secteur d'activité"] for row in filtered_department_rows})
+    department_sector_ids = build_slug_index(department_sector_labels)
+    department_labels_by_key = {
+        aggregate_key: "Population entière",
+        **{sector_id: label for label, sector_id in department_sector_ids.items()},
+    }
+    latest_department_rows = [row for row in filtered_department_rows if row["Dernier jour du Trimestre"] == department_latest_date]
+    department_previous_year_date = f"{int(department_latest_date[:4]) - 1}{department_latest_date[4:]}"
+    previous_department_rows = [row for row in filtered_department_rows if row["Dernier jour du Trimestre"] == department_previous_year_date]
+    previous_department_index = {
+        (normalize_department_code(row["Code département"]), department_sector_ids[row["Grand secteur d'activité"]]): row
+        for row in previous_department_rows
+    }
+
+    departments_by_region: dict[str, dict[str, Any]] = defaultdict(dict)
+    sector_totals: dict[str, float] = defaultdict(float)
+
+    for row in latest_department_rows:
+        region_code = normalize_code(row["Code région"])
+        department_code = normalize_department_code(row["Code département"])
+        sector_key = department_sector_ids[row["Grand secteur d'activité"]]
+        effectifs = float(parse_number(row["Effectifs salariés (CVS)"]) or 0)
+        masse = float(parse_number(row["Masse salariale (CVS)"]) or 0)
+        previous_row = previous_department_index.get((department_code, sector_key))
+        previous_effectifs = float(parse_number(previous_row["Effectifs salariés (CVS)"]) or 0) if previous_row else 0.0
+        previous_masse = float(parse_number(previous_row["Masse salariale (CVS)"]) or 0) if previous_row else 0.0
+        effectifs_yoy = ((effectifs / previous_effectifs) - 1) * 100 if previous_effectifs else None
+        masse_yoy = ((masse / previous_masse) - 1) * 100 if previous_masse else None
+        department_entry = departments_by_region[region_code].setdefault(
+            department_code,
+            {
+                "code": department_code,
+                "name": row["Département"],
+                "regionCode": region_code,
+                "values": {aggregate_key: {"effectifs_cvs": 0.0, "masse_cvs": 0.0, "previous_effectifs": 0.0, "previous_masse": 0.0}},
+            },
+        )
+        department_entry["values"][sector_key] = {
+            "effectifs_cvs": effectifs,
+            "masse_cvs": masse,
+            "effectifs_yoy": effectifs_yoy,
+            "masse_yoy": masse_yoy,
+        }
+        aggregate_values = department_entry["values"][aggregate_key]
+        aggregate_values["effectifs_cvs"] += effectifs
+        aggregate_values["masse_cvs"] += masse
+        aggregate_values["previous_effectifs"] += previous_effectifs
+        aggregate_values["previous_masse"] += previous_masse
+        sector_totals[sector_key] += effectifs
+
+    department_regions_payload: dict[str, Any] = {}
+    for code in EXPERIENCE_REGION_CODES:
+        departments_payload: list[dict[str, Any]] = []
+        for department in sorted(departments_by_region.get(code, {}).values(), key=lambda item: item["name"]):
+            aggregate_values = department["values"][aggregate_key]
+            aggregate_values["effectifs_yoy"] = (
+                ((aggregate_values["effectifs_cvs"] / aggregate_values["previous_effectifs"]) - 1) * 100
+                if aggregate_values["previous_effectifs"]
+                else None
+            )
+            aggregate_values["masse_yoy"] = (
+                ((aggregate_values["masse_cvs"] / aggregate_values["previous_masse"]) - 1) * 100
+                if aggregate_values["previous_masse"]
+                else None
+            )
+            aggregate_values.pop("previous_effectifs", None)
+            aggregate_values.pop("previous_masse", None)
+            serialized_values = {
+                series_key: {
+                    "effectifs_cvs": compact_number(values.get("effectifs_cvs")),
+                    "masse_cvs": compact_number(values.get("masse_cvs")),
+                    "effectifs_yoy": compact_number(values.get("effectifs_yoy")),
+                    "masse_yoy": compact_number(values.get("masse_yoy")),
+                }
+                for series_key, values in department["values"].items()
+            }
+            departments_payload.append(
+                {
+                    "code": department["code"],
+                    "name": department["name"],
+                    "regionCode": department["regionCode"],
+                    "values": serialized_values,
+                }
+            )
+        department_regions_payload[code] = {"departments": departments_payload}
+
+    department_sector_options = [{"key": aggregate_key, "label": department_labels_by_key[aggregate_key]}]
+    department_sector_options.extend(
+        {"key": sector_key, "label": department_labels_by_key[sector_key]}
+        for sector_key in sorted(
+            (key for key in department_labels_by_key if key != aggregate_key),
+            key=lambda key: (-sector_totals.get(key, 0.0), department_labels_by_key[key]),
+        )
+    )
+
     return (
         {
-            "displayStartDate": "2014-01-01",
-            "metrics": [
-                {"key": "effectifs_cvs", "label": "Effectifs", "format": "count"},
-                {"key": "masse_cvs", "label": "Masse salariale", "format": "currency"},
-            ],
-            "regions": region_payload,
-            "national": national_scope,
+            "regional": {
+                "displayStartDate": "2014-01-01",
+                "metrics": [
+                    {"key": "effectifs_cvs", "label": "Effectifs", "format": "count"},
+                    {"key": "masse_cvs", "label": "Masse salariale", "format": "currency"},
+                ],
+                "regions": region_payload,
+                "national": national_scope,
+            },
+            "departmental": {
+                "latestDate": department_latest_date,
+                "metrics": [
+                    {"key": "effectifs_cvs", "label": "Effectifs", "format": "count"},
+                    {"key": "masse_cvs", "label": "Masse salariale", "format": "currency"},
+                ],
+                "sectorOptions": department_sector_options,
+                "defaultSectorKey": aggregate_key,
+                "regions": department_regions_payload,
+            },
         },
         {
             "regions": hero_regions,
@@ -406,6 +519,7 @@ def build_modules(region_meta: dict[str, dict[str, Any]]) -> tuple[dict[str, Any
     video_manifest = build_video_manifest(region_meta)
     sector_module, hero_headcount = build_sector_module(
         load_csv(DATA_DIR / "effectifs-salaries-et-masse-salariale-du-secteur-prive-par-region-x-na38.csv"),
+        load_csv(DATA_DIR / "effectifs-salaries-et-masse-salariale-du-secteur-prive-par-departement-x-grand-sec.csv"),
         region_meta,
     )
     payroll_module, hero_payroll = build_payroll_module(

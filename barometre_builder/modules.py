@@ -374,9 +374,9 @@ def build_auto_module(rows: list[dict[str, str]], region_meta: dict[str, dict[st
         {
             "latestDate": latest_date,
             "metrics": [
-                {"key": "economically_active", "label": "Éco actifs", "format": "count"},
-                {"key": "administratively_active", "label": "Administratifs", "format": "count"},
-                {"key": "turnover", "label": "Chiffres d'affaires", "format": "currency"},
+                {"key": "economically_active", "label": "Auto-entrepreneurs actifs", "format": "count"},
+                {"key": "administratively_active", "label": "Indépendants administrativement actifs", "format": "count"},
+                {"key": "turnover", "label": "Chiffre d’affaires déclaré", "format": "currency"},
             ],
             "sectors": ordered_sectors,
             "defaultSector": ordered_sectors[0]["key"] if ordered_sectors else None,

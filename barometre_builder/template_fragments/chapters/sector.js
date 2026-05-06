@@ -26,15 +26,13 @@
         return {
           key: metricKey,
           label: isHeadcount ? "Effectifs" : "Masse salariale",
+          chartTitle: isHeadcount
+            ? "Emploi du secteur privé : niveau et évolution"
+            : "Masse salariale du secteur privé : niveau et évolution",
           levelKey: metricKey,
           yoyKey: isHeadcount ? "effectifs_yoy" : "masse_yoy",
           qoqKey: isHeadcount ? "effectifs_qoq" : "masse_qoq",
           axisTitle: isHeadcount ? "Niveau (millions)" : "Niveau (milliards d'euros)",
-          axisCopy: (seriesLabel) => (
-            isHeadcount
-              ? `La courbe suit ${seriesLabel === "Population entière" ? "le niveau des effectifs privés" : `le niveau des effectifs privés du secteur ${seriesLabel}`} en millions.`
-              : `La courbe suit ${seriesLabel === "Population entière" ? "la masse salariale privée" : `la masse salariale du secteur ${seriesLabel}`} en milliards d'euros.`
-          ),
           legendLine: isHeadcount ? "Niveau des effectifs" : "Niveau de masse salariale",
           tooltipLevel: (value) => isHeadcount ? `${frNumber(value / divisor, 2)} M` : `${frNumber(value / divisor, 1)} Md€`,
           summaryLevel: (value) => isHeadcount ? `${frNumber(value / divisor, 2)} M` : `${frNumber(value / divisor, 1)} Md€`,
@@ -152,6 +150,9 @@
         const dy = options.dy ?? -54;
         const boxWidth = options.width ?? 166;
         const textAnchor = options.anchor ?? "start";
+        const ink = paletteToken("employment-chart-text", "#16212c");
+        const muted = paletteToken("employment-chart-muted", "#5b6773");
+        const gridStrong = paletteToken("employment-chart-grid-strong", "rgba(22,33,44,0.24)");
         const originX = x + dx;
         const originY = y + dy;
 
@@ -160,7 +161,7 @@
           .attr("y1", y)
           .attr("x2", originX)
           .attr("y2", originY + 16)
-          .attr("stroke", "rgba(22,33,44,0.24)")
+          .attr("stroke", gridStrong)
           .attr("stroke-width", 1.2);
 
         const boxX = textAnchor === "end" ? originX - boxWidth : originX;
@@ -174,7 +175,7 @@
         box.append("text")
           .attr("x", 12)
           .attr("y", 18)
-          .attr("fill", "#16212c")
+          .attr("fill", ink)
           .style("font-family", "IBM Plex Mono, monospace")
           .style("font-size", "11px")
           .style("letter-spacing", "0.08em")
@@ -182,7 +183,7 @@
         box.append("text")
           .attr("x", 12)
           .attr("y", 36)
-          .attr("fill", "#5b6773")
+          .attr("fill", muted)
           .style("font-family", "Manrope, sans-serif")
           .style("font-size", "12px")
           .text(detail);
@@ -292,6 +293,12 @@
         const innerHeight = height - margin.top - margin.bottom;
         const root = svg.attr("viewBox", `0 0 ${width} ${height}`);
         const prefix = config.chartSvgId;
+        const chartInk = paletteToken("employment-chart-ink", "#1a4e93");
+        const chartInkSoft = paletteToken("employment-chart-ink-soft", "rgba(26,78,147,0.16)");
+        const chartText = paletteToken("employment-chart-text", "#16212c");
+        const chartMuted = paletteToken("employment-chart-muted", "#5b6773");
+        const chartGrid = paletteToken("employment-chart-grid", "rgba(22,33,44,0.07)");
+        const chartGridStrong = paletteToken("employment-chart-grid-strong", "rgba(22,33,44,0.18)");
 
         const defs = root.append("defs");
         const positiveFillId = `${prefix}-positive-fill`;
@@ -299,14 +306,14 @@
         const focusFillId = `${prefix}-focus-fill`;
         const glowId = `${prefix}-line-glow`;
         const positiveGradient = defs.append("linearGradient").attr("id", positiveFillId).attr("x1", "0").attr("x2", "0").attr("y1", "0").attr("y2", "1");
-        positiveGradient.append("stop").attr("offset", "0%").attr("stop-color", "rgba(38,193,160,0.95)");
-        positiveGradient.append("stop").attr("offset", "100%").attr("stop-color", "rgba(38,193,160,0.38)");
+        positiveGradient.append("stop").attr("offset", "0%").attr("stop-color", paletteToken("employment-chart-positive-a", "rgba(38,193,160,0.95)"));
+        positiveGradient.append("stop").attr("offset", "100%").attr("stop-color", paletteToken("employment-chart-positive-b", "rgba(38,193,160,0.38)"));
         const negativeGradient = defs.append("linearGradient").attr("id", negativeFillId).attr("x1", "0").attr("x2", "0").attr("y1", "0").attr("y2", "1");
-        negativeGradient.append("stop").attr("offset", "0%").attr("stop-color", "rgba(228,134,118,0.95)");
-        negativeGradient.append("stop").attr("offset", "100%").attr("stop-color", "rgba(228,134,118,0.42)");
+        negativeGradient.append("stop").attr("offset", "0%").attr("stop-color", paletteToken("employment-chart-negative-a", "rgba(228,134,118,0.95)"));
+        negativeGradient.append("stop").attr("offset", "100%").attr("stop-color", paletteToken("employment-chart-negative-b", "rgba(228,134,118,0.42)"));
         const focusGradient = defs.append("linearGradient").attr("id", focusFillId).attr("x1", "0").attr("x2", "0").attr("y1", "0").attr("y2", "1");
-        focusGradient.append("stop").attr("offset", "0%").attr("stop-color", "rgba(26,78,147,0.13)");
-        focusGradient.append("stop").attr("offset", "100%").attr("stop-color", "rgba(26,78,147,0)");
+        focusGradient.append("stop").attr("offset", "0%").attr("stop-color", paletteToken("employment-chart-focus-a", "rgba(26,78,147,0.13)"));
+        focusGradient.append("stop").attr("offset", "100%").attr("stop-color", paletteToken("employment-chart-focus-b", "rgba(26,78,147,0)"));
         const glow = defs.append("filter").attr("id", glowId).attr("x", "-20%").attr("y", "-20%").attr("width", "140%").attr("height", "140%");
         glow.append("feGaussianBlur").attr("stdDeviation", 3.2).attr("result", "blur");
         const merge = glow.append("feMerge");
@@ -351,24 +358,24 @@
           .attr("x2", innerWidth)
           .attr("y1", (value) => yYoY(value))
           .attr("y2", (value) => yYoY(value))
-          .attr("stroke", (value) => value === 0 ? "rgba(22,33,44,0.18)" : "rgba(22,33,44,0.07)")
+          .attr("stroke", (value) => value === 0 ? chartGridStrong : chartGrid)
           .attr("stroke-width", (value) => value === 0 ? 1.4 : 1);
 
         const leftAxis = chart.append("g")
           .call(d3.axisLeft(yYoY).ticks(7).tickFormat((value) => `${frNumber(value, 1)} %`));
-        leftAxis.selectAll("text").attr("fill", "#5b6773").style("font-family", "IBM Plex Mono, monospace").style("font-size", "12px");
+        leftAxis.selectAll("text").attr("fill", chartMuted).style("font-family", "IBM Plex Mono, monospace").style("font-size", "12px");
         leftAxis.selectAll("path,line").attr("stroke", "rgba(22,33,44,0)");
 
         const rightAxis = chart.append("g")
           .attr("transform", `translate(${innerWidth},0)`)
           .call(d3.axisRight(yLevel).ticks(6).tickFormat((value) => metric.axisTick(value)));
-        rightAxis.selectAll("text").attr("fill", "#1a4e93").style("font-family", "IBM Plex Mono, monospace").style("font-size", "12px");
-        rightAxis.selectAll("path,line").attr("stroke", "rgba(26,78,147,0.12)");
+        rightAxis.selectAll("text").attr("fill", chartInk).style("font-family", "IBM Plex Mono, monospace").style("font-size", "12px");
+        rightAxis.selectAll("path,line").attr("stroke", chartInkSoft);
 
         chart.append("text")
           .attr("x", 0)
           .attr("y", -14)
-          .attr("fill", "#16212c")
+          .attr("fill", chartText)
           .style("font-family", "IBM Plex Mono, monospace")
           .style("font-size", "12px")
           .text("Glissement annuel");
@@ -377,7 +384,7 @@
           .attr("x", innerWidth)
           .attr("y", -14)
           .attr("text-anchor", "end")
-          .attr("fill", "#1a4e93")
+          .attr("fill", chartInk)
           .style("font-family", "IBM Plex Mono, monospace")
           .style("font-size", "12px")
           .text(metric.axisTitle);
@@ -403,7 +410,7 @@
           .datum(points)
           .attr("d", line)
           .attr("fill", "none")
-          .attr("stroke", "rgba(26,78,147,0.16)")
+          .attr("stroke", chartInkSoft)
           .attr("stroke-width", 10)
           .attr("filter", `url(#${glowId})`);
 
@@ -411,7 +418,7 @@
           .datum(points)
           .attr("d", line)
           .attr("fill", "none")
-          .attr("stroke", "#1a4e93")
+          .attr("stroke", chartInk)
           .attr("stroke-width", 3.4)
           .attr("stroke-linecap", "round")
           .attr("stroke-linejoin", "round");
@@ -423,8 +430,8 @@
           .attr("cx", (_, index) => xScale(index))
           .attr("cy", (point) => yLevel(point[metric.levelKey]))
           .attr("r", (_, index) => index === points.length - 1 ? 5.2 : 3)
-          .attr("fill", (_, index) => index === points.length - 1 ? "#ffffff" : "#1a4e93")
-          .attr("stroke", "#1a4e93")
+          .attr("fill", (_, index) => index === points.length - 1 ? "#ffffff" : chartInk)
+          .attr("stroke", chartInk)
           .attr("stroke-width", (_, index) => index === points.length - 1 ? 2.8 : 0);
 
         chart.append("line")
@@ -432,7 +439,7 @@
           .attr("x2", innerWidth)
           .attr("y1", innerHeight)
           .attr("y2", innerHeight)
-          .attr("stroke", "rgba(22,33,44,0.16)");
+          .attr("stroke", chartGridStrong);
 
         const tickIndices = employmentTickIndices(points.length);
         const xAxis = chart.append("g").attr("transform", `translate(0,${innerHeight})`);
@@ -443,11 +450,11 @@
             .attr("x2", x)
             .attr("y1", 0)
             .attr("y2", 7)
-            .attr("stroke", "rgba(22,33,44,0.16)");
+            .attr("stroke", chartGridStrong);
           xAxis.append("text")
             .attr("x", x)
             .attr("y", 26)
-            .attr("fill", "#5b6773")
+            .attr("fill", chartMuted)
             .style("font-family", "IBM Plex Mono, monospace")
             .style("font-size", "12px")
             .attr("transform", `rotate(-38 ${x} 26)`)
@@ -459,7 +466,7 @@
           .attr("x", innerWidth / 2)
           .attr("y", innerHeight + 60)
           .attr("text-anchor", "middle")
-          .attr("fill", "#16212c")
+          .attr("fill", chartText)
           .style("font-family", "IBM Plex Mono, monospace")
           .style("font-size", "12px")
           .text("Trimestre");
@@ -564,10 +571,11 @@
         renderEmploymentSeriesSelect(config.seriesSelectId, scope, config.seriesStateKey, renderSectorModule);
         renderEmploymentFocusSwitch(config.focusSwitchId, focuses, activeFocus.key, config.focusStateKey, renderSectorModule);
 
-        document.getElementById(config.chartTitleId).textContent = `Deux mesures, une scène claire pour ${metric.chartObject(selectedSeries.label)}.`;
-        document.getElementById(config.chartMetaId).textContent = `${scopeLabel()} / ${selectedSeries.label} / ${metric.label.toLowerCase()} / fenêtre 2014-2025`;
+        document.getElementById(config.chartTitleId).textContent = metric.chartTitle;
+        document.getElementById(config.chartMetaId).textContent = config.metricKey === "effectifs_cvs"
+          ? `${scopeLabel()} · emploi secteur privé hors agricole · dernier trimestre disponible`
+          : `${scopeLabel()} · Masse salariale secteur privé hors agricole · dernier trimestre disponible`;
         document.getElementById(config.legendLineId).textContent = metric.legendLine;
-        document.getElementById(config.axisCopyId).textContent = metric.axisCopy(selectedSeries.label);
         document.getElementById(config.focusTitleId).textContent = narrative.title;
         document.getElementById(config.focusCopyId).textContent = narrative.copy;
         document.getElementById(config.currentLevelId).textContent = metric.summaryLevel(lastPoint[metric.levelKey]);
@@ -670,9 +678,12 @@
         const scale = values.length
           ? buildScale(
               d3.extent(values),
-              [paletteToken("chart-auto-low", "rgba(255,255,255,0.08)"), paletteToken("chart-auto-high", "rgba(120,236,203,0.94)")],
+              [
+                paletteToken("chart-employment-dept-low", "rgba(251,186,0,0.22)"),
+                paletteToken("chart-employment-dept-high", "rgba(238,115,38,0.96)"),
+              ],
             )
-          : () => paletteToken("chart-auto-low", "rgba(255,255,255,0.08)");
+          : () => paletteToken("chart-employment-dept-low", "rgba(251,186,0,0.22)");
 
         mapShell.innerHTML = `<svg id="employmentDeptMapSvg" viewBox="0 0 900 620"></svg>`;
         const svg = d3.select("#employmentDeptMapSvg");
@@ -739,7 +750,7 @@
           : regionalData.regions[state.selectedRegion];
         subtitle.textContent = state.phase === "national"
           ? `France entière / conjoncture de l'emploi / séries régionales 2014-2025 + zoom départemental après sélection d'une région`
-          : `${scopeLabel()} / lecture régionale ${quarterLabel(regionalScope.latestDate)} + carte départementale ${quarterLabel(departmentData.latestDate)}`;
+          : `Suivez l’évolution de l’emploi privé en ${scopeLabel()}.`;
 
         renderRegionalEmploymentBlock({
           metricKey: "effectifs_cvs",
@@ -762,7 +773,6 @@
           focusPeakMetaId: "employmentEffectifsFocusPeakMeta",
           focusLevelId: "employmentEffectifsFocusLevel",
           focusLevelMetaId: "employmentEffectifsFocusLevelMeta",
-          axisCopyId: "employmentEffectifsAxisCopy",
         });
 
         renderRegionalEmploymentBlock({
@@ -786,7 +796,6 @@
           focusPeakMetaId: "employmentPayrollFocusPeakMeta",
           focusLevelId: "employmentPayrollFocusLevel",
           focusLevelMetaId: "employmentPayrollFocusLevelMeta",
-          axisCopyId: "employmentPayrollAxisCopy",
         });
 
         renderSectorDepartmentModule();

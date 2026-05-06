@@ -69,7 +69,7 @@
         const activeSector = DATA.modules.auto.sectors.find((sector) => sector.key === state.autoSector);
         const activeMetric = DATA.modules.auto.metrics.find((metric) => metric.key === state.autoMetric);
 
-        subtitle.textContent = `${scopeLabel()} / lecture ${quarterLabel(DATA.modules.auto.latestDate)} / secteur filtrable / carte + rail`;
+        subtitle.textContent = `${scopeLabel()} / ${quarterLabel(DATA.modules.auto.latestDate)}`;
         mapMeta.textContent = activeSector.label;
         rankingMeta.textContent = activeMetric.label;
 

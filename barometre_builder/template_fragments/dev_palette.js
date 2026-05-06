@@ -1,5 +1,5 @@
       const COLOR_SYSTEM = DATA.colorSystem || { enabled: false, defaultPalette: null, palettes: [] };
-      const paletteStorageKey = "barometre.dev.palette";
+      const paletteStorageKey = "barometre.dev.palette.v3";
       const regionIndexByCode = new Map(regionOrder.map((code, index) => [code, index]));
       const palettesByKey = new Map((COLOR_SYSTEM.palettes || []).map((palette) => [palette.key, palette]));
       const sceneCatalog = mapSceneConfig.catalog || { assets: {}, groups: [], roles: [] };

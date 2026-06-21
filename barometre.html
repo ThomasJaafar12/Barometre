@@ -6,7 +6,7 @@
   <title>Baromètre territorial Urssaf</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #154389;
@@ -400,11 +400,18 @@
       align-self: end;
       border-radius: 32px;
       padding: 24px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)), var(--panel);
-      border: 1px solid rgba(255,255,255,0.08);
-      backdrop-filter: blur(22px);
+      background:
+        linear-gradient(180deg, rgba(21,67,137,0.58), rgba(8,19,28,0.42)),
+        rgba(8,19,28,0.32);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 26px 74px rgba(4,16,28,0.28);
+      backdrop-filter: blur(28px) saturate(150%);
+      -webkit-backdrop-filter: blur(28px) saturate(150%);
       opacity: 1;
       transition: opacity 420ms ease, transform 420ms ease;
+    }
+    .hero-panel::before {
+      opacity: 0.42;
     }
     .hero-panel h1 {
       margin: 0;
@@ -428,7 +435,7 @@
       display: grid;
       gap: 18px;
       justify-self: end;
-      max-width: 460px;
+      max-width: 500px;
       opacity: 0;
       pointer-events: none;
       transform: translateY(18px);
@@ -507,9 +514,10 @@
       border-radius: 24px;
       padding: 18px;
       background:
-        linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.05)),
-        var(--panel);
-      border: 1px solid rgba(255,255,255,0.12);
+        linear-gradient(180deg, rgba(255,255,255,0.20), rgba(255,255,255,0.07)),
+        rgba(8,19,28,0.30);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.20), 0 18px 36px rgba(4,16,28,0.16);
       min-height: 122px;
       display: grid;
       align-content: start;
@@ -520,6 +528,28 @@
       font-size: clamp(1.6rem, 3vw, 2.6rem);
       line-height: 0.95;
       letter-spacing: -0.05em;
+      overflow-wrap: normal;
+      word-break: keep-all;
+    }
+    .kpi-value {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      column-gap: 0.18em;
+      row-gap: 0;
+      color: #ffffff;
+      text-shadow: 0 10px 28px rgba(0,0,0,0.26);
+    }
+    .kpi-value-number,
+    .kpi-value-unit {
+      white-space: nowrap;
+    }
+    .kpi-value-unit {
+      font-size: 0.82em;
+      letter-spacing: -0.03em;
+    }
+    .kpi-value.is-textual .kpi-value-number {
+      white-space: normal;
       overflow-wrap: anywhere;
     }
     .kpi-card strong.is-textual {
@@ -594,6 +624,286 @@
         rgba(255,255,255,0.06);
       border-color: var(--line-strong);
       box-shadow: 0 18px 36px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+
+    body.deck-ready .switch-rail {
+      position: sticky;
+      top: 12px;
+      z-index: 32;
+      display: block;
+      margin: 0 0 16px;
+      padding: 0;
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
+    .deck-control-bar {
+      --deck-control-bg: rgba(21, 67, 137, 0.68);
+      display: grid;
+      grid-template-columns: auto minmax(260px, 1fr) minmax(220px, 0.76fr) auto auto;
+      grid-template-areas: "progress section region previous next";
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      padding: 10px;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.05)),
+        var(--deck-control-bg);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.14);
+      backdrop-filter: blur(24px) saturate(1.18);
+      -webkit-backdrop-filter: blur(24px) saturate(1.18);
+    }
+    body.deck-ready:not([data-active-slide="hero"]) .deck-control-bar {
+      grid-template-columns: auto minmax(260px, 1fr) auto auto;
+      grid-template-areas: "progress section previous next";
+    }
+    .deck-progress {
+      grid-area: progress;
+      display: inline-grid;
+      place-items: center;
+      min-width: 58px;
+      min-height: 46px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.82);
+      font: 700 0.78rem "IBM Plex Mono", monospace;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+    .deck-nav-button,
+    .deck-dropdown-trigger,
+    .deck-menu-button {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.14);
+      color: var(--text);
+      font: 800 0.9rem "Manrope", sans-serif;
+      cursor: pointer;
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, opacity 180ms ease;
+    }
+    .deck-nav-button,
+    .deck-dropdown-trigger {
+      min-height: 46px;
+      border-radius: 16px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.035)),
+        rgba(201, 215, 236, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+    .deck-nav-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-width: 46px;
+      padding: 0 14px;
+      white-space: nowrap;
+    }
+    .deck-prev-button {
+      grid-area: previous;
+    }
+    .deck-next-button {
+      grid-area: next;
+    }
+    .deck-nav-button[disabled] {
+      cursor: default;
+      opacity: 0.42;
+    }
+    .deck-nav-button:not([disabled]):hover,
+    .deck-nav-button:not([disabled]):focus-visible,
+    .deck-dropdown-trigger:hover,
+    .deck-dropdown-trigger:focus-visible,
+    .deck-menu-button:hover,
+    .deck-menu-button:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,0.28);
+      outline: none;
+    }
+    .deck-dropdown {
+      position: relative;
+      min-width: 0;
+    }
+    .deck-section-dropdown {
+      grid-area: section;
+    }
+    .deck-dropdown-trigger {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 14px;
+      padding: 9px 14px;
+      text-align: left;
+    }
+    .deck-trigger-text {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+    }
+    .deck-trigger-kicker {
+      color: rgba(255,255,255,0.58);
+      font: 600 0.62rem "IBM Plex Mono", monospace;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .deck-trigger-label {
+      overflow: hidden;
+      color: #ffffff;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      letter-spacing: -0.015em;
+    }
+    .deck-trigger-chevron {
+      color: rgba(255,255,255,0.72);
+      font: 800 0.9rem "IBM Plex Mono", monospace;
+      transition: transform 180ms ease;
+    }
+    .deck-dropdown.is-open .deck-trigger-chevron {
+      transform: rotate(180deg);
+    }
+    .deck-menu {
+      position: absolute;
+      top: calc(100% + 10px);
+      left: 0;
+      z-index: 40;
+      width: min(430px, calc(100vw - 48px));
+      max-height: min(64vh, 560px);
+      overflow: auto;
+      padding: 10px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.065)),
+        rgba(12, 35, 70, 0.94);
+      box-shadow: 0 30px 90px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.16);
+      backdrop-filter: blur(26px) saturate(1.18);
+      -webkit-backdrop-filter: blur(26px) saturate(1.18);
+    }
+    .deck-region-dropdown .deck-menu {
+      left: auto;
+      right: 0;
+      width: min(360px, calc(100vw - 48px));
+    }
+    .deck-menu[hidden] {
+      display: none;
+    }
+    .deck-menu-group {
+      display: grid;
+      gap: 6px;
+      padding: 8px;
+    }
+    .deck-menu-group + .deck-menu-group {
+      border-top: 1px solid rgba(255,255,255,0.10);
+    }
+    .deck-menu-heading {
+      color: rgba(255,255,255,0.58);
+      font: 700 0.64rem "IBM Plex Mono", monospace;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .deck-menu-button {
+      width: 100%;
+      display: grid;
+      gap: 3px;
+      padding: 11px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.055);
+      text-align: left;
+    }
+    .deck-menu-button small {
+      color: rgba(255,255,255,0.58);
+      font: 700 0.66rem "IBM Plex Mono", monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .deck-menu-button strong {
+      overflow-wrap: anywhere;
+      color: #ffffff;
+      font-size: 0.95rem;
+      letter-spacing: -0.015em;
+    }
+    .deck-menu-button.is-active {
+      border-color: rgba(251,186,0,0.56);
+      background:
+        linear-gradient(135deg, rgba(0,111,184,0.70), rgba(53,187,217,0.22)),
+        rgba(255,255,255,0.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+    }
+    .deck-region-dropdown {
+      grid-area: region;
+      display: none;
+    }
+    body[data-active-slide="hero"] .deck-region-dropdown {
+      display: block;
+    }
+    body.deck-ready .subject-nav {
+      display: none;
+    }
+    body.deck-ready .stage-shell.is-deck-hidden {
+      display: none;
+    }
+    body.deck-ready .story.is-visible {
+      margin-top: 0;
+    }
+    body.deck-ready .story[data-active-slide="hero"] {
+      display: none;
+    }
+    body.deck-ready .chapter-section {
+      display: none;
+      animation: deck-slide-enter 360ms ease both;
+    }
+    body.deck-ready .story[data-active-slide="employment-effectifs"] #module-sector,
+    body.deck-ready .story[data-active-slide="employment-payroll"] #module-sector,
+    body.deck-ready .story[data-active-slide="employment-map"] #module-sector,
+    body.deck-ready .story[data-active-slide="business-health"] #module-payroll,
+    body.deck-ready .story[data-active-slide="auto-map"] #module-auto {
+      display: block;
+    }
+    body.deck-ready .employment-stack > .employment-block {
+      display: none;
+    }
+    body.deck-ready .story[data-active-slide="employment-effectifs"] .employment-scrolly,
+    body.deck-ready .story[data-active-slide="employment-payroll"] .employment-scrolly {
+      display: grid;
+    }
+    body.deck-ready .story[data-active-slide="employment-map"] .employment-stack > .employment-block:not(.employment-scrolly) {
+      display: grid;
+    }
+    body.deck-ready .employment-scrolly {
+      grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr);
+      gap: clamp(18px, 3vw, 34px);
+      min-height: auto;
+      align-items: stretch;
+    }
+    body.deck-ready .employment-scrolly-copy {
+      gap: 0;
+      padding: 0;
+      align-content: start;
+    }
+    body.deck-ready .employment-step {
+      display: none;
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+    body.deck-ready .employment-step.is-active {
+      display: block;
+    }
+    body.deck-ready .employment-sticky-frame {
+      position: relative;
+      top: auto;
+      height: auto;
+      min-height: 0;
+    }
+    body.deck-ready .employment-sticky-frame .employment-chart-pane {
+      position: relative;
+      inset: auto;
+    }
+    @keyframes deck-slide-enter {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .story {
@@ -1008,6 +1318,148 @@
       display: grid;
       gap: 18px;
     }
+    .employment-scrolly {
+      grid-template-columns: minmax(320px, 0.72fr) minmax(0, 1.28fr);
+      gap: clamp(22px, 4vw, 54px);
+      align-items: start;
+      min-height: 188vh;
+    }
+    .employment-scrolly-copy {
+      display: grid;
+      gap: 56vh;
+      padding: 22vh 0 34vh;
+      position: relative;
+      z-index: 3;
+    }
+    .employment-step {
+      color: #ffffff;
+      opacity: 0.42;
+      transform: translateY(24px) scale(0.985);
+      transition: opacity 520ms ease, transform 620ms cubic-bezier(0.16, 1, 0.3, 1), filter 520ms ease;
+      filter: saturate(0.82);
+      scroll-margin-top: var(--chapter-scroll-margin);
+    }
+    .employment-step.is-active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: saturate(1);
+    }
+    .employment-step-body {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      gap: 18px;
+      padding: clamp(22px, 3vw, 34px);
+      border-radius: 28px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04)),
+        rgba(21, 67, 137, 0.28);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 22px 56px rgba(8,19,28,0.16);
+      transition: border-color 520ms ease, box-shadow 620ms ease, background 620ms ease;
+    }
+    .employment-step-body::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,0.7), transparent 96%);
+    }
+    .employment-step.is-active .employment-step-body {
+      border-color: rgba(255,255,255,0.26);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.055)),
+        rgba(21, 67, 137, 0.36);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), 0 28px 72px rgba(15,51,96,0.22), 0 0 42px var(--accent-glow);
+    }
+    .employment-step-body > * {
+      position: relative;
+      z-index: 1;
+    }
+    .employment-step h3 {
+      margin: 0;
+      font-family: "Syne", sans-serif;
+      font-size: clamp(1.75rem, 3vw, 2.55rem);
+      line-height: 0.96;
+      letter-spacing: -0.04em;
+    }
+    .employment-step p {
+      margin: 0;
+      color: rgba(255,255,255,0.78);
+      line-height: 1.72;
+      font-size: 1rem;
+    }
+    .employment-step .employment-controls {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .employment-step .employment-select-wrap {
+      width: min(100%, 320px);
+      flex: 0 1 auto;
+    }
+    .employment-step .employment-focus-switch {
+      justify-content: flex-start;
+      flex-wrap: wrap;
+    }
+    .employment-scrolly-visual {
+      position: relative;
+      align-self: stretch;
+      min-width: 0;
+    }
+    .employment-sticky-frame {
+      position: sticky;
+      top: var(--chapter-scroll-margin);
+      height: clamp(620px, 78vh, 820px);
+      min-width: 0;
+      transform: translateZ(0);
+    }
+    .employment-sticky-frame::after {
+      content: "";
+      position: absolute;
+      inset: -18px;
+      border-radius: 36px;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(circle at 50% 12%, var(--accent-glow), transparent 62%);
+      transition: opacity 360ms ease;
+    }
+    .employment-sticky-frame.is-transitioning::after {
+      opacity: 0.72;
+    }
+    .employment-chart-pane {
+      position: absolute;
+      inset: 0;
+      gap: 18px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translate3d(-18px, 22px, 0) scale(0.985);
+      transition:
+        opacity 620ms ease,
+        transform 720ms cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0s linear 620ms;
+    }
+    .employment-chart-pane.is-active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translate3d(0, 0, 0) scale(1);
+      transition:
+        opacity 620ms ease,
+        transform 720ms cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0s;
+    }
+    .employment-chart-pane[data-employment-pane="payroll"] {
+      transform: translate3d(18px, 22px, 0) scale(0.985);
+    }
+    .employment-chart-pane[data-employment-pane="payroll"].is-active {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
     .employment-map-grid {
       grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
       align-items: start;
@@ -1016,6 +1468,18 @@
     .employment-side {
       position: relative;
       overflow: hidden;
+    }
+    .employment-sticky-frame .employment-chart-pane {
+      position: absolute;
+      inset: 0;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: none;
+      transition: box-shadow 360ms ease;
+    }
+    .employment-sticky-frame .employment-chart-pane[data-employment-pane="payroll"] {
+      display: none;
     }
     .employment-main {
       gap: 18px;
@@ -1616,6 +2080,25 @@
       .section-grid {
         grid-template-columns: 1fr;
       }
+      .employment-scrolly {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        gap: 18px;
+      }
+      .employment-scrolly-visual {
+        order: 1;
+        z-index: 4;
+        align-self: start;
+      }
+      .employment-scrolly-copy {
+        order: 2;
+        gap: 42vh;
+        padding: 6vh 0 16vh;
+      }
+      .employment-sticky-frame {
+        top: var(--chapter-scroll-margin);
+        height: clamp(430px, 58vh, 620px);
+      }
       .employment-grid {
         grid-template-columns: 1fr;
       }
@@ -1688,6 +2171,28 @@
       .employment-stat-grid {
         grid-template-columns: 1fr;
       }
+      .employment-scrolly-copy {
+        gap: 30vh;
+        padding: 18px 0 12vh;
+      }
+      .employment-sticky-frame {
+        height: clamp(340px, 52vh, 520px);
+      }
+      .employment-chart-pane {
+        border-radius: 24px;
+        padding: 14px;
+      }
+      .employment-chart-shell {
+        border-radius: 22px;
+        padding: 10px;
+      }
+      .employment-step-body {
+        border-radius: 24px;
+        padding: 18px;
+      }
+      .employment-step h3 {
+        font-size: clamp(1.45rem, 9vw, 2.05rem);
+      }
       .hero-panel h1 {
         max-width: none;
       }
@@ -1726,6 +2231,77 @@
       }
     }
 
+    @media (max-width: 1180px) {
+      body.deck-ready .deck-control-bar,
+      body.deck-ready:not([data-active-slide="hero"]) .deck-control-bar {
+        grid-template-columns: auto minmax(0, 1fr) auto auto;
+        grid-template-areas:
+          "progress section previous next"
+          "progress region previous next";
+      }
+      body.deck-ready:not([data-active-slide="hero"]) .deck-control-bar {
+        grid-template-areas: "progress section previous next";
+      }
+      body.deck-ready .deck-region-dropdown {
+        min-width: 0;
+      }
+    }
+
+    @media (max-width: 860px) {
+      body.deck-ready .switch-rail {
+        top: 8px;
+        margin-bottom: 10px;
+      }
+      body.deck-ready .deck-control-bar,
+      body.deck-ready:not([data-active-slide="hero"]) .deck-control-bar {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-areas:
+          "previous progress next"
+          "section section section"
+          "region region region";
+        border-radius: 20px;
+      }
+      body.deck-ready:not([data-active-slide="hero"]) .deck-control-bar {
+        grid-template-areas:
+          "previous progress next"
+          "section section section";
+      }
+      .deck-nav-button {
+        min-width: 44px;
+        padding: 0 12px;
+      }
+      .deck-nav-label {
+        display: none;
+      }
+      .deck-progress {
+        min-width: 0;
+      }
+      .deck-dropdown-trigger {
+        min-height: 50px;
+      }
+      .deck-menu,
+      .deck-region-dropdown .deck-menu {
+        position: fixed;
+        left: 16px;
+        right: 16px;
+        top: 86px;
+        width: auto;
+        max-height: min(46vh, 430px);
+      }
+      body.deck-ready .employment-scrolly {
+        grid-template-columns: 1fr;
+      }
+      body.deck-ready .employment-scrolly-visual {
+        order: 1;
+      }
+      body.deck-ready .employment-scrolly-copy {
+        order: 2;
+      }
+      body.deck-ready .employment-sticky-frame {
+        height: auto;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       *,
@@ -1734,6 +2310,10 @@
         animation: none !important;
         transition-duration: 0.01ms !important;
         transition-delay: 0ms !important;
+      }
+      .employment-step,
+      .employment-chart-pane {
+        transform: none !important;
       }
     }
     .topbar {
@@ -2416,6 +2996,856 @@
       }
     }
 
+
+    :root {
+      --urssaf-primary: #0B1D3A;
+      --urssaf-secondary: #0EA5A8;
+      --urssaf-info: #2B82F6;
+      --urssaf-success: #16A34A;
+      --urssaf-warning: #F59E0B;
+      --urssaf-alert: #E11D48;
+      --neutral-50: #F8FAFC;
+      --neutral-100: #F1F5F9;
+      --neutral-200: #E2E8F0;
+      --neutral-300: #CBD5E1;
+      --neutral-400: #94A3B8;
+      --neutral-500: #64748B;
+      --neutral-700: #334155;
+      --neutral-900: #0F172A;
+      --bg: var(--urssaf-primary);
+      --bg-soft: var(--urssaf-secondary);
+      --page-bg: var(--neutral-50);
+      --page-bg-soft: var(--neutral-100);
+      --panel: #FFFFFF;
+      --panel-strong: #FFFFFF;
+      --panel-faint: var(--neutral-50);
+      --surface: #FFFFFF;
+      --surface-strong: var(--neutral-50);
+      --surface-inset: var(--neutral-100);
+      --nav-panel: var(--urssaf-primary);
+      --editorial-panel: #FFFFFF;
+      --editorial-panel-inner: var(--neutral-50);
+      --chip-bg: var(--neutral-50);
+      --chip-border: var(--neutral-300);
+      --chip-active-a: var(--urssaf-primary);
+      --chip-active-b: var(--urssaf-primary);
+      --line: var(--neutral-200);
+      --line-strong: var(--neutral-300);
+      --text: var(--neutral-900);
+      --muted: var(--neutral-700);
+      --muted-soft: var(--neutral-500);
+      --shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+      --radius-xl: 8px;
+      --radius-lg: 8px;
+      --radius-md: 8px;
+      --accent: var(--urssaf-secondary);
+      --accent-deep: var(--urssaf-primary);
+      --accent-secondary: var(--urssaf-info);
+      --accent-glow: rgba(14, 165, 168, 0.18);
+      --danger: var(--urssaf-alert);
+      --warning: var(--urssaf-warning);
+      --neutral: var(--neutral-200);
+      --focus-stroke: var(--urssaf-primary);
+      --focus-glow: rgba(14, 165, 168, 0.24);
+      --chapter-rail-top: 12px;
+      --chapter-scroll-margin: 132px;
+    }
+
+    body,
+    body *,
+    button,
+    input,
+    select,
+    textarea,
+    svg text {
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    }
+
+    body * {
+      letter-spacing: 0 !important;
+    }
+
+    body {
+      color: var(--text);
+      background: var(--page-bg);
+    }
+
+    body::before,
+    body::after,
+    .glass::before,
+    .stage-shell::before,
+    .stage-shell::after,
+    .video-glow,
+    .section-head::before,
+    .employment-main::before,
+    .employment-side::before,
+    .chapter-tab__shape::before,
+    .chapter-tab__shape::after {
+      display: none;
+    }
+
+    .glass,
+    .shell,
+    .topbar,
+    .hero-panel,
+    .section-card,
+    .section-head,
+    .viz-panel,
+    .employment-main,
+    .employment-side,
+    .dev-palette-panel {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    .page {
+      width: min(calc(100% - 32px), 1440px);
+      margin: 16px auto 40px;
+    }
+
+    .shell {
+      border-radius: 8px;
+      padding: 16px;
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .topbar {
+      min-height: 76px;
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      color: #FFFFFF;
+      background: linear-gradient(180deg, #0B1D3A 0%, #07172F 100%);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 16px 34px rgba(11, 29, 58, 0.18);
+    }
+
+    .brand {
+      gap: 18px;
+    }
+
+    .brand img {
+      width: 126px;
+      filter: none;
+    }
+
+    .brand-meta {
+      gap: 2px;
+      padding-left: 18px;
+      border-left: 1px solid rgba(14,165,168,0.55);
+    }
+
+    .mono,
+    .section-kicker,
+    .employment-select-label,
+    .tooltip-overline,
+    .tooltip .mono {
+      font-family: "Inter", system-ui, sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .topbar .mono {
+      color: var(--urssaf-secondary);
+      font-size: 17px;
+      font-weight: 500;
+    }
+
+    .brand strong {
+      color: rgba(255,255,255,0.88);
+      font-size: 0.92rem;
+      font-weight: 400;
+    }
+
+    .hero-action,
+    .metric-button,
+    .liquid-button,
+    .employment-focus-button,
+    .dev-palette-tab,
+    .dev-palette-inline-toggle,
+    .dev-palette-option,
+    .deck-nav-button,
+    .deck-dropdown-trigger,
+    .deck-menu-button {
+      border-radius: 8px;
+      font-family: "Inter", system-ui, sans-serif;
+      font-weight: 600;
+      letter-spacing: 0;
+      transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+    }
+
+    .hero-action {
+      min-height: 40px;
+      padding: 10px 14px;
+      color: #FFFFFF;
+      background: var(--urssaf-primary);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: 0 8px 18px rgba(11,29,58,0.18);
+    }
+
+    .hero-action:hover,
+    .hero-action:focus-visible {
+      background: #122B52;
+      border-color: rgba(255,255,255,0.32);
+      transform: translateY(-1px);
+    }
+
+    .stage-shell {
+      min-height: 72vh;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .stage-video {
+      display: block;
+      opacity: 0;
+      background: var(--neutral-100);
+      filter: saturate(0.95) contrast(1.02);
+    }
+
+    .stage-shell[data-phase="region"] .stage-video,
+    .stage-shell[data-phase="national"] .stage-video {
+      opacity: 1;
+    }
+
+    .map-stage {
+      inset: 12px;
+      padding: 22px;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%);
+      border: 1px solid var(--line);
+    }
+
+    .map-stage svg {
+      filter: none;
+    }
+
+    .stage-copy {
+      padding: 24px;
+      min-height: 640px;
+      align-items: end;
+    }
+
+    .hero-panel {
+      max-width: 480px;
+      border-radius: 8px;
+      padding: 24px;
+      color: var(--text);
+      background: rgba(255,255,255,0.96);
+      border: 1px solid var(--line-strong);
+      box-shadow: 0 20px 44px rgba(15,23,42,0.12);
+    }
+
+    .hero-panel h1,
+    .section-title h2,
+    .employment-focus-card h3,
+    .employment-note-card h4,
+    .kpi-card strong,
+    .employment-stat strong,
+    .mini-stat strong {
+      font-family: "Inter", system-ui, sans-serif;
+      letter-spacing: 0;
+      color: var(--urssaf-primary);
+    }
+
+    .hero-panel h1 {
+      font-size: clamp(2rem, 4.4vw, 3.2rem);
+      line-height: 1.08;
+      font-weight: 800;
+      max-width: 12ch;
+    }
+
+    .hero-panel p,
+    .kpi-card p,
+    .section-note,
+    .viz-title span,
+    .legend-row,
+    .ranking-item small,
+    .mini-stat small,
+    .map-legend span,
+    .map-empty,
+    .employment-title span,
+    .employment-focus-card p,
+    .employment-note-card p {
+      color: var(--muted);
+    }
+
+    .hero-chip,
+    .chip-pill {
+      border-radius: 8px;
+      color: var(--urssaf-primary);
+      background: var(--neutral-100);
+      border: 1px solid var(--neutral-200);
+    }
+
+    .hero-kpis,
+    .mini-grid,
+    .employment-stat-grid {
+      gap: 8px;
+    }
+
+    .kpi-card,
+    .mini-stat,
+    .employment-stat {
+      border-radius: 8px;
+      padding: 16px;
+      background: var(--neutral-50);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .kpi-card strong,
+    .kpi-value {
+      color: var(--urssaf-primary);
+      font-size: clamp(1.8rem, 2.8vw, 2.6rem);
+      line-height: 1.1;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      text-shadow: none;
+    }
+
+    .kpi-card strong.is-textual,
+    .kpi-value.is-textual,
+    .kpi-value.is-textual .kpi-value-number {
+      font-size: clamp(1.25rem, 1.7vw, 1.8rem);
+      line-height: 1.12;
+      overflow-wrap: normal;
+      word-break: normal;
+      hyphens: none;
+    }
+
+    .kpi-card .label,
+    .kpi-card .meta,
+    .employment-stat-label {
+      color: var(--muted-soft);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: none;
+    }
+
+    .switch-rail {
+      margin: 14px 0;
+    }
+
+    .liquid-button,
+    .metric-button,
+    .employment-focus-button,
+    .dev-palette-tab,
+    .dev-palette-inline-toggle {
+      color: var(--urssaf-primary);
+      background: #FFFFFF;
+      border: 1px solid var(--line-strong);
+      box-shadow: none;
+    }
+
+    .liquid-button.is-active,
+    .metric-button.is-active,
+    .chip-pill.is-active,
+    .employment-focus-button.is-active,
+    .dev-palette-tab.is-active,
+    .dev-palette-inline-toggle.is-active,
+    .dev-palette-option.is-active {
+      color: #FFFFFF;
+      background: var(--urssaf-primary);
+      border-color: var(--urssaf-primary);
+      box-shadow: none;
+    }
+
+    .metric-switch {
+      gap: 4px;
+      padding: 4px;
+      border-radius: 8px;
+      background: var(--neutral-100);
+      border: 1px solid var(--line);
+    }
+
+    .metric-button {
+      min-height: 34px;
+      padding: 8px 12px;
+      border-color: transparent;
+    }
+
+    .story {
+      --text: var(--neutral-900);
+      --muted: var(--neutral-700);
+      --muted-soft: var(--neutral-500);
+      --line: var(--neutral-200);
+      --line-strong: var(--neutral-300);
+      --surface: #FFFFFF;
+      --surface-strong: var(--neutral-50);
+      --surface-inset: #FFFFFF;
+      --panel: #FFFFFF;
+      --panel-faint: var(--neutral-50);
+      --chip-bg: #FFFFFF;
+      --chip-border: var(--neutral-300);
+      color: var(--text);
+      background: transparent;
+    }
+
+    .subject-nav {
+      min-height: auto;
+      padding: 8px;
+      border-radius: 8px;
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 26px rgba(15,23,42,0.06);
+    }
+
+    .subject-nav::before,
+    .subject-nav::after {
+      display: none;
+    }
+
+    .chapter-tab {
+      min-width: 220px;
+      margin-right: 8px;
+      transform: none;
+    }
+
+    .chapter-tab:hover,
+    .chapter-tab:focus-visible,
+    .chapter-tab.is-active {
+      transform: none;
+    }
+
+    .chapter-tab__shape,
+    .chapter-tab.is-active .chapter-tab__shape,
+    .chapter-tab[data-tone="1"] .chapter-tab__shape,
+    .chapter-tab[data-tone="2"] .chapter-tab__shape,
+    .chapter-tab[data-tone="3"] .chapter-tab__shape,
+    .chapter-tab[data-tone="4"] .chapter-tab__shape {
+      min-height: 64px;
+      clip-path: none;
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: var(--neutral-700);
+      background: var(--neutral-50);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .chapter-tab.is-active .chapter-tab__shape {
+      color: #FFFFFF;
+      background: var(--urssaf-primary);
+      border-color: var(--urssaf-primary);
+    }
+
+    .chapter-tab__index,
+    .chapter-tab__label,
+    .chapter-tab__meta {
+      color: inherit;
+      font-family: "Inter", system-ui, sans-serif;
+      letter-spacing: 0;
+    }
+
+    .chapter-tab__index {
+      opacity: 0.72;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .chapter-tab__label {
+      font-size: 0.95rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .chapter-tab__meta {
+      color: inherit;
+      opacity: 0.72;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .section-card,
+    .story .section-card {
+      border-radius: 8px;
+      padding: 20px;
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      box-shadow: 0 16px 34px rgba(15,23,42,0.06);
+    }
+
+    .section-head,
+    .story .section-head {
+      --text: var(--neutral-900);
+      --muted: var(--neutral-700);
+      --muted-soft: var(--neutral-500);
+      align-items: flex-start;
+      border-radius: 8px;
+      padding: 18px;
+      color: var(--text);
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      box-shadow: inset 4px 0 0 var(--accent);
+    }
+
+    .story .section-head .section-kicker,
+    .section-kicker {
+      color: var(--accent);
+    }
+
+    .story .section-head .section-kicker-rule,
+    .section-kicker-rule {
+      background: var(--accent);
+    }
+
+    .section-title {
+      max-width: 820px;
+      gap: 8px;
+    }
+
+    .section-title h2 {
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      line-height: 1.12;
+      font-weight: 800;
+      max-width: none;
+    }
+
+    .section-title-meta,
+    .story .section-head .section-title-meta {
+      min-height: 32px;
+      border-radius: 8px;
+      color: var(--urssaf-primary);
+      background: var(--neutral-50);
+      border: 1px solid var(--line);
+      font: 600 0.82rem "Inter", system-ui, sans-serif;
+    }
+
+    .section-grid,
+    .employment-grid,
+    .employment-map-grid {
+      gap: 12px;
+    }
+
+    .viz-panel,
+    .story .viz-panel:not(.employment-side),
+    .story .employment-main,
+    .employment-main,
+    .employment-side,
+    .employment-chart-shell,
+    .employment-focus-card,
+    .employment-note-card,
+    .map-empty,
+    .empty-state,
+    .tooltip,
+    .employment-tooltip,
+    .dev-palette-panel,
+    .deck-menu {
+      border-radius: 8px;
+      color: var(--text);
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .viz-panel {
+      min-height: 340px;
+      padding: 16px;
+    }
+
+    .viz-title strong,
+    .employment-title strong {
+      color: var(--urssaf-primary);
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .employment-chart-shell {
+      padding: 16px;
+      background: #FFFFFF;
+      box-shadow: 0 10px 28px rgba(15,23,42,0.05);
+    }
+
+    .employment-side {
+      background: var(--neutral-50);
+    }
+
+    .employment-focus-card,
+    .employment-note-card,
+    .employment-stat {
+      background: #FFFFFF;
+    }
+
+    .employment-focus-card h3 {
+      font-size: clamp(1.5rem, 2.2vw, 2rem);
+      line-height: 1.15;
+    }
+
+    .employment-stat strong,
+    .mini-stat strong {
+      font-size: clamp(1.35rem, 1.8vw, 1.85rem);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .employment-select-wrap select,
+    .select-wrap select,
+    .dev-scene-input,
+    .dev-scene-select {
+      min-height: 40px;
+      border-radius: 8px;
+      color: var(--urssaf-primary);
+      background: #FFFFFF;
+      border: 1px solid var(--line-strong);
+      box-shadow: none;
+      font: 500 0.9rem "Inter", system-ui, sans-serif;
+    }
+
+    .employment-select-wrap select option,
+    .select-wrap select option {
+      color: var(--neutral-900);
+      background: #FFFFFF;
+    }
+
+    .legend-chip,
+    .map-legend span {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .legend-dot,
+    .employment-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+    }
+
+    .map-card {
+      background: var(--neutral-50);
+    }
+
+    .inset-card {
+      fill: #FFFFFF;
+      stroke: var(--line-strong);
+      stroke-width: 1px;
+    }
+
+    .path-region,
+    .path-department {
+      stroke: #FFFFFF;
+      stroke-width: 1.1px;
+      filter: none;
+    }
+
+    .path-region.is-selected,
+    .path-department.is-selected,
+    .focus-department-path {
+      stroke: var(--urssaf-primary);
+      stroke-width: 1.6px;
+      filter: none;
+    }
+
+    .path-region.is-unavailable,
+    .path-department.is-unavailable {
+      fill: var(--neutral-200);
+    }
+
+    .map-region-label,
+    .inset-label,
+    .focus-city-label {
+      fill: var(--urssaf-primary);
+      font-family: "Inter", system-ui, sans-serif;
+      font-weight: 600;
+      letter-spacing: 0;
+      paint-order: stroke;
+      stroke: rgba(255,255,255,0.85);
+      stroke-width: 3px;
+    }
+
+    .focus-city-dot {
+      fill: var(--urssaf-secondary);
+      stroke: #FFFFFF;
+      filter: none;
+    }
+
+    .ranking-item,
+    .sparkline-row {
+      border-radius: 8px;
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .ranking-item .topline,
+    .sparkline-row .topline {
+      color: var(--urssaf-primary);
+    }
+
+    .tooltip,
+    .employment-tooltip {
+      color: var(--text);
+      background: #FFFFFF;
+      border-color: var(--line-strong);
+      box-shadow: 0 16px 40px rgba(15,23,42,0.14);
+    }
+
+    .footer {
+      color: var(--muted-soft);
+    }
+
+    body.deck-ready .switch-rail {
+      top: 10px;
+    }
+
+    .deck-control-bar,
+    body.deck-ready:not([data-active-slide="hero"]) .deck-control-bar {
+      grid-template-columns: auto minmax(220px, 1fr) minmax(180px, 0.72fr) auto auto;
+      gap: 8px;
+      padding: 8px;
+      border-radius: 8px;
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(15,23,42,0.10);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    body.deck-ready:not([data-active-slide="hero"]) .deck-control-bar {
+      grid-template-columns: auto minmax(220px, 1fr) auto auto;
+    }
+
+    .deck-progress {
+      min-height: 42px;
+      border-radius: 8px;
+      color: #FFFFFF;
+      background: var(--urssaf-primary);
+      border-color: var(--urssaf-primary);
+      font: 700 0.78rem "Inter", system-ui, sans-serif;
+    }
+
+    .deck-nav-button,
+    .deck-dropdown-trigger {
+      min-height: 42px;
+      color: var(--urssaf-primary);
+      background: #FFFFFF;
+      border: 1px solid var(--line-strong);
+      box-shadow: none;
+    }
+
+    .deck-nav-button:not([disabled]):hover,
+    .deck-dropdown-trigger:hover,
+    .deck-dropdown-trigger:focus-visible {
+      color: #FFFFFF;
+      background: var(--urssaf-primary);
+      border-color: var(--urssaf-primary);
+    }
+
+    .deck-trigger-kicker,
+    .deck-trigger-chevron {
+      color: var(--muted-soft);
+    }
+
+    .deck-trigger-label,
+    .deck-menu-button {
+      color: var(--urssaf-primary);
+    }
+
+    .deck-menu {
+      padding: 8px;
+      background: #FFFFFF;
+      box-shadow: 0 18px 48px rgba(15,23,42,0.14);
+    }
+
+    .deck-menu-button {
+      border-radius: 8px;
+      background: #FFFFFF;
+      border: 1px solid transparent;
+    }
+
+    .deck-menu-heading,
+    .deck-menu-button small {
+      color: var(--muted-soft);
+    }
+
+    .deck-menu-button strong {
+      color: var(--urssaf-primary);
+    }
+
+    .deck-menu-button:hover,
+    .deck-menu-button:focus-visible {
+      background: var(--neutral-100);
+      border-color: var(--line);
+    }
+
+    .deck-menu-button.is-active {
+      color: #FFFFFF;
+      background: var(--urssaf-primary);
+      border-color: var(--urssaf-primary);
+    }
+
+    .deck-menu-button.is-active small,
+    .deck-menu-button.is-active strong {
+      color: #FFFFFF;
+    }
+
+    @media (max-width: 860px) {
+      .page {
+        width: min(calc(100% - 16px), 1440px);
+        margin: 8px auto 28px;
+      }
+
+      .shell {
+        padding: 8px;
+        border-radius: 8px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        border-radius: 8px;
+      }
+
+      .brand {
+        align-items: flex-start;
+      }
+
+      .brand-meta {
+        padding-left: 12px;
+      }
+
+      .stage-copy {
+        min-height: 700px;
+        padding: 16px;
+      }
+
+      .hero-panel,
+      .section-card {
+        border-radius: 8px;
+      }
+
+      .subject-nav {
+        border-radius: 8px;
+      }
+
+      .chapter-tab {
+        min-width: 206px;
+      }
+
+      .chapter-tab__shape,
+      .chapter-tab.is-active .chapter-tab__shape {
+        min-height: 60px;
+        padding: 10px 12px;
+      }
+
+      .deck-control-bar,
+      body.deck-ready:not([data-active-slide="hero"]) .deck-control-bar {
+        grid-template-columns: 1fr auto auto;
+        grid-template-areas:
+          "section previous next"
+          "region region region";
+      }
+
+      .deck-progress {
+        display: none;
+      }
+    }
   </style>
 </head>
 <body>
@@ -2638,6 +4068,8 @@
         </div>
       </header>
 
+      <div class="switch-rail" id="switchRail"></div>
+
       <section class="stage-shell" id="stageShell" data-phase="landing">
         <div class="stage-media">
           <video class="stage-video" id="stageVideo" playsinline muted loop preload="auto"></video>
@@ -2663,8 +4095,6 @@
         </div>
       </section>
 
-      <div class="switch-rail" id="switchRail"></div>
-
       <main class="story" id="story">
         <nav class="subject-nav" id="subjectNav" aria-label="Chapitres"></nav>
         <section class="section-card chapter-section employment-section" id="module-sector" data-chapter-key="sector">
@@ -2680,14 +4110,13 @@
             </div>
           </div>
           <div class="employment-stack">
-            <article class="employment-block">
-              <div class="section-grid employment-grid">
-                <div class="viz-panel employment-main">
-                  <div class="employment-intro">
-                    <div class="viz-title employment-title">
-                      <strong id="employmentEffectifsChartTitle">Emploi du secteur privé : niveau et évolution</strong>
-                      <span id="employmentEffectifsChartMeta"></span>
-                    </div>
+            <article class="employment-block employment-scrolly" id="employmentScrolly">
+              <div class="employment-scrolly-copy">
+                <section class="employment-step is-active" data-employment-step="effectifs">
+                  <div class="employment-step-body">
+                    <div class="eyebrow">Lecture éditoriale / effectifs</div>
+                    <h3 id="employmentEffectifsFocusTitle"></h3>
+                    <p id="employmentEffectifsFocusCopy"></p>
                     <div class="employment-controls">
                       <label class="employment-select-wrap" for="employmentEffectifsSeriesSelect">
                         <span class="mono employment-select-label">Secteur</span>
@@ -2695,28 +4124,6 @@
                       </label>
                       <div class="employment-focus-switch" id="employmentEffectifsFocusSwitch"></div>
                     </div>
-                  </div>
-                  <div class="employment-chart-shell">
-                    <svg id="employmentEffectifsChartSvg" viewBox="0 0 980 560" role="img" aria-labelledby="employmentEffectifsChartTitleSvg employmentEffectifsChartDescSvg">
-                      <title id="employmentEffectifsChartTitleSvg">Évolution trimestrielle des effectifs salariés privés</title>
-                      <desc id="employmentEffectifsChartDescSvg">Histogramme du glissement annuel et courbe de niveau des effectifs salariés privés.</desc>
-                    </svg>
-                    <div id="employmentEffectifsTooltip" class="employment-tooltip" aria-hidden="true">
-                      <div class="tooltip-overline"></div>
-                      <div class="tooltip-body"></div>
-                    </div>
-                  </div>
-                  <div class="legend-row employment-legend">
-                    <span class="legend-chip"><i class="employment-swatch employment-swatch-positive"></i>Glissement annuel positif</span>
-                    <span class="legend-chip"><i class="employment-swatch employment-swatch-negative"></i>Glissement annuel négatif</span>
-                    <span class="legend-chip"><i class="legend-line" style="color: var(--accent-secondary)"></i><span id="employmentEffectifsLegendLine">Niveau des effectifs</span></span>
-                  </div>
-                </div>
-                <div class="viz-panel employment-side">
-                  <div class="employment-focus-card">
-                    <div class="eyebrow">Lecture éditoriale</div>
-                    <h3 id="employmentEffectifsFocusTitle"></h3>
-                    <p id="employmentEffectifsFocusCopy"></p>
                     <div class="employment-stat-grid">
                       <div class="employment-stat">
                         <span class="employment-stat-label">Niveau actuel</span>
@@ -2740,18 +4147,13 @@
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </article>
+                </section>
 
-            <article class="employment-block">
-              <div class="section-grid employment-grid">
-                <div class="viz-panel employment-main">
-                  <div class="employment-intro">
-                    <div class="viz-title employment-title">
-                      <strong id="employmentPayrollChartTitle">Masse salariale du secteur privé : niveau et évolution</strong>
-                      <span id="employmentPayrollChartMeta"></span>
-                    </div>
+                <section class="employment-step" data-employment-step="payroll">
+                  <div class="employment-step-body">
+                    <div class="eyebrow">Lecture éditoriale / masse salariale</div>
+                    <h3 id="employmentPayrollFocusTitle"></h3>
+                    <p id="employmentPayrollFocusCopy"></p>
                     <div class="employment-controls">
                       <label class="employment-select-wrap" for="employmentPayrollSeriesSelect">
                         <span class="mono employment-select-label">Secteur</span>
@@ -2759,28 +4161,6 @@
                       </label>
                       <div class="employment-focus-switch" id="employmentPayrollFocusSwitch"></div>
                     </div>
-                  </div>
-                  <div class="employment-chart-shell">
-                    <svg id="employmentPayrollChartSvg" viewBox="0 0 980 560" role="img" aria-labelledby="employmentPayrollChartTitleSvg employmentPayrollChartDescSvg">
-                      <title id="employmentPayrollChartTitleSvg">Évolution trimestrielle de la masse salariale</title>
-                      <desc id="employmentPayrollChartDescSvg">Histogramme du glissement annuel et courbe de niveau de la masse salariale privée.</desc>
-                    </svg>
-                    <div id="employmentPayrollTooltip" class="employment-tooltip" aria-hidden="true">
-                      <div class="tooltip-overline"></div>
-                      <div class="tooltip-body"></div>
-                    </div>
-                  </div>
-                  <div class="legend-row employment-legend">
-                    <span class="legend-chip"><i class="employment-swatch employment-swatch-positive"></i>Glissement annuel positif</span>
-                    <span class="legend-chip"><i class="employment-swatch employment-swatch-negative"></i>Glissement annuel négatif</span>
-                    <span class="legend-chip"><i class="legend-line" style="color: var(--accent-secondary)"></i><span id="employmentPayrollLegendLine">Niveau de masse salariale</span></span>
-                  </div>
-                </div>
-                <div class="viz-panel employment-side">
-                  <div class="employment-focus-card">
-                    <div class="eyebrow">Lecture éditoriale</div>
-                    <h3 id="employmentPayrollFocusTitle"></h3>
-                    <p id="employmentPayrollFocusCopy"></p>
                     <div class="employment-stat-grid">
                       <div class="employment-stat">
                         <span class="employment-stat-label">Niveau actuel</span>
@@ -2802,6 +4182,58 @@
                         <strong id="employmentPayrollFocusLevel"></strong>
                         <small id="employmentPayrollFocusLevelMeta"></small>
                       </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              <div class="employment-scrolly-visual">
+                <div class="employment-sticky-frame" id="employmentStickyFrame">
+                  <div class="viz-panel employment-main employment-chart-pane is-active" data-employment-pane="effectifs">
+                    <div class="employment-intro">
+                      <div class="viz-title employment-title">
+                        <strong id="employmentEffectifsChartTitle">Emploi du secteur privé : niveau et évolution</strong>
+                        <span id="employmentEffectifsChartMeta"></span>
+                      </div>
+                    </div>
+                    <div class="employment-chart-shell">
+                      <svg id="employmentEffectifsChartSvg" viewBox="0 0 980 560" role="img" aria-labelledby="employmentEffectifsChartTitleSvg employmentEffectifsChartDescSvg">
+                        <title id="employmentEffectifsChartTitleSvg">Évolution trimestrielle des effectifs salariés privés</title>
+                        <desc id="employmentEffectifsChartDescSvg">Histogramme du glissement annuel et courbe de niveau des effectifs salariés privés.</desc>
+                      </svg>
+                      <div id="employmentEffectifsTooltip" class="employment-tooltip" aria-hidden="true">
+                        <div class="tooltip-overline"></div>
+                        <div class="tooltip-body"></div>
+                      </div>
+                    </div>
+                    <div class="legend-row employment-legend">
+                      <span class="legend-chip"><i class="employment-swatch employment-swatch-positive"></i>Glissement annuel positif</span>
+                      <span class="legend-chip"><i class="employment-swatch employment-swatch-negative"></i>Glissement annuel négatif</span>
+                      <span class="legend-chip"><i class="legend-line" style="color: var(--accent-secondary)"></i><span id="employmentEffectifsLegendLine">Niveau des effectifs</span></span>
+                    </div>
+                  </div>
+
+                  <div class="viz-panel employment-main employment-chart-pane" data-employment-pane="payroll">
+                    <div class="employment-intro">
+                      <div class="viz-title employment-title">
+                        <strong id="employmentPayrollChartTitle">Masse salariale du secteur privé : niveau et évolution</strong>
+                        <span id="employmentPayrollChartMeta"></span>
+                      </div>
+                    </div>
+                    <div class="employment-chart-shell">
+                      <svg id="employmentPayrollChartSvg" viewBox="0 0 980 560" role="img" aria-labelledby="employmentPayrollChartTitleSvg employmentPayrollChartDescSvg">
+                        <title id="employmentPayrollChartTitleSvg">Évolution trimestrielle de la masse salariale</title>
+                        <desc id="employmentPayrollChartDescSvg">Histogramme du glissement annuel et courbe de niveau de la masse salariale privée.</desc>
+                      </svg>
+                      <div id="employmentPayrollTooltip" class="employment-tooltip" aria-hidden="true">
+                        <div class="tooltip-overline"></div>
+                        <div class="tooltip-body"></div>
+                      </div>
+                    </div>
+                    <div class="legend-row employment-legend">
+                      <span class="legend-chip"><i class="employment-swatch employment-swatch-positive"></i>Glissement annuel positif</span>
+                      <span class="legend-chip"><i class="employment-swatch employment-swatch-negative"></i>Glissement annuel négatif</span>
+                      <span class="legend-chip"><i class="legend-line" style="color: var(--accent-secondary)"></i><span id="employmentPayrollLegendLine">Niveau de masse salariale</span></span>
                     </div>
                   </div>
                 </div>
@@ -2995,6 +4427,9 @@
 
       const state = {
         phase: "landing",
+        activeSlideKey: "hero",
+        sectionMenuOpen: false,
+        regionMenuOpen: false,
         selectedRegion: "11",
         sectorEffectifsSeriesKey: null,
         sectorEffectifsFocusKey: "rebound",
@@ -3032,6 +4467,13 @@
       let regionTransitionToken = 0;
       let chapterObserver = null;
       let activeChapterKey = null;
+      let employmentScrollyObserver = null;
+      let employmentScrollyActiveStep = "effectifs";
+      let employmentScrollyRenderedStep = null;
+      let employmentScrollyPayloads = {};
+      let employmentScrollyPulseFrame = null;
+      let employmentScrollySyncFrame = null;
+      let employmentScrollyScrollBound = false;
       let chapterScrollLockKey = null;
       let chapterScrollLockFrame = null;
       let chapterScrollLockDeadline = 0;
@@ -3039,9 +4481,98 @@
 
       gsap.registerPlugin(ScrollTrigger);
       const COLOR_SYSTEM = DATA.colorSystem || { enabled: false, defaultPalette: null, palettes: [] };
-      const paletteStorageKey = "barometre.dev.palette.v3";
+      const paletteStorageKey = "barometre.dev.palette.v4";
       const regionIndexByCode = new Map(regionOrder.map((code, index) => [code, index]));
       const palettesByKey = new Map((COLOR_SYSTEM.palettes || []).map((palette) => [palette.key, palette]));
+      const URSSAF_CHART_TOKENS = {
+        "bg": "#0B1D3A",
+        "bg-soft": "#0EA5A8",
+        "page-bg": "#F8FAFC",
+        "page-bg-soft": "#F1F5F9",
+        "panel": "#FFFFFF",
+        "panel-strong": "#FFFFFF",
+        "panel-faint": "#F8FAFC",
+        "surface": "#FFFFFF",
+        "surface-strong": "#F8FAFC",
+        "surface-inset": "#F1F5F9",
+        "nav-panel": "#0B1D3A",
+        "editorial-panel": "#FFFFFF",
+        "editorial-panel-inner": "#F8FAFC",
+        "chip-bg": "#F8FAFC",
+        "chip-border": "#CBD5E1",
+        "chip-active-a": "#0B1D3A",
+        "chip-active-b": "#0B1D3A",
+        "line": "#E2E8F0",
+        "line-strong": "#CBD5E1",
+        "text": "#0F172A",
+        "muted": "#334155",
+        "muted-soft": "#64748B",
+        "danger": "#E11D48",
+        "warning": "#F59E0B",
+        "neutral": "#E2E8F0",
+        "bg-orb-a": "rgba(255,255,255,0)",
+        "bg-orb-b": "rgba(255,255,255,0)",
+        "bg-orb-c": "rgba(255,255,255,0)",
+        "stage-glow-a": "rgba(255,255,255,0)",
+        "stage-glow-b": "rgba(255,255,255,0)",
+        "button-active-a": "#0B1D3A",
+        "button-active-b": "#0B1D3A",
+        "hero-action-a": "#0B1D3A",
+        "hero-action-b": "#0B1D3A",
+        "map-idle": "#E2E8F0",
+        "map-empty": "#F1F5F9",
+        "map-unavailable": "#CBD5E1",
+        "map-national-low": "#CBD5E1",
+        "map-national-high": "#0EA5A8",
+        "chart-sector-start": "#2B82F6",
+        "chart-sector-end": "#0EA5A8",
+        "chart-sector-area": "rgba(43,130,246,0.12)",
+        "chart-payroll-area": "rgba(14,165,168,0.12)",
+        "chart-auto-low": "#E2E8F0",
+        "chart-auto-high": "#16A34A",
+        "chart-rar-low": "#E2E8F0",
+        "chart-rar-high": "#E11D48",
+        "chart-rar-fin": "#2B82F6",
+        "chart-rar-next": "#F59E0B",
+        "chart-rar-90": "#E11D48",
+        "employment-chart-ink": "#0B1D3A",
+        "employment-chart-ink-soft": "rgba(11,29,58,0.14)",
+        "employment-chart-text": "#0F172A",
+        "employment-chart-muted": "#64748B",
+        "employment-chart-grid": "rgba(148,163,184,0.24)",
+        "employment-chart-grid-strong": "rgba(100,116,139,0.26)",
+        "employment-chart-positive-a": "rgba(14,165,168,0.94)",
+        "employment-chart-positive-b": "rgba(14,165,168,0.34)",
+        "employment-chart-negative-a": "rgba(225,29,72,0.94)",
+        "employment-chart-negative-b": "rgba(225,29,72,0.32)",
+        "employment-chart-focus-a": "rgba(43,130,246,0.12)",
+        "employment-chart-focus-b": "rgba(43,130,246,0)",
+        "focus-stroke": "#0B1D3A",
+        "focus-glow": "rgba(14,165,168,0.24)",
+        "chapter-tone-1": "linear-gradient(180deg, #FFFFFF, #F8FAFC)",
+        "chapter-tone-2": "linear-gradient(180deg, #FFFFFF, #F8FAFC)",
+        "chapter-tone-3": "linear-gradient(180deg, #FFFFFF, #F8FAFC)",
+        "chapter-tone-4": "linear-gradient(180deg, #FFFFFF, #F8FAFC)",
+        "chapter-shadow-1": "rgba(15,23,42,0.08)",
+        "chapter-shadow-2": "rgba(15,23,42,0.08)",
+        "chapter-shadow-3": "rgba(15,23,42,0.08)",
+        "chapter-shadow-4": "rgba(15,23,42,0.08)",
+        "chapter-rail-line": "#E2E8F0",
+      };
+      const URSSAF_CHART_REGION_THEMES = [
+        { accent: "#0EA5A8", accentDeep: "#0B1D3A", secondary: "#2B82F6", glow: "#0EA5A8" },
+        { accent: "#2B82F6", accentDeep: "#0B1D3A", secondary: "#0EA5A8", glow: "#2B82F6" },
+        { accent: "#16A34A", accentDeep: "#0B1D3A", secondary: "#0EA5A8", glow: "#16A34A" },
+        { accent: "#F59E0B", accentDeep: "#0B1D3A", secondary: "#2B82F6", glow: "#F59E0B" },
+        { accent: "#E11D48", accentDeep: "#0B1D3A", secondary: "#F59E0B", glow: "#E11D48" },
+        { accent: "#0EA5A8", accentDeep: "#0B1D3A", secondary: "#16A34A", glow: "#0EA5A8" },
+      ];
+      const urssafCorporatePalette = palettesByKey.get("urssaf-corporate");
+      if (urssafCorporatePalette) {
+        Object.assign(urssafCorporatePalette.tokens, URSSAF_CHART_TOKENS);
+        urssafCorporatePalette.regionThemes = regionOrder.map((_, index) => URSSAF_CHART_REGION_THEMES[index % URSSAF_CHART_REGION_THEMES.length]);
+        COLOR_SYSTEM.defaultPalette = "urssaf-corporate";
+      }
       const sceneCatalog = mapSceneConfig.catalog || { assets: {}, groups: [], roles: [] };
       const sceneCatalogById = new Map(Object.entries(sceneCatalog.assets || {}));
       const sceneRoleOptions = sceneCatalog.roles && sceneCatalog.roles.length ? sceneCatalog.roles : ["water", "terrain", "nature", "landmark", "sprite", "effect", "decor"];
@@ -3466,7 +4997,10 @@
         const paletteTheme = palette && Array.isArray(palette.regionThemes) && index != null
           ? palette.regionThemes[index]
           : null;
-        return paletteTheme || (region ? region.theme : DATA.regions[0].theme);
+        const defaultTheme = palette && Array.isArray(palette.regionThemes) && palette.regionThemes[0]
+          ? palette.regionThemes[0]
+          : DATA.regions[0].theme;
+        return paletteTheme || (region ? region.theme : defaultTheme);
       }
 
       function closePalettePanel() {
@@ -4513,6 +6047,21 @@
         { key: "payroll", id: "module-payroll", number: "02", railKicker: "rythme", label: "Sant\u00e9 des entreprises", railMeta: "masse salariale, assiette, signaux d'activit\u00e9", sectionKicker: "02 / Sant\u00e9 des entreprises", sectionTitle: "Sant\u00e9 des entreprises.", sectionMeta: "Lecture mensuelle de l'activit\u00e9 d\u00e9clar\u00e9e, de la masse salariale et des tensions conjoncturelles.", tone: 2, render: renderPayrollModule },
         { key: "auto", id: "module-auto", number: "03", railKicker: "focus", label: "Travailleurs ind\u00e9pendants", railMeta: "auto-entrepreneurs, lecture territoriale", sectionKicker: "03 / Travailleurs ind\u00e9pendants", sectionTitle: "Travailleurs ind\u00e9pendants.", sectionMeta: "Focus d\u00e9partemental sur les ind\u00e9pendants, avec lecture sectorielle et hi\u00e9rarchie territoriale.", tone: 3, render: renderAutoModule },
       ];
+      const slideRegistry = [
+        { key: "hero", number: "01", sectionKey: "hero", sectionLabel: "Vue r\u00e9gionale", subsectionLabel: "Synth\u00e8se vid\u00e9o et chiffres cl\u00e9s" },
+        { key: "employment-effectifs", number: "02", sectionKey: "sector", chapterKey: "sector", sectionLabel: "Conjoncture de l'emploi", subsectionLabel: "Emploi du secteur priv\u00e9", employmentStep: "effectifs" },
+        { key: "employment-payroll", number: "03", sectionKey: "sector", chapterKey: "sector", sectionLabel: "Conjoncture de l'emploi", subsectionLabel: "Masse salariale du secteur priv\u00e9", employmentStep: "payroll" },
+        { key: "employment-map", number: "04", sectionKey: "sector", chapterKey: "sector", sectionLabel: "Conjoncture de l'emploi", subsectionLabel: "Carte d\u00e9partementale" },
+        { key: "business-health", number: "05", sectionKey: "payroll", chapterKey: "payroll", sectionLabel: "Sant\u00e9 des entreprises", subsectionLabel: "Ch\u00f4mage partiel" },
+        { key: "auto-map", number: "06", sectionKey: "auto", chapterKey: "auto", sectionLabel: "Travailleurs ind\u00e9pendants", subsectionLabel: "Carte d\u00e9partementale" },
+      ];
+      const slideGroups = [
+        { label: "Synth\u00e8se", slideKeys: ["hero"] },
+        { label: "Conjoncture de l'emploi", slideKeys: ["employment-effectifs", "employment-payroll", "employment-map"] },
+        { label: "Sant\u00e9 des entreprises", slideKeys: ["business-health"] },
+        { label: "Travailleurs ind\u00e9pendants", slideKeys: ["auto-map"] },
+      ];
+      const slidesByKey = new Map(slideRegistry.map((slide) => [slide.key, slide]));
 
       function setTheme(regionCode) {
         const theme = themeForRegion(regionCode);
@@ -4605,6 +6154,268 @@
         const navHeight = subjectNav ? subjectNav.offsetHeight : 0;
         const offset = Math.ceil(chapterRailTop() + navHeight + 26);
         document.documentElement.style.setProperty("--chapter-scroll-margin", `${offset}px`);
+      }
+
+      function escapeHtml(value) {
+        return String(value == null ? "" : value).replace(/[&<>"']/g, (character) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          "\"": "&quot;",
+          "'": "&#39;",
+        }[character]));
+      }
+
+      function activeSlide() {
+        return slidesByKey.get(state.activeSlideKey) || slideRegistry[0];
+      }
+
+      function activeSlideIndex() {
+        return Math.max(0, slideRegistry.findIndex((slide) => slide.key === activeSlide().key));
+      }
+
+      function closeDeckMenus(options = {}) {
+        if (!state.sectionMenuOpen && !state.regionMenuOpen) return;
+        state.sectionMenuOpen = false;
+        state.regionMenuOpen = false;
+        if (options.render !== false) renderDeckControls();
+      }
+
+      function scrollDeckViewport(slide) {
+        if (state.phase === "landing") return;
+        const target = slide.key === "hero" ? stageShell : switchRail;
+        if (!target) return;
+        target.scrollIntoView({
+          block: "start",
+          behavior: REDUCED_MOTION ? "auto" : "smooth",
+        });
+      }
+
+      function syncDeckVisibility(options = {}) {
+        const slide = activeSlide();
+        const deckVisible = state.phase !== "landing";
+        document.body.classList.toggle("deck-ready", deckVisible);
+        document.body.dataset.activeSlide = deckVisible ? slide.key : "landing";
+        if (story) story.dataset.activeSlide = slide.key;
+        if (switchRail) switchRail.dataset.activeSlide = slide.key;
+        stageShell.classList.toggle("is-deck-hidden", deckVisible && slide.key !== "hero");
+        stageShell.setAttribute("aria-hidden", deckVisible && slide.key !== "hero" ? "true" : "false");
+        switchRail.classList.toggle("is-visible", deckVisible);
+
+        if (slide.chapterKey) {
+          setActiveChapter(slide.chapterKey, { force: true });
+        }
+        if (slide.employmentStep && document.getElementById("employmentScrolly")) {
+          setEmploymentScrollyStep(slide.employmentStep, {
+            animate: options.animate !== false,
+            pulse: options.pulse !== false,
+          });
+        }
+      }
+
+      function setActiveSlide(slideKey, options = {}) {
+        const nextSlide = slidesByKey.get(slideKey) || slideRegistry[0];
+        const previousKey = state.activeSlideKey;
+        const changed = previousKey !== nextSlide.key;
+        state.activeSlideKey = nextSlide.key;
+        if (!options.preserveMenus) {
+          state.sectionMenuOpen = false;
+          state.regionMenuOpen = false;
+        }
+        syncDeckVisibility({
+          animate: changed && options.animate !== false,
+          pulse: options.pulse,
+        });
+        renderDeckControls();
+        if (changed && options.scroll !== false) {
+          scrollDeckViewport(nextSlide);
+        }
+      }
+
+      function previousSlide() {
+        const index = activeSlideIndex();
+        if (index <= 0) return;
+        setActiveSlide(slideRegistry[index - 1].key);
+      }
+
+      function nextSlide() {
+        const index = activeSlideIndex();
+        if (index >= slideRegistry.length - 1) return;
+        setActiveSlide(slideRegistry[index + 1].key);
+      }
+
+      function renderRegionDropdown() {
+        if (activeSlide().key !== "hero") return "";
+        const currentLabel = state.phase === "national" ? "France enti\u00e8re" : currentRegion().name;
+        const options = [
+          { code: "national", label: "France enti\u00e8re", meta: "Vue nationale", active: state.phase === "national" },
+          ...DATA.regions.map((region) => ({
+            code: region.code,
+            label: region.name,
+            meta: region.group === "dom" ? "Outre-mer" : "R\u00e9gion",
+            active: state.phase === "region" && state.selectedRegion === region.code,
+          })),
+        ];
+        return `
+          <div class="deck-dropdown deck-region-dropdown${state.regionMenuOpen ? " is-open" : ""}">
+            <button class="deck-dropdown-trigger" type="button" data-deck-toggle="region" aria-expanded="${state.regionMenuOpen}" aria-controls="deckRegionMenu">
+              <span class="deck-trigger-text">
+                <span class="deck-trigger-kicker">Territoire</span>
+                <span class="deck-trigger-label">${escapeHtml(currentLabel)}</span>
+              </span>
+              <span class="deck-trigger-chevron" aria-hidden="true">v</span>
+            </button>
+            <div class="deck-menu" id="deckRegionMenu" ${state.regionMenuOpen ? "" : "hidden"}>
+              <div class="deck-menu-group">
+                <span class="deck-menu-heading">Changer de territoire</span>
+                ${options.map((option) => `
+                  <button class="deck-menu-button${option.active ? " is-active" : ""}" type="button" data-region-code="${escapeHtml(option.code)}">
+                    <small>${escapeHtml(option.meta)}</small>
+                    <strong>${escapeHtml(option.label)}</strong>
+                  </button>
+                `).join("")}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderDeckControls() {
+        if (!switchRail) return;
+        if (state.phase === "landing") {
+          switchRail.innerHTML = "";
+          switchRail.classList.remove("is-visible");
+          return;
+        }
+        const slide = activeSlide();
+        const index = activeSlideIndex();
+        const previousDisabled = index <= 0;
+        const nextDisabled = index >= slideRegistry.length - 1;
+        const sectionLabel = `${slide.sectionLabel} · ${slide.subsectionLabel}`;
+        const sectionMenu = slideGroups.map((group) => `
+          <div class="deck-menu-group">
+            <span class="deck-menu-heading">${escapeHtml(group.label)}</span>
+            ${group.slideKeys.map((slideKey) => {
+              const entry = slidesByKey.get(slideKey);
+              return `
+                <button class="deck-menu-button${entry.key === slide.key ? " is-active" : ""}" type="button" data-slide-key="${escapeHtml(entry.key)}">
+                  <small>${escapeHtml(entry.number)} / ${escapeHtml(entry.sectionLabel)}</small>
+                  <strong>${escapeHtml(entry.subsectionLabel)}</strong>
+                </button>
+              `;
+            }).join("")}
+          </div>
+        `).join("");
+
+        switchRail.innerHTML = `
+          <div class="deck-control-bar" role="navigation" aria-label="Navigation des diapositives">
+            <span class="deck-progress">${String(index + 1).padStart(2, "0")} / ${String(slideRegistry.length).padStart(2, "0")}</span>
+            <div class="deck-dropdown deck-section-dropdown${state.sectionMenuOpen ? " is-open" : ""}">
+              <button class="deck-dropdown-trigger" type="button" data-deck-toggle="section" aria-expanded="${state.sectionMenuOpen}" aria-controls="deckSectionMenu">
+                <span class="deck-trigger-text">
+                  <span class="deck-trigger-kicker">Section</span>
+                  <span class="deck-trigger-label">${escapeHtml(sectionLabel)}</span>
+                </span>
+                <span class="deck-trigger-chevron" aria-hidden="true">v</span>
+              </button>
+              <div class="deck-menu" id="deckSectionMenu" ${state.sectionMenuOpen ? "" : "hidden"}>
+                ${sectionMenu}
+              </div>
+            </div>
+            ${renderRegionDropdown()}
+            <button class="deck-nav-button deck-prev-button" type="button" data-deck-nav="previous" ${previousDisabled ? "disabled" : ""} aria-label="Diapositive pr\u00e9c\u00e9dente">
+              <span aria-hidden="true">&larr;</span>
+              <span class="deck-nav-label">Pr\u00e9c\u00e9dent</span>
+            </button>
+            <button class="deck-nav-button deck-next-button" type="button" data-deck-nav="next" ${nextDisabled ? "disabled" : ""} aria-label="Diapositive suivante">
+              <span class="deck-nav-label">Suivant</span>
+              <span aria-hidden="true">&rarr;</span>
+            </button>
+          </div>
+        `;
+        switchRail.classList.add("is-visible");
+      }
+
+      function handleDeckClick(event) {
+        const target = event.target instanceof Element ? event.target : null;
+        if (!target) return;
+
+        const toggle = target.closest("[data-deck-toggle]");
+        if (toggle) {
+          event.preventDefault();
+          event.stopPropagation();
+          const menu = toggle.dataset.deckToggle;
+          if (menu === "section") {
+            state.sectionMenuOpen = !state.sectionMenuOpen;
+            state.regionMenuOpen = false;
+          } else if (menu === "region") {
+            state.regionMenuOpen = !state.regionMenuOpen;
+            state.sectionMenuOpen = false;
+          }
+          renderDeckControls();
+          return;
+        }
+
+        const nav = target.closest("[data-deck-nav]");
+        if (nav) {
+          event.preventDefault();
+          closeDeckMenus({ render: false });
+          if (nav.dataset.deckNav === "previous") previousSlide();
+          if (nav.dataset.deckNav === "next") nextSlide();
+          return;
+        }
+
+        const slideButton = target.closest("[data-slide-key]");
+        if (slideButton) {
+          event.preventDefault();
+          setActiveSlide(slideButton.dataset.slideKey);
+          return;
+        }
+
+        const regionButton = target.closest("[data-region-code]");
+        if (regionButton) {
+          event.preventDefault();
+          state.regionMenuOpen = false;
+          state.sectionMenuOpen = false;
+          const code = regionButton.dataset.regionCode;
+          if (code === "national") {
+            transitionToNational(true);
+          } else {
+            transitionToRegion(code, true);
+          }
+        }
+      }
+
+      function handleDeckKeyboard(event) {
+        if (state.phase === "landing") return;
+        const target = event.target instanceof Element ? event.target : null;
+        if (target && target.closest("input, textarea, select, [contenteditable='true']")) return;
+        if (event.key === "Escape") {
+          if (state.sectionMenuOpen || state.regionMenuOpen) {
+            event.preventDefault();
+            closeDeckMenus();
+          }
+          return;
+        }
+        if (event.key === "ArrowRight" || event.key === "PageDown") {
+          event.preventDefault();
+          nextSlide();
+          return;
+        }
+        if (event.key === "ArrowLeft" || event.key === "PageUp") {
+          event.preventDefault();
+          previousSlide();
+        }
+      }
+
+      function initDeckControls() {
+        switchRail.addEventListener("click", handleDeckClick);
+        document.addEventListener("click", (event) => {
+          const target = event.target instanceof Element ? event.target : null;
+          if (!target || state.phase === "landing") return;
+          if (!switchRail.contains(target)) closeDeckMenus();
+        });
+        document.addEventListener("keydown", handleDeckKeyboard);
       }
 
       function hydrateChapterSections() {
@@ -4758,6 +6569,7 @@
       function refreshChapterTracking() {
         requestAnimationFrame(() => {
           updateChapterLayoutVars();
+          if (document.body.classList.contains("deck-ready")) return;
           mountChapterObserver();
           syncActiveChapter({ force: true });
         });
@@ -4794,26 +6606,17 @@
       }
 
       function renderSwitchRail() {
-        switchRail.innerHTML = "";
-        const franceButton = document.createElement("button");
-        franceButton.type = "button";
-        franceButton.className = `liquid-button${state.phase === "national" ? " is-active" : ""}`;
-        franceButton.textContent = "France entière";
-        franceButton.addEventListener("click", () => transitionToNational(true));
-        switchRail.appendChild(franceButton);
-        DATA.regions.forEach((region) => {
-          const button = document.createElement("button");
-          button.type = "button";
-          button.className = `liquid-button${state.phase === "region" && state.selectedRegion === region.code ? " is-active" : ""}`;
-          button.textContent = region.name;
-          button.addEventListener("click", () => transitionToRegion(region.code, true));
-          switchRail.appendChild(button);
-        });
-        switchRail.classList.toggle("is-visible", state.phase !== "landing");
+        renderDeckControls();
       }
 
       function renderHeaderActions() {
         backToMapButton.hidden = state.phase === "landing";
+      }
+
+      function splitKpiValue(value) {
+        const text = value == null ? "—" : String(value);
+        const match = text.match(/^(.+?)\s+(Md€|M€|€|M|k|%)$/);
+        return match ? { number: match[1], unit: match[2] } : { number: text, unit: "" };
       }
 
       function renderHero() {
@@ -4874,7 +6677,26 @@
         cards.forEach((card) => {
           const article = document.createElement("article");
           article.className = "kpi-card";
-          article.innerHTML = `<span class="label">${card.label}</span><strong class="${card.textual ? "is-textual" : ""}">${card.value}</strong><span class="meta">${card.meta}</span>`;
+          const label = document.createElement("span");
+          label.className = "label";
+          label.textContent = card.label;
+          const value = document.createElement("strong");
+          value.className = `kpi-value${card.textual ? " is-textual" : ""}`;
+          const valueParts = splitKpiValue(card.value);
+          const number = document.createElement("span");
+          number.className = "kpi-value-number";
+          number.textContent = valueParts.number;
+          value.appendChild(number);
+          if (valueParts.unit) {
+            const unit = document.createElement("span");
+            unit.className = "kpi-value-unit";
+            unit.textContent = valueParts.unit;
+            value.appendChild(unit);
+          }
+          const meta = document.createElement("span");
+          meta.className = "meta";
+          meta.textContent = card.meta;
+          article.append(label, value, meta);
           heroKpis.appendChild(article);
         });
       }
@@ -5609,11 +7431,17 @@
           ensureDeferredData()
             .then(() => {
               renderStoryModules();
-              refreshChapterTracking();
-              if (!scrollRevealMounted) {
-                mountScrollReveal();
-                scrollRevealMounted = true;
-              } else {
+              syncDeckVisibility({ animate: false, pulse: false });
+              renderDeckControls();
+              if (!document.body.classList.contains("deck-ready")) {
+                refreshChapterTracking();
+                if (!scrollRevealMounted) {
+                  mountScrollReveal();
+                  scrollRevealMounted = true;
+                } else {
+                  ScrollTrigger.refresh();
+                }
+              } else if (scrollRevealMounted) {
                 ScrollTrigger.refresh();
               }
             })
@@ -5624,8 +7452,8 @@
       function revealContent() {
         story.classList.add("is-visible");
         switchRail.classList.add("is-visible");
+        syncDeckVisibility({ animate: false, pulse: false });
         renderSwitchRail();
-        refreshChapterTracking();
       }
 
       function applyPhase(phase) {
@@ -5634,11 +7462,16 @@
         clearChapterScrollLock();
         renderHeaderActions();
         if (phase === "landing") {
+          state.activeSlideKey = "hero";
+          state.sectionMenuOpen = false;
+          state.regionMenuOpen = false;
           story.classList.remove("is-visible");
           switchRail.classList.remove("is-visible");
           if (chapterObserver) {
             chapterObserver.disconnect();
           }
+          syncDeckVisibility({ animate: false, pulse: false });
+          renderSwitchRail();
           setMapStageMode("landing");
         } else if (phase === "national") {
           setMapStageMode("national");
@@ -5679,6 +7512,7 @@
         setTheme(null);
         applyPhase("landing");
         renderLandingMap();
+        renderHero();
         window.scrollTo({
           top: 0,
           behavior: REDUCED_MOTION ? "auto" : "smooth",
@@ -5686,6 +7520,7 @@
       }
 
       function transitionToNational(fromRail) {
+        const wasLanding = state.phase === "landing";
         regionTransitionToken += 1;
         clearFocusOverlay();
         clearPremiumScene();
@@ -5693,6 +7528,12 @@
         gsap.killTweensOf(mapStage);
         resetCamera();
         applyPhase("national");
+        state.activeSlideKey = "hero";
+        state.sectionMenuOpen = false;
+        state.regionMenuOpen = false;
+        if (!wasLanding) {
+          setActiveSlide("hero", { scroll: false, animate: false });
+        }
         setTheme(state.selectedRegion);
         updateVideo("national");
         mapStage.classList.remove("is-hidden", "is-muted");
@@ -5730,6 +7571,7 @@
 
         if (REDUCED_MOTION || fromRail || state.phase !== "landing") {
           applyPhase("region");
+          setActiveSlide("hero", { scroll: false, animate: false });
           setMapStageMode("region");
           revealContent();
           scheduleStoryRender();
@@ -5762,6 +7604,7 @@
 
         clearFocusOverlay();
         applyPhase("region");
+        setActiveSlide("hero", { scroll: false, animate: false });
         renderHero();
         await new Promise((resolve) => {
           gsap.to(mapStage, {
@@ -5942,6 +7785,31 @@
         return indices;
       }
 
+      function employmentPaddedDomain(values, options = {}) {
+        const numericValues = values.filter((value) => value != null && !Number.isNaN(value));
+        let min = d3.min(numericValues) ?? (options.includeZero ? -1 : 0);
+        let max = d3.max(numericValues) ?? 1;
+        const span = Math.max(0, max - min);
+        const pad = options.pad ?? Math.max(options.minPad ?? 0, span * (options.padRatio ?? 0.1));
+        min -= pad;
+        max += pad;
+        if (options.includeZero) {
+          min = Math.min(0, min);
+          max = Math.max(0, max);
+        }
+        return [min, max];
+      }
+
+      function employmentDomains(points, metric) {
+        const yoyValues = points.map((point) => point[metric.yoyKey]);
+        const levelValues = points.map((point) => point[metric.levelKey]);
+        const levelMax = d3.max(levelValues.filter((value) => value != null && !Number.isNaN(value))) ?? 1;
+        return {
+          yoy: employmentPaddedDomain(yoyValues, { includeZero: true, minPad: 0.6, padRatio: 0.12 }),
+          level: employmentPaddedDomain(levelValues, { includeZero: false, minPad: levelMax * 0.02, padRatio: 0.08 }),
+        };
+      }
+
       function drawEmploymentAnnotation(group, x, y, label, detail, options = {}) {
         const dx = options.dx ?? 24;
         const dy = options.dy ?? -54;
@@ -6080,7 +7948,7 @@
         return { title, copy };
       }
 
-      function drawEmploymentChart(config, points, metric, focuses, activeFocus) {
+      function drawEmploymentChart(config, points, metric, focuses, activeFocus, options = {}) {
         const svg = d3.select(`#${config.chartSvgId}`);
         svg.selectAll("*").remove();
         const width = 980;
@@ -6118,34 +7986,60 @@
         merge.append("feMergeNode").attr("in", "SourceGraphic");
 
         const chart = root.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-        const yoyValues = points.map((point) => point[metric.yoyKey]).filter((value) => value != null);
-        const levelValues = points.map((point) => point[metric.levelKey]).filter((value) => value != null);
-        let yoyMin = d3.min(yoyValues) ?? -1;
-        let yoyMax = d3.max(yoyValues) ?? 1;
-        const yoyPad = Math.max(0.6, (yoyMax - yoyMin) * 0.12);
-        yoyMin = Math.min(0, yoyMin - yoyPad);
-        yoyMax = Math.max(0, yoyMax + yoyPad);
-        let levelMin = d3.min(levelValues) ?? 0;
-        let levelMax = d3.max(levelValues) ?? 1;
-        const levelPad = Math.max(levelMax * 0.02, (levelMax - levelMin) * 0.08);
-        levelMin -= levelPad;
-        levelMax += levelPad;
+        const domains = employmentDomains(points, metric);
+        let [yoyMin, yoyMax] = options.yoyDomain || domains.yoy;
+        let [levelMin, levelMax] = options.levelDomain || domains.level;
 
         const xScale = d3.scalePoint().domain(points.map((_, index) => index)).range([0, innerWidth]).padding(0.25);
         const yYoY = d3.scaleLinear().domain([yoyMin, yoyMax]).nice().range([innerHeight, 0]);
         const yLevel = d3.scaleLinear().domain([levelMin, levelMax]).nice().range([innerHeight, 0]);
         const barStep = points.length > 1 ? xScale(1) - xScale(0) : innerWidth;
         const barWidth = Math.max(8, Math.min(18, barStep * 0.72));
+        const transitionDuration = REDUCED_MOTION || options.animate === false ? 0 : (options.transitionDuration || 1500);
+        const transitionEase = d3.easeCubicInOut;
+        const previousPayload = options.previousPayload || null;
+        let previousGeometry = null;
+        if (previousPayload && previousPayload.points && previousPayload.points.length && previousPayload.metric) {
+          const previousPoints = previousPayload.points;
+          const previousMetric = previousPayload.metric;
+          const previousDomains = employmentDomains(previousPoints, previousMetric);
+          const [previousYoYMin, previousYoYMax] = previousDomains.yoy;
+          const [previousLevelMin, previousLevelMax] = previousDomains.level;
+          const previousXScale = d3.scalePoint().domain(previousPoints.map((_, index) => index)).range([0, innerWidth]).padding(0.25);
+          const previousYYoY = d3.scaleLinear().domain([previousYoYMin, previousYoYMax]).nice().range([innerHeight, 0]);
+          const previousYLevel = d3.scaleLinear().domain([previousLevelMin, previousLevelMax]).nice().range([innerHeight, 0]);
+          previousGeometry = {
+            points: previousPoints,
+            metric: previousMetric,
+            activeFocus: previousPayload.activeFocus,
+            xScale: previousXScale,
+            yYoY: previousYYoY,
+            yLevel: previousYLevel,
+            zeroY: previousYYoY(0),
+          };
+        }
 
         const focusStartX = xScale(activeFocus.startIndex) - barWidth;
         const focusEndX = xScale(activeFocus.endIndex) + barWidth;
-        chart.append("rect")
+        const focusRect = chart.append("rect")
           .attr("x", focusStartX)
           .attr("y", 0)
           .attr("width", Math.max(88, focusEndX - focusStartX))
           .attr("height", innerHeight)
           .attr("rx", 20)
           .attr("fill", `url(#${focusFillId})`);
+        if (previousGeometry && previousGeometry.activeFocus && transitionDuration) {
+          const previousFocusStartX = previousGeometry.xScale(previousGeometry.activeFocus.startIndex) - barWidth;
+          const previousFocusEndX = previousGeometry.xScale(previousGeometry.activeFocus.endIndex) + barWidth;
+          focusRect
+            .attr("x", previousFocusStartX)
+            .attr("width", Math.max(88, previousFocusEndX - previousFocusStartX))
+            .transition()
+            .duration(transitionDuration)
+            .ease(transitionEase)
+            .attr("x", focusStartX)
+            .attr("width", Math.max(88, focusEndX - focusStartX));
+        }
 
         chart.append("g")
           .selectAll("line")
@@ -6187,49 +8081,110 @@
           .text(metric.axisTitle);
 
         const zeroY = yYoY(0);
-        chart.append("g")
+        function barY(point) {
+          const value = point[metric.yoyKey] || 0;
+          return value >= 0 ? yYoY(value) : zeroY;
+        }
+        function barHeight(point) {
+          const value = point[metric.yoyKey] || 0;
+          return Math.abs(yYoY(value) - zeroY);
+        }
+        function previousBarY(_, index) {
+          if (!previousGeometry) return zeroY;
+          const previousPoint = previousGeometry.points[index] || previousGeometry.points[previousGeometry.points.length - 1];
+          const value = previousPoint ? previousPoint[previousGeometry.metric.yoyKey] || 0 : 0;
+          return value >= 0 ? previousGeometry.yYoY(value) : previousGeometry.zeroY;
+        }
+        function previousBarHeight(_, index) {
+          if (!previousGeometry) return 0;
+          const previousPoint = previousGeometry.points[index] || previousGeometry.points[previousGeometry.points.length - 1];
+          const value = previousPoint ? previousPoint[previousGeometry.metric.yoyKey] || 0 : 0;
+          return Math.abs(previousGeometry.yYoY(value) - previousGeometry.zeroY);
+        }
+        const bars = chart.append("g")
           .selectAll("rect")
           .data(points)
           .join("rect")
           .attr("x", (_, index) => xScale(index) - barWidth / 2)
-          .attr("y", (point) => point[metric.yoyKey] >= 0 ? yYoY(point[metric.yoyKey]) : zeroY)
+          .attr("y", (point, index) => previousGeometry ? previousBarY(point, index) : barY(point))
           .attr("width", barWidth)
-          .attr("height", (point) => Math.abs(yYoY(point[metric.yoyKey]) - zeroY))
+          .attr("height", (point, index) => previousGeometry ? previousBarHeight(point, index) : barHeight(point))
           .attr("rx", 6)
           .attr("fill", (point) => point[metric.yoyKey] >= 0 ? `url(#${positiveFillId})` : `url(#${negativeFillId})`);
+        if (transitionDuration) {
+          bars.transition()
+            .duration(transitionDuration)
+            .ease(transitionEase)
+            .attr("y", barY)
+            .attr("height", barHeight);
+        }
 
         const line = d3.line()
           .x((point, index) => xScale(index))
           .y((point) => yLevel(point[metric.levelKey]))
           .curve(d3.curveCatmullRom.alpha(0.6));
+        const previousLine = previousGeometry
+          ? d3.line()
+              .x((_, index) => xScale(index))
+              .y((_, index) => {
+                const previousPoint = previousGeometry.points[index] || previousGeometry.points[previousGeometry.points.length - 1];
+                return previousPoint ? previousGeometry.yLevel(previousPoint[previousGeometry.metric.levelKey]) : innerHeight;
+              })
+              .curve(d3.curveCatmullRom.alpha(0.6))
+          : null;
+        const targetLineD = line(points);
+        const previousLineD = previousLine ? previousLine(points) : targetLineD;
 
-        chart.append("path")
+        const lineGlow = chart.append("path")
           .datum(points)
-          .attr("d", line)
+          .attr("d", previousLineD)
           .attr("fill", "none")
           .attr("stroke", chartInkSoft)
           .attr("stroke-width", 10)
           .attr("filter", `url(#${glowId})`);
 
-        chart.append("path")
+        const linePath = chart.append("path")
           .datum(points)
-          .attr("d", line)
+          .attr("d", previousLineD)
           .attr("fill", "none")
           .attr("stroke", chartInk)
           .attr("stroke-width", 3.4)
           .attr("stroke-linecap", "round")
           .attr("stroke-linejoin", "round");
+        if (transitionDuration) {
+          lineGlow.transition()
+            .duration(transitionDuration)
+            .ease(transitionEase)
+            .attrTween("d", () => d3.interpolateString(previousLineD, targetLineD));
+          linePath.transition()
+            .duration(transitionDuration)
+            .ease(transitionEase)
+            .attrTween("d", () => d3.interpolateString(previousLineD, targetLineD));
+        } else {
+          lineGlow.attr("d", targetLineD);
+          linePath.attr("d", targetLineD);
+        }
 
-        chart.append("g")
+        const dots = chart.append("g")
           .selectAll("circle")
           .data(points)
           .join("circle")
           .attr("cx", (_, index) => xScale(index))
-          .attr("cy", (point) => yLevel(point[metric.levelKey]))
+          .attr("cy", (point, index) => {
+            if (!previousGeometry) return yLevel(point[metric.levelKey]);
+            const previousPoint = previousGeometry.points[index] || previousGeometry.points[previousGeometry.points.length - 1];
+            return previousPoint ? previousGeometry.yLevel(previousPoint[previousGeometry.metric.levelKey]) : yLevel(point[metric.levelKey]);
+          })
           .attr("r", (_, index) => index === points.length - 1 ? 5.2 : 3)
           .attr("fill", (_, index) => index === points.length - 1 ? "#ffffff" : chartInk)
           .attr("stroke", chartInk)
           .attr("stroke-width", (_, index) => index === points.length - 1 ? 2.8 : 0);
+        if (transitionDuration) {
+          dots.transition()
+            .duration(transitionDuration)
+            .ease(transitionEase)
+            .attr("cy", (point) => yLevel(point[metric.levelKey]));
+        }
 
         chart.append("line")
           .attr("x1", 0)
@@ -6268,10 +8223,11 @@
           .style("font-size", "12px")
           .text("Trimestre");
 
-        const crashFocus = focuses.find((focus) => focus.key === "crash");
-        const reboundFocus = focuses.find((focus) => focus.key === "rebound");
-        const plateauFocus = focuses.find((focus) => focus.key === "plateau");
-        const annotationLayer = chart.append("g");
+        const crashFocus = options.hideAnnotations ? null : focuses.find((focus) => focus.key === "crash");
+        const reboundFocus = options.hideAnnotations ? null : focuses.find((focus) => focus.key === "rebound");
+        const plateauFocus = options.hideAnnotations ? null : focuses.find((focus) => focus.key === "plateau");
+        const annotationLayer = chart.append("g")
+          .attr("opacity", previousGeometry && transitionDuration ? 0 : 1);
         if (crashFocus && crashFocus.peakPoint) {
           const pointIndex = points.findIndex((point) => point.date === crashFocus.peakPoint.date);
           drawEmploymentAnnotation(
@@ -6304,6 +8260,13 @@
             `${quarterLabel(plateauFocus.levelPoint.date)} / ${metric.summaryLevel(plateauFocus.levelPoint[metric.levelKey])}`,
             { dx: -196, dy: -74, width: 184, anchor: "end" },
           );
+        }
+        if (previousGeometry && transitionDuration) {
+          annotationLayer.transition()
+            .delay(Math.round(transitionDuration * 0.58))
+            .duration(Math.round(transitionDuration * 0.34))
+            .ease(d3.easeCubicOut)
+            .attr("opacity", 1);
         }
 
         const tooltip = document.getElementById(config.tooltipId);
@@ -6344,6 +8307,155 @@
         root.on("mouseleave", hideChartTooltip);
       }
 
+      function employmentScrollyStepFromElement(element) {
+        const key = element ? element.dataset.employmentStep : null;
+        return key === "payroll" ? "payroll" : "effectifs";
+      }
+
+      function employmentScrollyStepFromMetric(metricKey) {
+        return metricKey === "masse_cvs" ? "payroll" : "effectifs";
+      }
+
+      function renderEmploymentScrollyChart(step, options = {}) {
+        const nextStep = step === "payroll" ? "payroll" : "effectifs";
+        const payload = employmentScrollyPayloads[nextStep];
+        const activeSvg = document.getElementById("employmentEffectifsChartSvg");
+        if (!payload || !activeSvg) return;
+
+        const previousPayload = employmentScrollyRenderedStep && employmentScrollyRenderedStep !== nextStep
+          ? employmentScrollyPayloads[employmentScrollyRenderedStep]
+          : null;
+        const activeConfig = {
+          ...payload.config,
+          chartTitleId: "employmentEffectifsChartTitle",
+          chartMetaId: "employmentEffectifsChartMeta",
+          chartSvgId: "employmentEffectifsChartSvg",
+          tooltipId: "employmentEffectifsTooltip",
+          legendLineId: "employmentEffectifsLegendLine",
+        };
+
+        document.getElementById(activeConfig.chartTitleId).textContent = payload.metric.chartTitle;
+        document.getElementById(activeConfig.chartMetaId).textContent = payload.metaText;
+        document.getElementById(activeConfig.legendLineId).textContent = payload.metric.legendLine;
+        drawEmploymentChart(
+          activeConfig,
+          payload.points,
+          payload.metric,
+          payload.focuses,
+          payload.activeFocus,
+          {
+            animate: options.animate !== false,
+            previousPayload,
+            transitionDuration: options.transitionDuration || 2400,
+          },
+        );
+        employmentScrollyRenderedStep = nextStep;
+      }
+
+      function setEmploymentScrollyStep(step, options = {}) {
+        const nextStep = step === "payroll" ? "payroll" : "effectifs";
+        const frame = document.getElementById("employmentStickyFrame");
+        const steps = document.querySelectorAll("[data-employment-step]");
+        const panes = document.querySelectorAll("[data-employment-pane]");
+        if (!steps.length || !panes.length) return;
+
+        const changed = employmentScrollyActiveStep !== nextStep;
+        employmentScrollyActiveStep = nextStep;
+        steps.forEach((element) => {
+          const isActive = employmentScrollyStepFromElement(element) === nextStep;
+          element.classList.toggle("is-active", isActive);
+          element.setAttribute("aria-current", isActive ? "step" : "false");
+        });
+        panes.forEach((element) => {
+          const isActive = element.dataset.employmentPane === "effectifs";
+          element.classList.toggle("is-active", isActive);
+          element.setAttribute("aria-hidden", String(!isActive));
+        });
+        if (options.renderChart !== false && (changed || employmentScrollyRenderedStep !== nextStep || options.forceRender)) {
+          renderEmploymentScrollyChart(nextStep, { animate: changed && options.animate !== false });
+        }
+
+        if (frame && changed && options.pulse !== false && !REDUCED_MOTION) {
+          frame.classList.add("is-transitioning");
+          if (employmentScrollyPulseFrame != null) {
+            window.clearTimeout(employmentScrollyPulseFrame);
+          }
+          employmentScrollyPulseFrame = window.setTimeout(() => {
+            frame.classList.remove("is-transitioning");
+            employmentScrollyPulseFrame = null;
+          }, 520);
+        }
+      }
+
+      function syncEmploymentScrollyState() {
+        if (!document.getElementById("employmentScrolly")) return;
+        const slide = activeSlide();
+        const nextStep = slide.employmentStep || employmentScrollyActiveStep || "effectifs";
+        setEmploymentScrollyStep(nextStep, { pulse: false, animate: false });
+      }
+
+      function detectEmploymentScrollyStep() {
+        const scrolly = document.getElementById("employmentScrolly");
+        if (!scrolly) return employmentScrollyActiveStep;
+        const steps = Array.from(scrolly.querySelectorAll("[data-employment-step]"));
+        if (!steps.length) return employmentScrollyActiveStep;
+
+        const scrollyRect = scrolly.getBoundingClientRect();
+        if (scrollyRect.top > window.innerHeight * 0.78) return "effectifs";
+        if (scrollyRect.bottom < window.innerHeight * 0.28) return "payroll";
+
+        const activationLine = window.innerHeight * 0.62;
+        let selected = steps[0];
+        steps.forEach((step) => {
+          const rect = step.getBoundingClientRect();
+          if (rect.top <= activationLine) {
+            selected = step;
+          }
+        });
+        return employmentScrollyStepFromElement(selected);
+      }
+
+      function syncEmploymentScrollyFromScroll() {
+        employmentScrollySyncFrame = null;
+        if (!document.getElementById("employmentScrolly")) return;
+        setEmploymentScrollyStep(detectEmploymentScrollyStep());
+      }
+
+      function scheduleEmploymentScrollySync() {
+        if (employmentScrollySyncFrame != null) return;
+        employmentScrollySyncFrame = requestAnimationFrame(syncEmploymentScrollyFromScroll);
+      }
+
+      function initEmploymentScrolly() {
+        if (document.body.classList.contains("deck-ready")) return;
+        const scrolly = document.getElementById("employmentScrolly");
+        const steps = scrolly ? Array.from(scrolly.querySelectorAll("[data-employment-step]")) : [];
+        if (!scrolly || !steps.length) return;
+
+        if (!("IntersectionObserver" in window) || REDUCED_MOTION) {
+          setEmploymentScrollyStep(detectEmploymentScrollyStep(), { pulse: false, animate: false });
+          return;
+        }
+
+        if (!employmentScrollyObserver) {
+          employmentScrollyObserver = new IntersectionObserver(() => {
+            scheduleEmploymentScrollySync();
+          }, {
+            root: null,
+            rootMargin: "-18% 0px -18% 0px",
+            threshold: [0, 0.12, 0.24, 0.36, 0.48, 0.6, 0.72, 0.84, 1],
+          });
+
+          steps.forEach((step) => employmentScrollyObserver.observe(step));
+        }
+        if (!employmentScrollyScrollBound) {
+          window.addEventListener("scroll", scheduleEmploymentScrollySync, { passive: true });
+          window.addEventListener("resize", scheduleEmploymentScrollySync, { passive: true });
+          employmentScrollyScrollBound = true;
+        }
+        setEmploymentScrollyStep(detectEmploymentScrollyStep(), { pulse: false, animate: false });
+      }
+
       function renderRegionalEmploymentBlock(config) {
         const scope = getSectorRegionalScopeData();
         const metric = employmentMetricConfig(config.metricKey);
@@ -6368,10 +8480,11 @@
         renderEmploymentSeriesSelect(config.seriesSelectId, scope, config.seriesStateKey, renderSectorModule);
         renderEmploymentFocusSwitch(config.focusSwitchId, focuses, activeFocus.key, config.focusStateKey, renderSectorModule);
 
-        document.getElementById(config.chartTitleId).textContent = metric.chartTitle;
-        document.getElementById(config.chartMetaId).textContent = config.metricKey === "effectifs_cvs"
+        const metaText = config.metricKey === "effectifs_cvs"
           ? `${scopeLabel()} · emploi secteur privé hors agricole · dernier trimestre disponible`
           : `${scopeLabel()} · Masse salariale secteur privé hors agricole · dernier trimestre disponible`;
+        document.getElementById(config.chartTitleId).textContent = metric.chartTitle;
+        document.getElementById(config.chartMetaId).textContent = metaText;
         document.getElementById(config.legendLineId).textContent = metric.legendLine;
         document.getElementById(config.focusTitleId).textContent = narrative.title;
         document.getElementById(config.focusCopyId).textContent = narrative.copy;
@@ -6389,6 +8502,14 @@
           : "Fenêtre de focus";
 
         drawEmploymentChart(config, points, metric, focuses, activeFocus);
+        employmentScrollyPayloads[employmentScrollyStepFromMetric(config.metricKey)] = {
+          config: { ...config },
+          points,
+          metric,
+          focuses,
+          activeFocus,
+          metaText,
+        };
       }
 
       function departmentMetricValue(department, sectorKey, metricKey) {
@@ -6595,6 +8716,8 @@
           focusLevelMetaId: "employmentPayrollFocusLevelMeta",
         });
 
+        employmentScrollyRenderedStep = null;
+        syncEmploymentScrollyState();
         renderSectorDepartmentModule();
       }
 
@@ -6819,6 +8942,7 @@
       }
       function renderStoryModules() {
         chapterRegistry.forEach((chapter) => chapter.render());
+        syncDeckVisibility({ animate: false, pulse: false });
       }
 
       function setupFooter() {
@@ -6854,6 +8978,7 @@
         setTheme(null);
         initPaletteDevtools();
         initChapterNavigation();
+        initDeckControls();
         setupFooter();
         initStageButtons();
         renderLandingMap();
@@ -6871,8 +8996,6 @@
   </script>
 </body>
 </html>
-
-
 
 
 

@@ -307,10 +307,10 @@
         const glowId = `${prefix}-line-glow`;
         const positiveGradient = defs.append("linearGradient").attr("id", positiveFillId).attr("x1", "0").attr("x2", "0").attr("y1", "0").attr("y2", "1");
         positiveGradient.append("stop").attr("offset", "0%").attr("stop-color", paletteToken("employment-chart-positive-a", "rgba(38,193,160,0.95)"));
-        positiveGradient.append("stop").attr("offset", "100%").attr("stop-color", paletteToken("employment-chart-positive-b", "rgba(38,193,160,0.38)"));
+        positiveGradient.append("stop").attr("offset", "100%").attr("stop-color", paletteToken("employment-chart-positive-b", "rgba(38,193,160,0.54)"));
         const negativeGradient = defs.append("linearGradient").attr("id", negativeFillId).attr("x1", "0").attr("x2", "0").attr("y1", "0").attr("y2", "1");
         negativeGradient.append("stop").attr("offset", "0%").attr("stop-color", paletteToken("employment-chart-negative-a", "rgba(228,134,118,0.95)"));
-        negativeGradient.append("stop").attr("offset", "100%").attr("stop-color", paletteToken("employment-chart-negative-b", "rgba(228,134,118,0.42)"));
+        negativeGradient.append("stop").attr("offset", "100%").attr("stop-color", paletteToken("employment-chart-negative-b", "rgba(228,134,118,0.50)"));
         const focusGradient = defs.append("linearGradient").attr("id", focusFillId).attr("x1", "0").attr("x2", "0").attr("y1", "0").attr("y2", "1");
         focusGradient.append("stop").attr("offset", "0%").attr("stop-color", paletteToken("employment-chart-focus-a", "rgba(26,78,147,0.13)"));
         focusGradient.append("stop").attr("offset", "100%").attr("stop-color", paletteToken("employment-chart-focus-b", "rgba(26,78,147,0)"));
@@ -679,11 +679,11 @@
           ? buildScale(
               d3.extent(values),
               [
-                paletteToken("chart-employment-dept-low", "rgba(251,186,0,0.22)"),
-                paletteToken("chart-employment-dept-high", "rgba(238,115,38,0.96)"),
+                paletteToken("chart-employment-dept-low", "#F7C96B"),
+                paletteToken("chart-employment-dept-high", "#E86E2A"),
               ],
             )
-          : () => paletteToken("chart-employment-dept-low", "rgba(251,186,0,0.22)");
+          : () => paletteToken("chart-employment-dept-low", "#F7C96B");
 
         mapShell.innerHTML = `<svg id="employmentDeptMapSvg" viewBox="0 0 900 620"></svg>`;
         const svg = d3.select("#employmentDeptMapSvg");

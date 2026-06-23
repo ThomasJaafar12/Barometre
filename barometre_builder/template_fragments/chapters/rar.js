@@ -33,7 +33,7 @@
           svg.selectAll("*").remove();
           const latestMap = new Map(DATA.modules.rar.national.latestByMetric[state.rarMetric].map((item) => [item.code, item.value]));
           const values = [...latestMap.values()].filter((value) => value != null);
-          const scale = buildScale(d3.extent(values), [paletteToken("chart-rar-low", "rgba(255,255,255,0.06)"), paletteToken("chart-rar-high", "rgba(255,151,131,0.92)")]);
+          const scale = buildScale(d3.extent(values), [paletteToken("chart-rar-low", "#F5B7C4"), paletteToken("chart-rar-high", "#E11D48")]);
           drawCompositeMap(svg, displayRegionsGeojson, {
             clickable: false,
             keyResolver: (feature) => feature.properties.code,
@@ -99,6 +99,8 @@
           rar_mois_suivant: paletteToken("chart-rar-next", "#ffd37a"),
           rar_90: paletteToken("chart-rar-90", "#ff9783"),
         };
+        const axisText = paletteToken("employment-chart-muted", "#64748B");
+        const axisLine = paletteToken("employment-chart-grid", "rgba(148,163,184,0.24)");
         ["rar_fin_mois", "rar_mois_suivant", "rar_90"].forEach((key) => {
           const line = d3.line()
             .defined((point) => point[key] != null)
@@ -114,12 +116,12 @@
         g.append("g")
           .attr("transform", `translate(0,${height})`)
           .call(d3.axisBottom(x).ticks(6).tickFormat((date) => date.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" })))
-          .call((axis) => axis.selectAll("text").attr("fill", "rgba(238,247,255,0.52)").style("font-size", "11px"))
-          .call((axis) => axis.selectAll("path,line").attr("stroke", "rgba(255,255,255,0.08)"));
+          .call((axis) => axis.selectAll("text").attr("fill", axisText).style("font-size", "11px"))
+          .call((axis) => axis.selectAll("path,line").attr("stroke", axisLine));
         g.append("g")
           .call(d3.axisLeft(y).ticks(5).tickFormat((value) => formatPercent(value)))
-          .call((axis) => axis.selectAll("text").attr("fill", "rgba(238,247,255,0.52)").style("font-size", "11px"))
-          .call((axis) => axis.selectAll("path,line").attr("stroke", "rgba(255,255,255,0.08)"));
+          .call((axis) => axis.selectAll("text").attr("fill", axisText).style("font-size", "11px"))
+          .call((axis) => axis.selectAll("path,line").attr("stroke", axisLine));
 
         secondaryBody.innerHTML = `<div class="mini-grid"><article class="mini-stat"><small>Fin de mois</small><strong>${formatPercent(points[points.length - 1].rar_fin_mois)}</strong><span>${monthLabel(points[points.length - 1].date)}</span></article><article class="mini-stat"><small>Mois suivant</small><strong>${formatPercent(points[points.length - 1].rar_mois_suivant)}</strong><span>${monthLabel(points[points.length - 1].date)}</span></article><article class="mini-stat"><small>+90 jours</small><strong>${formatPercent(points[points.length - 1].rar_90)}</strong><span>${monthLabel(points[points.length - 1].date)}</span></article></div>`;
       }

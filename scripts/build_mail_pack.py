@@ -11,10 +11,6 @@ from zipfile import ZIP_DEFLATED, ZipFile
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_HTML = ROOT / "barometre.html"
 DEFAULT_OUTPUT_DIR = ROOT / "dist" / "mail_pack"
-DEFAULT_EXCLUDED_PREFIXES = (
-    Path("Assets/MapScene"),
-    Path("Assets/premium-map-pack"),
-)
 
 LOCAL_ASSET_PATTERN = re.compile(r"Assets/[A-Za-z0-9._/\-]+")
 REMOTE_URL_PATTERN = re.compile(r"https://[^\s\"'()<>]+")
@@ -41,16 +37,6 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Also create a .zip archive next to the output folder.",
     )
-    parser.add_argument(
-        "--include-map-scene",
-        action="store_true",
-        help="Include Assets/MapScene files referenced by the HTML.",
-    )
-    parser.add_argument(
-        "--include-premium-pack",
-        action="store_true",
-        help="Include Assets/premium-map-pack files referenced by the HTML.",
-    )
     return parser.parse_args()
 
 
@@ -67,20 +53,9 @@ def extract_remote_urls(html_text: str) -> list[str]:
     return sorted(set(REMOTE_URL_PATTERN.findall(html_text)))
 
 
-def should_exclude_asset(path: Path, args: argparse.Namespace) -> bool:
-    posix_path = path.as_posix()
-    if posix_path.startswith("Assets/MapScene") and not args.include_map_scene:
-        return True
-    if posix_path.startswith("Assets/premium-map-pack") and not args.include_premium_pack:
-        return True
-    return False
-
-
-def copy_pack(html_path: Path, output_dir: Path, args: argparse.Namespace) -> tuple[list[Path], list[Path], list[Path]]:
+def copy_pack(html_path: Path, output_dir: Path, args: argparse.Namespace) -> tuple[list[Path], list[Path]]:
     html_text = html_path.read_text(encoding="utf-8")
-    referenced_assets = extract_local_assets(html_text)
-    local_assets = [asset for asset in referenced_assets if not should_exclude_asset(asset, args)]
-    excluded_assets = [asset for asset in referenced_assets if should_exclude_asset(asset, args)]
+    local_assets = extract_local_assets(html_text)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     copied_files: list[Path] = []
@@ -103,14 +78,13 @@ def copy_pack(html_path: Path, output_dir: Path, args: argparse.Namespace) -> tu
     manifest = {
         "html": html_path.name,
         "localAssets": [path.as_posix() for path in local_assets],
-        "excludedAssets": [path.as_posix() for path in excluded_assets],
         "missingLocalAssets": [path.as_posix() for path in missing_files],
         "remoteDependencies": extract_remote_urls(html_text),
     }
     manifest_path = output_dir / "mail_pack_manifest.json"
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     copied_files.append(manifest_path.relative_to(output_dir))
-    return copied_files, missing_files, excluded_assets
+    return copied_files, missing_files
 
 
 def create_zip(output_dir: Path) -> Path:
@@ -133,14 +107,11 @@ def main() -> None:
     if output_dir.exists():
         shutil.rmtree(output_dir)
 
-    copied_files, missing_files, excluded_assets = copy_pack(html_path, output_dir, args)
+    copied_files, missing_files = copy_pack(html_path, output_dir, args)
     archive_path = create_zip(output_dir) if args.zip else None
 
     print(f"Mail pack created in: {output_dir}")
     print(f"Copied files: {len(copied_files)}")
-    print(f"Excluded assets: {len(excluded_assets)}")
-    for path in excluded_assets:
-        print(f"  - {path.as_posix()}")
     if missing_files:
         print("Missing local assets:")
         for path in missing_files:

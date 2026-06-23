@@ -39,6 +39,8 @@
           .x((point) => x(new Date(`${point.date}T00:00:00`)))
           .y((point) => yRight(point.share))
           .curve(d3.curveMonotoneX);
+        const axisText = paletteToken("employment-chart-muted", "#64748B");
+        const axisLine = paletteToken("employment-chart-grid", "rgba(148,163,184,0.24)");
 
         g.append("path").attr("d", area(points)).attr("fill", paletteToken("chart-payroll-area", "rgba(120,236,203,0.18)"));
         g.append("path").attr("d", d3.line().x((point) => x(new Date(`${point.date}T00:00:00`))).y((point) => yLeft(point.payroll)).curve(d3.curveMonotoneX)(points))
@@ -47,17 +49,17 @@
         g.append("g")
           .attr("transform", `translate(0,${height})`)
           .call(d3.axisBottom(x).ticks(6).tickFormat((date) => date.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" })))
-          .call((axis) => axis.selectAll("text").attr("fill", "rgba(238,247,255,0.52)").style("font-size", "11px"))
-          .call((axis) => axis.selectAll("path,line").attr("stroke", "rgba(255,255,255,0.08)"));
+          .call((axis) => axis.selectAll("text").attr("fill", axisText).style("font-size", "11px"))
+          .call((axis) => axis.selectAll("path,line").attr("stroke", axisLine));
         g.append("g")
           .call(d3.axisLeft(yLeft).ticks(5).tickFormat((value) => formatCurrency(value)))
-          .call((axis) => axis.selectAll("text").attr("fill", "rgba(238,247,255,0.52)").style("font-size", "11px"))
-          .call((axis) => axis.selectAll("path,line").attr("stroke", "rgba(255,255,255,0.08)"));
+          .call((axis) => axis.selectAll("text").attr("fill", axisText).style("font-size", "11px"))
+          .call((axis) => axis.selectAll("path,line").attr("stroke", axisLine));
         g.append("g")
           .attr("transform", `translate(${width},0)`)
           .call(d3.axisRight(yRight).ticks(5).tickFormat((value) => formatPercent(value)))
-          .call((axis) => axis.selectAll("text").attr("fill", "rgba(238,247,255,0.52)").style("font-size", "11px"))
-          .call((axis) => axis.selectAll("path,line").attr("stroke", "rgba(255,255,255,0.08)"));
+          .call((axis) => axis.selectAll("text").attr("fill", axisText).style("font-size", "11px"))
+          .call((axis) => axis.selectAll("path,line").attr("stroke", axisLine));
 
         const latest = points[points.length - 1];
         const previous = points[points.length - 2] || latest;

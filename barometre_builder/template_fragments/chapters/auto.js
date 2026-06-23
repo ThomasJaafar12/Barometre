@@ -75,8 +75,8 @@
 
         const values = departments.map((department) => metricValueForDepartment(department, state.autoSector, state.autoMetric)).filter((value) => value != null);
         const scale = values.length
-          ? buildScale(d3.extent(values), [paletteToken("chart-auto-low", "rgba(255,255,255,0.06)"), paletteToken("chart-auto-high", "rgba(120,236,203,0.94)")])
-          : () => paletteToken("chart-auto-low", "rgba(255,255,255,0.06)");
+          ? buildScale(d3.extent(values), [paletteToken("chart-auto-low", "#BFE8CF"), paletteToken("chart-auto-high", "#16A34A")])
+          : () => paletteToken("chart-auto-low", "#BFE8CF");
         const svg = d3.select("#autoMapSvg");
         svg.selectAll("*").remove();
 

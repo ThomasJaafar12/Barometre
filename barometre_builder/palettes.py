@@ -5,7 +5,7 @@ from copy import deepcopy
 from .config import EXPERIENCE_REGION_CODES
 
 
-COLOR_DEVTOOL_ENABLED = True
+COLOR_DEVTOOL_ENABLED = False
 DEFAULT_PALETTE_KEY = "urssaf-corporate"
 
 SCENE_TOKEN_DEFAULTS = {
@@ -72,10 +72,10 @@ PALETTE_SPECS = [
             "hero-action-a": "#0B1D3A",
             "hero-action-b": "#0B1D3A",
             "map-idle": "#E2E8F0",
-            "map-empty": "#F1F5F9",
-            "map-unavailable": "#CBD5E1",
-            "map-national-low": "#CBD5E1",
-            "map-national-high": "#0EA5A8",
+            "map-empty": "#EEF3F8",
+            "map-unavailable": "#D8E1EA",
+            "map-national-low": "#C9D7E6",
+            "map-national-high": "#0A9FA6",
             "chart-sector-start": "#2B82F6",
             "chart-sector-end": "#0EA5A8",
             "chart-sector-area": "rgba(43,130,246,0.12)",

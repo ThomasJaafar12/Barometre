@@ -88,7 +88,7 @@ def build_chapter_fragments() -> dict[str, str]:
             "railKicker": chapter.rail_kicker,
             "label": chapter.label,
             "railMeta": chapter.rail_meta,
-            "sectionKicker": chapter.section_kicker,
+            "sectionKicker": f"#{chapter.number}",
             "sectionTitle": chapter.section_title,
             "sectionMeta": chapter.section_meta,
             "tone": chapter.tone,
@@ -104,5 +104,7 @@ def build_chapter_fragments() -> dict[str, str]:
     return {
         "sections_html": "\n\n".join(_fragment(chapter.html_fragment) for chapter in CHAPTERS),
         "registry_script": "\n".join(registry_lines),
-        "chapter_scripts": "\n\n".join(_fragment(chapter.script_fragment) for chapter in CHAPTERS),
+        "chapter_scripts": "\n\n".join(
+            [_fragment(chapter.script_fragment) for chapter in CHAPTERS] + [_fragment("rar.js")]
+        ),
     }

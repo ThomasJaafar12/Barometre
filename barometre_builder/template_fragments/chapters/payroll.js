@@ -13,10 +13,11 @@
           subtitle.textContent = `${scopeLabel()} / aucun flux mensuel exploitable.`;
           renderEmptyState(panel, "Flux indisponible", "Le couple masse salariale / chômage partiel manque pour ce territoire.");
           stats.innerHTML = "";
+          renderRarModule();
           return;
         }
 
-        subtitle.textContent = `${scopeLabel()} / lecture mensuelle / masse salariale + part de l'assiette chômage partiel`;
+        subtitle.textContent = "Lecture mensuelle de l'activité déclarée, de la masse salariale et des tensions conjoncturelles.";
         chartMeta.textContent = `Fenêtre mobile / ${monthLabel(scope.points[0].date)} → ${monthLabel(scope.latestDate)}`;
         statsMeta.textContent = `Dernier mois / ${monthLabel(scope.latestDate)}`;
 
@@ -74,4 +75,5 @@
           article.innerHTML = `<small>${entry.label}</small><strong>${entry.value}</strong><span>${entry.meta}</span>`;
           stats.appendChild(article);
         });
+        renderRarModule();
       }

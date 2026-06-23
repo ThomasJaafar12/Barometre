@@ -16,17 +16,15 @@
         const secondaryTitle = document.getElementById("rarSecondaryTitle");
         const secondaryMeta = document.getElementById("rarSecondaryMeta");
         const secondaryBody = document.getElementById("rarSecondaryBody");
-
-        renderMetricSwitch("rarMetricSwitch", DATA.modules.rar.metrics, state.rarMetric, (key) => {
-          state.rarMetric = key;
-          renderRarModule();
-        });
+        const setSubtitle = (text) => {
+          if (subtitle) subtitle.textContent = text;
+        };
 
         if (state.phase === "national") {
-          subtitle.textContent = `France entière / ${monthLabel(DATA.modules.rar.latestDate)} / choropleth régional + rail de séries récentes`;
-          primaryTitle.textContent = "Carte des tensions";
+          setSubtitle(`France entière / ${monthLabel(DATA.modules.rar.latestDate)} / choropleth régional + rail de séries récentes`);
+          primaryTitle.textContent = "Carte des tensions RAR";
           primaryMeta.textContent = DATA.modules.rar.metrics.find((metric) => metric.key === state.rarMetric).label;
-          secondaryTitle.textContent = "Régions à surveiller";
+          secondaryTitle.textContent = "Régions RAR à surveiller";
           secondaryMeta.textContent = "12 derniers mois";
 
           const svg = d3.select("#rarPrimarySvg");
@@ -63,16 +61,16 @@
 
         const scope = DATA.modules.rar.regions[state.selectedRegion];
         if (!scope || !scope.points || !scope.points.length) {
-          subtitle.textContent = `${scopeLabel()} / aucun historique RAR exploitable.`;
+          setSubtitle(`${scopeLabel()} / aucun historique RAR exploitable.`);
           renderEmptyState(document.getElementById("rarPrimaryPanel"), "RAR indisponible", "La mesure n'existe pas pour ce territoire dans les CSV fournis.");
           secondaryBody.innerHTML = "";
           return;
         }
 
-        subtitle.textContent = `${scopeLabel()} / 36 derniers mois / trois courbes pour lire le relief du recouvrement`;
-        primaryTitle.textContent = "Courbes mensuelles";
+        setSubtitle(`${scopeLabel()} / 36 derniers mois / trois courbes pour lire le relief du recouvrement`);
+        primaryTitle.textContent = "Courbes mensuelles RAR";
         primaryMeta.textContent = monthLabel(scope.points[scope.points.length - 1].date);
-        secondaryTitle.textContent = "Dernier point";
+        secondaryTitle.textContent = "Dernier point RAR";
         secondaryMeta.textContent = "Lecture simultanée";
 
         const svg = d3.select("#rarPrimarySvg");
@@ -123,5 +121,5 @@
           .call((axis) => axis.selectAll("text").attr("fill", axisText).style("font-size", "11px"))
           .call((axis) => axis.selectAll("path,line").attr("stroke", axisLine));
 
-        secondaryBody.innerHTML = `<div class="mini-grid"><article class="mini-stat"><small>Fin de mois</small><strong>${formatPercent(points[points.length - 1].rar_fin_mois)}</strong><span>${monthLabel(points[points.length - 1].date)}</span></article><article class="mini-stat"><small>Mois suivant</small><strong>${formatPercent(points[points.length - 1].rar_mois_suivant)}</strong><span>${monthLabel(points[points.length - 1].date)}</span></article><article class="mini-stat"><small>+90 jours</small><strong>${formatPercent(points[points.length - 1].rar_90)}</strong><span>${monthLabel(points[points.length - 1].date)}</span></article></div>`;
+        secondaryBody.innerHTML = `<div class="mini-grid"><article class="mini-stat"><small>RAR fin de mois</small><strong>${formatPercent(points[points.length - 1].rar_fin_mois)}</strong><span>${monthLabel(points[points.length - 1].date)}</span></article><article class="mini-stat"><small>RAR mois suivant</small><strong>${formatPercent(points[points.length - 1].rar_mois_suivant)}</strong><span>${monthLabel(points[points.length - 1].date)}</span></article><article class="mini-stat"><small>RAR +90 jours</small><strong>${formatPercent(points[points.length - 1].rar_90)}</strong><span>${monthLabel(points[points.length - 1].date)}</span></article></div>`;
       }

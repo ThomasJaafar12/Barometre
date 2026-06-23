@@ -161,6 +161,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
       gap: 16px;
       padding: 14px 18px;
       border-radius: 28px;
@@ -169,9 +170,18 @@
       border: 1px solid rgba(255,255,255,0.08);
       backdrop-filter: blur(14px);
     }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-left: auto;
+    }
     .brand {
       display: inline-flex;
       align-items: center;
+      flex: 1 1 280px;
       gap: 14px;
       min-width: 0;
     }
@@ -456,10 +466,38 @@
       font-size: 0.86rem;
       color: var(--muted);
     }
+    .text-highlight {
+      --highlight-bg: var(--highlight-payroll-bg);
+      --highlight-ink: #FFFFFF;
+      display: inline;
+      padding: 0.03em 0.22em 0.05em;
+      color: var(--highlight-ink);
+      background: var(--highlight-bg);
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+      line-height: 1.08;
+      font-weight: 900;
+    }
+    .text-highlight--payroll {
+      --highlight-bg: #E62B8A;
+      --highlight-ink: #FFFFFF;
+    }
+    .text-highlight--headcount {
+      --highlight-bg: #2DA8FF;
+      --highlight-ink: #FFFFFF;
+    }
+    .text-highlight--independent {
+      --highlight-bg: #FFD400;
+      --highlight-ink: #07172F;
+    }
+    .text-highlight--rar {
+      --highlight-bg: #6D28D9;
+      --highlight-ink: #FFFFFF;
+    }
 
     .switch-rail {
       margin-top: 18px;
-      display: flex;
+      display: none;
       flex-wrap: wrap;
       gap: 10px;
       padding: 0 6px;
@@ -469,6 +507,7 @@
       pointer-events: none;
     }
     .switch-rail.is-visible {
+      display: flex;
       opacity: 1;
       transform: translateY(0);
       pointer-events: auto;
@@ -1088,6 +1127,139 @@
       height: auto;
       display: block;
     }
+    .employment-treemap-grid {
+      grid-template-columns: 1fr;
+      align-items: stretch;
+    }
+    .employment-treemap-card .employment-treemap-panel {
+      position: relative;
+      overflow: hidden;
+      min-height: 760px;
+      gap: 18px;
+      padding: 22px;
+      background:
+        radial-gradient(circle at 14% 0%, rgba(14,165,168,0.10), transparent 34%),
+        radial-gradient(circle at 92% 18%, rgba(43,130,246,0.10), transparent 36%),
+        linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+      border: 1px solid #D4DEE9;
+      box-shadow: 0 16px 42px rgba(11,29,58,0.08);
+      color: rgb(7, 23, 47);
+    }
+    .employment-treemap-card .employment-treemap-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(7,23,47,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(7,23,47,0.035) 1px, transparent 1px);
+      background-size: 38px 38px;
+      mask-image: radial-gradient(circle at 50% 35%, rgba(0,0,0,0.52), transparent 74%);
+    }
+    .employment-treemap-head {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .employment-treemap-card .employment-title strong,
+    .employment-treemap-card .employment-title span {
+      color: rgb(7, 23, 47);
+    }
+    .employment-treemap-card .employment-title span {
+      color: #64748B;
+    }
+    .employment-treemap-card .metric-switch {
+      background: #EDF3F8;
+      border-color: #CBD5E1;
+      box-shadow: inset 0 1px 0 #FFFFFF;
+    }
+    .employment-treemap-card .metric-button {
+      color: #64748B;
+    }
+    .employment-treemap-card .metric-button.is-active {
+      color: rgb(7, 23, 47);
+      background: #FFFFFF;
+      border-color: #CBD5E1;
+    }
+    .employment-treemap-shell {
+      position: relative;
+      z-index: 1;
+      min-height: 660px;
+      border-radius: 22px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.92)),
+        #FFFFFF;
+      border: 1px solid #E2E8F0;
+      box-shadow: inset 0 1px 0 #FFFFFF;
+    }
+    .employment-treemap-shell svg {
+      width: 100%;
+      height: auto;
+      min-height: 660px;
+      display: block;
+    }
+    .employment-treemap-shell.is-empty {
+      display: grid;
+      place-items: center;
+      padding: 18px;
+    }
+    .employment-treemap-tile {
+      cursor: pointer;
+      transition: filter 220ms ease;
+    }
+    .employment-treemap-tile rect {
+      transition: transform 260ms ease, stroke 260ms ease, stroke-width 260ms ease, filter 260ms ease;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    .employment-treemap-tile.is-hovered rect {
+      stroke: rgba(255,255,255,0.98);
+      stroke-width: 2.2px;
+      filter: url(#employmentTreemapGlow);
+      transform: scale(1.012);
+    }
+    .employment-treemap-label,
+    .employment-treemap-value,
+    .employment-treemap-yoy {
+      pointer-events: none;
+      text-shadow: 0 1px 16px rgba(7,23,47,0.20);
+    }
+    .employment-treemap-label {
+      font: 800 15px "Manrope", sans-serif;
+      letter-spacing: -0.01em;
+    }
+    .employment-treemap-value {
+      font: 800 21px "Syne", sans-serif;
+      letter-spacing: -0.04em;
+    }
+    .employment-treemap-yoy {
+      font: 700 12px "IBM Plex Mono", monospace;
+      letter-spacing: 0.04em;
+      opacity: 0.86;
+    }
+    .employment-treemap-legend {
+      position: relative;
+      z-index: 2;
+    }
+    .employment-treemap-card .legend-chip {
+      color: #64748B;
+    }
+    .employment-treemap-swatch {
+      display: inline-block;
+      width: 18px;
+      height: 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(7,23,47,0.14);
+      box-shadow: 0 6px 14px rgba(7,23,47,0.08);
+    }
+    .employment-treemap-swatch.is-negative { background: var(--employment-treemap-negative, #D94B65); }
+    .employment-treemap-swatch.is-neutral { background: var(--employment-treemap-neutral, #F3E7D4); }
+    .employment-treemap-swatch.is-positive { background: var(--employment-treemap-positive, #0EA5A8); }
     .employment-legend,
     .employment-focus-card,
     .employment-note-card {
@@ -1222,9 +1394,18 @@
       flex-wrap: wrap;
     }
     .employment-map-controls {
-      display: grid;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
       gap: 12px;
-      justify-items: end;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+    .employment-map-controls .employment-select-wrap {
+      flex: 0 1 340px;
+    }
+    .employment-map-controls .metric-switch {
+      flex: 0 0 auto;
     }
     .employment-map-shell {
       min-height: 320px;
@@ -1248,14 +1429,19 @@
     }
     .employment-tooltip {
       position: absolute;
-      inset: auto auto 16px 16px;
-      min-width: 188px;
-      max-width: 240px;
-      padding: 13px 15px;
-      border-radius: 18px;
-      background: rgba(16,25,34,0.92);
+      top: 16px;
+      left: 16px;
+      z-index: 4;
+      width: max-content;
+      min-width: 176px;
+      max-width: min(232px, calc(100% - 32px));
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.96);
+      border: 1px solid rgba(21,67,137,0.14);
       color: #fbf7f0;
-      box-shadow: 0 18px 44px rgba(15,23,35,0.24);
+      box-shadow: 0 14px 32px rgba(15,23,35,0.16);
+      backdrop-filter: blur(10px);
       pointer-events: none;
       opacity: 0;
       transform: translateY(8px);
@@ -1269,13 +1455,14 @@
       font: 500 12px "IBM Plex Mono", monospace;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: rgba(251,247,240,0.68);
+      color: var(--muted);
     }
     .employment-tooltip .tooltip-body {
-      margin-top: 8px;
-      font-size: 0.95rem;
+      margin-top: 6px;
+      color: var(--text);
+      font-size: 0.88rem;
       font-weight: 700;
-      line-height: 1.55;
+      line-height: 1.42;
     }
 
     .mini-grid {
@@ -1460,7 +1647,7 @@
     .path-department {
       stroke: rgba(255,255,255,0.16);
       stroke-width: 1.3px;
-      transition: fill 220ms ease, opacity 220ms ease, stroke 220ms ease;
+      transition: fill 220ms ease, opacity 220ms ease, stroke 220ms ease, stroke-width 220ms ease, filter 220ms ease;
       cursor: pointer;
     }
     .path-region.is-unavailable,
@@ -1471,6 +1658,19 @@
     .path-region:hover,
     .path-department:hover {
       stroke: rgba(255,255,255,0.28);
+    }
+    .stage-shell[data-phase="landing"] #landingMap .path-region.is-hovered:not(.is-unavailable) {
+      fill: var(--region-hover-fill, var(--accent)) !important;
+      stroke: rgba(255,255,255,0.92);
+      stroke-width: 2.35px;
+      filter:
+        drop-shadow(0 16px 24px rgba(11,29,58,0.16))
+        drop-shadow(0 0 18px var(--region-hover-shadow, var(--accent-glow)));
+    }
+    .stage-shell.is-map-hover-locked #landingMap .path-region.is-hovered {
+      fill: var(--map-idle) !important;
+      stroke-width: 1.15px;
+      filter: none;
     }
     .path-region.is-selected,
     .path-department.is-selected {
@@ -1570,6 +1770,9 @@
       .employment-map-grid {
         grid-template-columns: 1fr;
       }
+      .employment-treemap-grid {
+        grid-template-columns: 1fr;
+      }
       .employment-intro {
         flex-direction: column;
       }
@@ -1585,6 +1788,12 @@
       .employment-map-controls {
         width: 100%;
         justify-items: stretch;
+      }
+      .employment-treemap-head {
+        display: grid;
+      }
+      .employment-treemap-card .metric-switch {
+        width: 100%;
       }
       .employment-focus-switch {
         flex-wrap: wrap;
@@ -1635,6 +1844,20 @@
       }
       .employment-stat-grid {
         grid-template-columns: 1fr;
+      }
+      .employment-treemap-card .employment-treemap-panel {
+        min-height: 0;
+        padding: 14px;
+      }
+      .employment-treemap-shell,
+      .employment-treemap-shell svg {
+        min-height: 420px;
+      }
+      .employment-treemap-label {
+        font-size: 12px;
+      }
+      .employment-treemap-value {
+        font-size: 16px;
       }
       .hero-panel h1 {
         max-width: none;
@@ -2557,6 +2780,9 @@
       --product-shadow: 0 18px 44px rgba(11, 29, 58, 0.10);
       --product-shadow-strong: 0 24px 70px rgba(11, 29, 58, 0.16);
       --product-focus: 0 0 0 3px rgba(14, 165, 168, 0.22), 0 0 0 1px #0EA5A8;
+      --chapter-title-rail: 106px;
+      --chapter-title-min-height: 98px;
+      --chapter-title-shadow: 8px 8px 0 rgba(7, 23, 47, 0.94);
     }
 
     html {
@@ -2674,11 +2900,20 @@
     }
 
     .stage-shell[data-phase="landing"] .map-stage {
-      inset: 16px;
+      inset: 0;
+      padding: clamp(10px, 1.4vw, 20px);
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+    }
+
+    .stage-shell[data-phase="landing"],
+    .stage-shell[data-phase="landing"] .stage-copy {
+      min-height: max(620px, calc(100vh - 220px));
     }
 
     .map-stage svg {
-      max-width: 1180px;
+      max-width: none;
       margin-inline: auto;
     }
 
@@ -2795,12 +3030,44 @@
       font-size: 0.98rem;
     }
 
+    .chapter-section[data-tone="1"] {
+      --chapter-accent: #0B5CFF;
+      --chapter-accent-contrast: #FFFFFF;
+      --chapter-glow: rgba(11,92,255,0.22);
+    }
+
+    .chapter-section[data-tone="2"] {
+      --chapter-accent: #E8233A;
+      --chapter-accent-contrast: #FFFFFF;
+      --chapter-glow: rgba(232,35,58,0.18);
+    }
+
+    .chapter-section[data-tone="3"] {
+      --chapter-accent: #FFD600;
+      --chapter-accent-contrast: var(--product-ink);
+      --chapter-glow: rgba(255,214,0,0.22);
+    }
+
+    .chapter-section[data-tone="4"] {
+      --chapter-accent: #6D28D9;
+      --chapter-accent-contrast: #FFFFFF;
+      --chapter-glow: rgba(109,40,217,0.18);
+    }
+
     .section-card,
     .story .section-card {
       padding: 22px;
       background: #FFFFFF;
       border-color: var(--product-line);
       box-shadow: 0 18px 46px rgba(11,29,58,0.08);
+    }
+
+    .payroll-rar-block {
+      margin-top: 32px;
+    }
+
+    .payroll-rar-block .snap-card.is-snap-active {
+      margin-top: 6px;
     }
 
     .snap-track {
@@ -2815,25 +3082,152 @@
 
     .section-head,
     .story .section-head {
+      position: relative;
+      isolation: isolate;
+      display: grid;
+      grid-template-columns: 1fr;
+      align-items: stretch;
+      gap: 16px 22px;
+      min-height: var(--chapter-title-min-height);
       margin-bottom: 20px;
-      padding: 20px 22px;
+      padding: 0;
+      overflow: visible;
+      color: var(--product-ink);
+      background: #FFFEFA;
+      border: 2px solid var(--product-ink);
+      border-radius: 0;
+      box-shadow: var(--chapter-title-shadow);
+    }
+
+    .section-head::before,
+    .story .section-head::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      display: block;
+      pointer-events: none;
       background:
-        linear-gradient(90deg, rgba(14,165,168,0.08), transparent 48%),
-        #FFFFFF;
-      border-color: var(--product-line);
-      box-shadow: inset 5px 0 0 var(--accent), inset 0 1px 0 #FFFFFF;
+        linear-gradient(90deg, rgba(7,23,47,0.04), transparent 28%, rgba(11,92,255,0.035));
+    }
+
+    .section-title {
+      display: grid;
+      grid-template-columns: var(--chapter-title-rail) minmax(0, 1fr);
+      grid-template-rows: auto auto auto;
+      align-content: center;
+      align-items: center;
+      width: 100%;
+      min-width: 0;
+      min-height: var(--chapter-title-min-height);
+      max-width: none;
+      gap: 0;
+    }
+
+    .section-kicker-row {
+      grid-column: 1;
+      grid-row: 1 / span 3;
+      align-self: stretch;
+      display: grid;
+      place-items: center;
+      min-height: var(--chapter-title-min-height);
+      margin: 0;
+      background: var(--chapter-accent);
+      color: var(--chapter-accent-contrast);
+      border-right: 2px solid var(--product-ink);
+    }
+
+    .section-kicker-rule {
+      display: none;
+    }
+
+    .story .section-head .section-kicker,
+    .section-kicker {
+      color: inherit;
+      font-size: 20px;
+      font-weight: 950;
+      line-height: 1;
+      letter-spacing: 0;
+      text-transform: uppercase;
     }
 
     .section-title h2 {
+      grid-column: 2;
+      align-self: end;
+      margin: 0;
+      padding: 22px 48px 4px;
       color: var(--product-ink);
-      font-size: clamp(2rem, 3.5vw, 3rem);
-      line-height: 1.06;
+      font-size: 2.55rem;
+      font-weight: 950;
+      line-height: 0.96;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      text-shadow:
+        1.5px 1.5px 0 rgba(11,92,255,0.22),
+        -1px 1px 0 rgba(232,35,58,0.10);
+    }
+
+    .section-title-meta,
+    .story .section-head .section-title-meta {
+      grid-column: 2;
+      margin: 6px 48px 0;
+      color: var(--product-ink-2);
+      background: #F3F7FB;
+      border-color: var(--product-line-strong);
     }
 
     .section-note {
+      grid-column: 2;
+      margin: 4px 48px 20px;
       max-width: 74ch;
       color: var(--product-muted);
-      font-size: 1rem;
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+
+    .section-head > .control-row {
+      position: relative;
+      z-index: 1;
+      align-self: center;
+      justify-self: end;
+      min-width: 0;
+      max-width: calc(100% - 44px);
+      padding: 0 22px 20px 0;
+    }
+
+    .section-head > .control-row .select-wrap {
+      width: min(100%, 320px);
+      min-width: 0;
+    }
+
+    .section-head > .control-row .metric-switch {
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .chapter-control-row {
+      justify-content: flex-end;
+      align-items: center;
+      min-width: 0;
+      margin: 14px 0 16px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #F3F7FB;
+      border: 1px solid var(--product-line);
+    }
+
+    .chapter-control-row .select-wrap {
+      width: min(100%, 320px);
+      min-width: 0;
+    }
+
+    .chapter-control-row .metric-switch {
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .chapter-control-row--left {
+      justify-content: flex-start;
     }
 
     .control-row {
@@ -2972,6 +3366,19 @@
       stroke-width: 1.15px;
     }
 
+    .stage-shell[data-phase="landing"] #landingMap .path-region.is-hovered:not(.is-unavailable) {
+      stroke: #FFFFFF;
+      stroke-width: 2.45px;
+      filter:
+        drop-shadow(0 18px 28px rgba(11,29,58,0.18))
+        drop-shadow(0 0 20px var(--region-hover-shadow, rgba(14,165,168,0.28)));
+    }
+    .stage-shell.is-map-hover-locked #landingMap .path-region.is-hovered {
+      fill: var(--map-idle) !important;
+      stroke-width: 1.15px;
+      filter: none;
+    }
+
     .path-region.is-selected,
     .path-department.is-selected,
     .focus-department-path {
@@ -3017,6 +3424,57 @@
 
     .department-ranking-panel .ranking-list {
       max-height: 540px;
+    }
+
+    #module-sector .employment-map-grid,
+    #module-auto .department-map-grid {
+      align-items: start;
+      grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+      min-height: 0;
+    }
+
+    #module-sector .employment-map-grid > .viz-panel,
+    #module-auto .department-map-grid > .viz-panel {
+      align-self: start;
+      min-height: 0;
+      height: auto;
+    }
+
+    #module-sector .employment-map-panel,
+    #module-auto .map-card {
+      display: grid;
+      grid-template-rows: auto auto auto;
+    }
+
+    #module-sector .employment-map-shell {
+      display: block;
+      min-height: 0;
+    }
+
+    #module-sector #employmentDeptMapSvg,
+    #module-auto #autoMapSvg {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 900 / 620;
+      display: block;
+      min-height: 0;
+    }
+
+    #module-sector .employment-ranking-panel,
+    #module-auto .department-ranking-panel {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      height: var(--department-map-height, auto);
+      max-height: var(--department-map-height, none);
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    #module-sector .employment-ranking-panel .ranking-list,
+    #module-auto .department-ranking-panel .ranking-list {
+      min-height: 0;
+      max-height: none;
+      overflow-y: auto;
     }
 
     .empty-state,
@@ -3106,6 +3564,7 @@
       .topbar-actions {
         width: 100%;
         justify-content: flex-start;
+        margin-left: 0;
       }
 
       .stage-shell,
@@ -3183,6 +3642,9 @@
       .employment-stat-grid {
         grid-template-columns: 1fr;
       }
+      .employment-treemap-grid {
+        grid-template-columns: 1fr;
+      }
 
       .section-card,
       .story .section-card {
@@ -3191,16 +3653,69 @@
 
       .section-head,
       .story .section-head {
-        padding: 16px;
+        grid-template-columns: 1fr;
+        gap: 0;
+        min-height: 0;
+        margin-right: 5px;
+        box-shadow: 5px 5px 0 rgba(7, 23, 47, 0.94);
       }
 
       .section-title h2 {
-        font-size: clamp(1.75rem, 9vw, 2.35rem);
+        padding: 16px 18px 3px;
+        font-size: 1.34rem;
+        line-height: 1.02;
+      }
+
+      .section-title {
+        grid-template-columns: 78px minmax(0, 1fr);
+        min-height: 82px;
+      }
+
+      .section-kicker-row {
+        min-height: 82px;
+      }
+
+      .section-kicker {
+        font-size: 16px;
+      }
+
+      .section-title-meta,
+      .story .section-head .section-title-meta {
+        margin: 5px 18px 0;
+      }
+
+      .section-note {
+        margin: 4px 18px 16px;
+        font-size: 0.86rem;
+        line-height: 1.4;
+      }
+
+      .section-head > .control-row {
+        justify-self: stretch;
+        max-width: none;
+        padding: 0 16px 16px;
+      }
+
+      .section-head > .control-row .select-wrap,
+      .section-head > .control-row .metric-switch {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .chapter-control-row {
+        justify-content: stretch;
+      }
+
+      .chapter-control-row .select-wrap,
+      .chapter-control-row .metric-switch {
+        width: 100%;
+        min-width: 0;
       }
 
       .control-row,
       .employment-controls,
-      .employment-map-controls {
+      .employment-map-controls,
+      .employment-treemap-head {
         width: 100%;
         justify-content: stretch;
       }
@@ -3220,6 +3735,17 @@
       .employment-chart-shell {
         padding: 10px;
       }
+      .employment-treemap-card .employment-treemap-panel {
+        min-height: 0;
+        padding: 14px;
+      }
+      .employment-treemap-shell,
+      .employment-treemap-shell svg {
+        min-height: 420px;
+      }
+      .employment-treemap-card .metric-switch {
+        width: 100%;
+      }
 
       .viz-panel {
         padding: 14px;
@@ -3231,6 +3757,31 @@
 
       .department-ranking-panel .ranking-list {
         max-height: 460px;
+      }
+
+      #module-sector .employment-map-grid,
+      #module-auto .department-map-grid {
+        grid-template-columns: 1fr;
+        min-height: 0;
+      }
+
+      #module-sector .employment-map-grid > .viz-panel,
+      #module-auto .department-map-grid > .viz-panel {
+        height: auto;
+        min-height: 360px;
+      }
+
+      #module-sector .employment-ranking-panel .ranking-list,
+      #module-auto .department-ranking-panel .ranking-list {
+        max-height: 460px;
+      }
+
+      .payroll-rar-block {
+        margin-top: 24px;
+      }
+
+      .payroll-rar-block .snap-card.is-snap-active {
+        margin-top: 4px;
       }
 
       .deck-control-bar,
@@ -3264,9 +3815,11 @@
       .section-grid,
       .employment-grid,
       .employment-map-grid,
+      .employment-treemap-grid,
       .viz-panel,
       .employment-main,
-      .employment-side {
+      .employment-side,
+      .employment-treemap-shell {
         min-width: 0;
         max-width: 100%;
       }
@@ -3284,6 +3837,64 @@
       .map-card {
         overflow-x: auto;
         overscroll-behavior-inline: contain;
+      }
+    }
+
+    .story .employment-treemap-card .employment-treemap-grid {
+      grid-template-columns: 1fr;
+    }
+    .story .employment-treemap-card .employment-treemap-panel,
+    .story .viz-panel.employment-treemap-panel:not(.employment-side) {
+      min-height: 760px;
+      color: rgb(7, 23, 47);
+      background:
+        radial-gradient(circle at 14% 0%, rgba(14,165,168,0.10), transparent 34%),
+        radial-gradient(circle at 92% 18%, rgba(43,130,246,0.10), transparent 36%),
+        linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+      border-color: #D4DEE9;
+      box-shadow: 0 16px 42px rgba(11,29,58,0.08);
+    }
+    .story .employment-treemap-card .employment-title strong {
+      color: rgb(7, 23, 47);
+    }
+    .story .employment-treemap-card .employment-title span,
+    .story .employment-treemap-card .legend-chip {
+      color: #64748B;
+      text-shadow: none;
+    }
+    .story .employment-treemap-card .metric-switch {
+      background: #EDF3F8;
+      border-color: #CBD5E1;
+      box-shadow: inset 0 1px 0 #FFFFFF;
+    }
+    .story .employment-treemap-card .metric-button {
+      color: #64748B;
+      text-shadow: none;
+    }
+    .story .employment-treemap-card .metric-button.is-active {
+      color: rgb(7, 23, 47);
+      background: #FFFFFF;
+      border-color: #CBD5E1;
+      text-shadow: none;
+    }
+    .story .employment-treemap-card .employment-treemap-shell {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.92)),
+        #FFFFFF;
+      border-color: #E2E8F0;
+      box-shadow: inset 0 1px 0 #FFFFFF;
+    }
+    .story .employment-treemap-card .employment-treemap-shell,
+    .story .employment-treemap-card .employment-treemap-shell svg {
+      min-height: 660px;
+    }
+    @media (max-width: 860px) {
+      .story .employment-treemap-card .employment-treemap-panel {
+        min-height: 0;
+      }
+      .story .employment-treemap-card .employment-treemap-shell,
+      .story .employment-treemap-card .employment-treemap-shell svg {
+        min-height: 460px;
       }
     }
   </style>
@@ -3419,10 +4030,12 @@ __CHAPTER_SECTIONS_HTML__
       const state = {
         phase: "landing",
         selectedRegion: "11",
+        mapHoverLocked: false,
         sectorEffectifsSeriesKey: null,
         sectorEffectifsFocusKey: "rebound",
         sectorPayrollSeriesKey: null,
         sectorPayrollFocusKey: "rebound",
+        sectorTreemapMetric: "effectifs_cvs",
         sectorDepartmentMetric: "effectifs_cvs",
         sectorDepartmentSectorKey: null,
         autoMetric: "economically_active",
@@ -3487,12 +4100,18 @@ __CHAPTER_SECTIONS_HTML__
 
 __CHAPTER_REGISTRY_SCRIPT__
 
+      function colorWithAlpha(color, alphaHex = "55") {
+        return typeof color === "string" && /^#[0-9a-f]{6}$/i.test(color)
+          ? `${color}${alphaHex}`
+          : color;
+      }
+
       function setTheme(regionCode) {
         const theme = themeForRegion(regionCode);
         document.documentElement.style.setProperty("--accent", theme.accent);
         document.documentElement.style.setProperty("--accent-deep", theme.accentDeep);
         document.documentElement.style.setProperty("--accent-secondary", theme.secondary);
-        document.documentElement.style.setProperty("--accent-glow", `${theme.glow}55`);
+        document.documentElement.style.setProperty("--accent-glow", colorWithAlpha(theme.glow));
       }
 
       function frNumber(value, digits = 1) {
@@ -3557,6 +4176,78 @@ __CHAPTER_REGISTRY_SCRIPT__
 
       function headerScopeLabel() {
         return state.phase === "region" ? currentRegion().name : "France entière";
+      }
+
+      const highlightTerms = [
+        { key: "payroll", pattern: /masse\s+salariale/gi },
+        { key: "headcount", pattern: /effectifs?(?:\s+priv[ée]s?)?|emploi\s+priv[ée]/gi },
+        { key: "independent", pattern: /travailleurs?\s+ind[ée]pendants?|auto-entrepreneurs?(?:\s+actifs?)?/gi },
+        { key: "rar", pattern: /rar(?:\s*\+90\s+jours)?/gi },
+      ];
+
+      function collectHighlightMatches(text) {
+        const matches = [];
+        highlightTerms.forEach((term) => {
+          term.pattern.lastIndex = 0;
+          let match;
+          while ((match = term.pattern.exec(text)) !== null) {
+            matches.push({
+              start: match.index,
+              end: match.index + match[0].length,
+              key: term.key,
+            });
+          }
+        });
+        return matches
+          .sort((left, right) => left.start - right.start || (right.end - right.start) - (left.end - left.start))
+          .reduce((accepted, match) => {
+            const overlaps = accepted.some((item) => match.start < item.end && item.start < match.end);
+            if (!overlaps) accepted.push(match);
+            return accepted;
+          }, []);
+      }
+
+      function highlightTextTerms(root) {
+        if (!root) return;
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+          acceptNode(node) {
+            if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+            if (node.parentElement && node.parentElement.closest(".text-highlight, script, style")) {
+              return NodeFilter.FILTER_REJECT;
+            }
+            return NodeFilter.FILTER_ACCEPT;
+          },
+        });
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+
+        nodes.forEach((node) => {
+          const text = node.nodeValue;
+          const matches = collectHighlightMatches(text);
+          if (!matches.length) return;
+
+          const fragment = document.createDocumentFragment();
+          let cursor = 0;
+          matches.forEach((match) => {
+            if (match.start > cursor) {
+              fragment.appendChild(document.createTextNode(text.slice(cursor, match.start)));
+            }
+            const span = document.createElement("span");
+            span.className = `text-highlight text-highlight--${match.key}`;
+            span.textContent = text.slice(match.start, match.end);
+            fragment.appendChild(span);
+            cursor = match.end;
+          });
+          if (cursor < text.length) {
+            fragment.appendChild(document.createTextNode(text.slice(cursor)));
+          }
+          node.parentNode.replaceChild(fragment, node);
+        });
+      }
+
+      function highlightHeroKpiLabels(scope) {
+        if (!scope) return;
+        scope.querySelectorAll(".kpi-card .label").forEach(highlightTextTerms);
       }
 
       function mapRegionValues() {
@@ -3912,7 +4603,7 @@ __CHAPTER_REGISTRY_SCRIPT__
               { label: "Masse salariale", value: formatCurrency(heroData.payroll && heroData.payroll.value), meta: dateLabel(heroData.payroll && heroData.payroll.date) },
               { label: "Effectifs privés", value: formatCount(heroData.headcount && heroData.headcount.value), meta: quarterLabel(heroData.headcount && heroData.headcount.date) },
               { label: "Auto-entrepreneurs actifs", value: formatCount(heroData.auto && heroData.auto.value), meta: quarterLabel(heroData.auto && heroData.auto.date) },
-              { label: "Point de tension", value: heroData.risk ? heroData.risk.region : "—", meta: heroData.risk ? formatPercent(heroData.risk.value) : "Donnée absente", textual: true },
+              { label: "RAR +90 jours", value: heroData.risk ? heroData.risk.region : "—", meta: heroData.risk ? formatPercent(heroData.risk.value) : "Donnée absente", textual: true },
             ]
           : [
               { label: "Masse salariale", value: formatCurrency(heroData.payroll && heroData.payroll.value), meta: dateLabel(heroData.payroll && heroData.payroll.date) },
@@ -3928,6 +4619,7 @@ __CHAPTER_REGISTRY_SCRIPT__
           article.innerHTML = `<span class="label">${card.label}</span><strong class="${card.textual ? "is-textual" : ""}">${card.value}</strong><span class="meta">${card.meta}</span>`;
           heroKpis.appendChild(article);
         });
+        highlightHeroKpiLabels(document.getElementById("heroPanel"));
       }
 
       function buildScale(domain, colors) {
@@ -4007,6 +4699,23 @@ __CHAPTER_REGISTRY_SCRIPT__
         const pathByCode = new Map();
         const labelByCode = new Map();
         const pathGeneratorByCode = new Map();
+        const clearPathHover = () => {
+          if (!config.hoverClass) return;
+          pathByCode.forEach((pathElement) => pathElement.classed(config.hoverClass, false));
+        };
+        const canUseHoverEffect = () => !config.canHover || config.canHover();
+        const canShowPathTooltip = () => !config.canShowTooltip || config.canShowTooltip();
+        const setPathHover = (element, enabled) => {
+          if (!config.hoverClass) return;
+          if (enabled && !canUseHoverEffect()) {
+            clearPathHover();
+            return;
+          }
+          if (enabled) {
+            clearPathHover();
+          }
+          element.classed(config.hoverClass, enabled);
+        };
 
         const mainlandGroup = featureLayer.append("g").attr("class", "mainland-layer");
         const labelLayer = config.showMainlandLabels ? featureLayer.append("g").attr("class", "mainland-label-layer") : null;
@@ -4019,19 +4728,38 @@ __CHAPTER_REGISTRY_SCRIPT__
               .attr("fill", config.fillResolver(feature))
               .attr("data-code", key)
               .on("mouseenter", (event, datum) => {
-                element.raise();
+                if (!canUseHoverEffect()) {
+                  clearPathHover();
+                } else {
+                  setPathHover(element, true);
+                  element.raise();
+                }
+                if (!canShowPathTooltip()) {
+                  hideTooltip();
+                  return;
+                }
                 const tooltipText = config.tooltipResolver(datum);
                 showTooltip(event, tooltipText.label, tooltipText.value);
               })
               .on("mousemove", (event, datum) => {
+                if (!canUseHoverEffect()) {
+                  clearPathHover();
+                }
+                if (!canShowPathTooltip()) {
+                  hideTooltip();
+                  return;
+                }
                 const tooltipText = config.tooltipResolver(datum);
                 showTooltip(event, tooltipText.label, tooltipText.value);
               })
               .on("mouseleave", () => {
+                setPathHover(element, false);
                 hideTooltip();
               });
           if (config.clickable) {
             element.on("click", () => {
+              clearPathHover();
+              hideTooltip();
               config.onClick(key);
             });
           }
@@ -4087,19 +4815,38 @@ __CHAPTER_REGISTRY_SCRIPT__
               .attr("fill", config.fillResolver(feature))
               .attr("data-code", key)
               .on("mouseenter", (event, datum) => {
-                element.raise();
+                if (!canUseHoverEffect()) {
+                  clearPathHover();
+                } else {
+                  setPathHover(element, true);
+                  element.raise();
+                }
+                if (!canShowPathTooltip()) {
+                  hideTooltip();
+                  return;
+                }
                 const tooltipText = config.tooltipResolver(datum);
                 showTooltip(event, tooltipText.label, tooltipText.value);
               })
               .on("mousemove", (event, datum) => {
+                if (!canUseHoverEffect()) {
+                  clearPathHover();
+                }
+                if (!canShowPathTooltip()) {
+                  hideTooltip();
+                  return;
+                }
                 const tooltipText = config.tooltipResolver(datum);
                 showTooltip(event, tooltipText.label, tooltipText.value);
               })
               .on("mouseleave", () => {
+                setPathHover(element, false);
                 hideTooltip();
               });
             if (config.clickable) {
               element.on("click", () => {
+                clearPathHover();
+                hideTooltip();
                 config.onClick(key);
               });
             }
@@ -4129,6 +4876,9 @@ __CHAPTER_REGISTRY_SCRIPT__
         chartRefs.regionMap = drawCompositeMap(landingMapSvg, displayRegionsGeojson, {
           clickable: true,
           showMainlandLabels: true,
+          hoverClass: "is-hovered",
+          canHover: () => state.phase === "landing" && !state.mapHoverLocked,
+          canShowTooltip: () => !state.mapHoverLocked,
           keyResolver: (feature) => feature.properties.code,
           regionResolver: (feature) => feature.properties.code,
           className: (feature) => `path-region${regionsByCode.get(feature.properties.code).hasData ? "" : " is-unavailable"}`,
@@ -4150,12 +4900,21 @@ __CHAPTER_REGISTRY_SCRIPT__
           },
           onClick: (code) => transitionToRegion(code, false),
         });
+        chartRefs.regionMap.pathByCode.forEach((element, code) => {
+          const theme = themeForRegion(code);
+          element
+            .style("--region-hover-fill", theme.accent)
+            .style("--region-hover-shadow", colorWithAlpha(theme.glow));
+        });
         highlightSelectedRegion();
       }
 
       function highlightSelectedRegion() {
         chartRefs.regionMap.pathByCode.forEach((element, code) => {
           const isSelected = state.phase === "region" && code === state.selectedRegion;
+          if (state.phase !== "landing") {
+            element.classed("is-hovered", false);
+          }
           element.classed("is-selected", isSelected);
           if (state.phase === "region") {
             const theme = themeForRegion(code);
@@ -4378,6 +5137,10 @@ __CHAPTER_REGISTRY_SCRIPT__
       function applyPhase(phase) {
         state.phase = phase;
         stageShell.dataset.phase = phase;
+        if (phase === "landing") {
+          state.mapHoverLocked = false;
+        }
+        stageShell.classList.toggle("is-map-hover-locked", state.mapHoverLocked);
         clearChapterScrollLock();
         renderHeaderActions();
         if (phase === "landing") {
@@ -4463,6 +5226,10 @@ __CHAPTER_REGISTRY_SCRIPT__
 
       async function transitionToRegion(regionCode, fromRail) {
         const transitionToken = ++regionTransitionToken;
+        state.mapHoverLocked = true;
+        stageShell.classList.add("is-map-hover-locked");
+        chartRefs.regionMap.pathByCode.forEach((element) => element.classed("is-hovered", false));
+        hideTooltip();
         state.selectedRegion = regionCode;
         setTheme(regionCode);
         hideMapLabels();
@@ -4540,6 +5307,23 @@ __CHAPTER_REGISTRY_SCRIPT__
       function renderEmptyState(target, title, message) {
         target.innerHTML = `<div class="empty-state"><strong>${title}</strong><p>${message}</p></div>`;
       }
+
+      function syncDepartmentRankingHeight(gridElement) {
+        if (!gridElement) return;
+        requestAnimationFrame(() => {
+          const isStacked = window.matchMedia("(max-width: 980px)").matches;
+          const mapPanel = gridElement.querySelector(".map-card");
+          const rankingPanel = gridElement.querySelector(".department-ranking-panel");
+          if (!mapPanel || !rankingPanel || isStacked) {
+            gridElement.style.removeProperty("--department-map-height");
+            return;
+          }
+          const mapHeight = mapPanel.offsetHeight;
+          if (mapHeight > 0) {
+            gridElement.style.setProperty("--department-map-height", `${mapHeight}px`);
+          }
+        });
+      }
 __CHAPTER_MODULES_SCRIPT__
       function renderStoryModules() {
         chapterRegistry.forEach((chapter) => chapter.render());
@@ -4569,6 +5353,7 @@ __CHAPTER_MODULES_SCRIPT__
             y: 24,
             duration: REDUCED_MOTION ? 0.01 : 0.75,
             ease: "power2.out",
+            clearProps: "opacity,transform",
             scrollTrigger: { trigger: this, start: "top 82%" },
           });
         });

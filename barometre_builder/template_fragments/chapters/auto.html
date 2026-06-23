@@ -6,20 +6,19 @@
                 <span class="section-kicker-rule" aria-hidden="true"></span>
               </div>
               <h2 data-chapter-title></h2>
-              <span class="section-title-meta" data-chapter-meta></span>
               <p class="section-note" id="autoSubtitle"></p>
             </div>
-            <div class="control-row">
-              <div class="select-wrap">
-                <select id="autoSectorSelect" aria-label="Secteur auto-entrepreneurs"></select>
-              </div>
-              <div class="metric-switch" id="autoMetricSwitch"></div>
-            </div>
           </div>
-          <div class="section-grid department-map-grid">
-            <div class="viz-panel map-card snap-card" id="autoMapPanel" data-snap-card data-snap-label="Carte départementale" aria-label="Carte départementale">
+          <div class="control-row chapter-control-row">
+            <div class="select-wrap">
+              <select id="autoSectorSelect" aria-label="Secteur auto-entrepreneurs"></select>
+            </div>
+            <div class="metric-switch" id="autoMetricSwitch"></div>
+          </div>
+          <div class="section-grid department-map-grid snap-card" data-snap-card data-snap-label="Carte et classement départemental" aria-label="Carte et classement départemental">
+            <div class="viz-panel map-card" id="autoMapPanel">
               <div class="viz-title">
-              <strong>Carte départementale</strong>
+                <strong>Carte départementale des travailleurs indépendants</strong>
                 <span id="autoMapMeta"></span>
               </div>
               <svg id="autoMapSvg" viewBox="0 0 900 620"></svg>
@@ -27,7 +26,7 @@
             </div>
             <div class="viz-panel department-ranking-panel">
               <div class="viz-title">
-                <strong>Classement</strong>
+                <strong>Classement des travailleurs indépendants</strong>
                 <span id="autoRankingMeta"></span>
               </div>
               <div class="ranking-list" id="autoRanking"></div>

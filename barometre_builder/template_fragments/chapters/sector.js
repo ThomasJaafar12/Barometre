@@ -27,7 +27,7 @@
           key: metricKey,
           label: isHeadcount ? "Effectifs" : "Masse salariale",
           chartTitle: isHeadcount
-            ? "Emploi du secteur privé : niveau et évolution"
+            ? "Effectifs privés : niveau et évolution"
             : "Masse salariale du secteur privé : niveau et évolution",
           levelKey: metricKey,
           yoyKey: isHeadcount ? "effectifs_yoy" : "masse_yoy",
@@ -39,15 +39,15 @@
           axisTick: (value) => frNumber(value / divisor, axisDecimals),
           subject: (seriesLabel) => {
             if (seriesLabel === "Population entière") {
-              return isHeadcount ? "l'emploi privé" : "la masse salariale privée";
+              return isHeadcount ? "les effectifs privés" : "la masse salariale privée";
             }
-            return isHeadcount ? `l'emploi privé du secteur ${seriesLabel}` : `la masse salariale du secteur ${seriesLabel}`;
+            return isHeadcount ? `les effectifs privés du secteur ${seriesLabel}` : `la masse salariale du secteur ${seriesLabel}`;
           },
           chartObject: (seriesLabel) => {
             if (seriesLabel === "Population entière") {
-              return isHeadcount ? "l'emploi privé" : "la masse salariale privée";
+              return isHeadcount ? "les effectifs privés" : "la masse salariale privée";
             }
-            return isHeadcount ? `l'emploi privé du secteur ${seriesLabel}` : `la masse salariale du secteur ${seriesLabel}`;
+            return isHeadcount ? `les effectifs privés du secteur ${seriesLabel}` : `la masse salariale du secteur ${seriesLabel}`;
           },
           focusPeakResolver: (points, mode) => {
             let selected = null;
@@ -521,14 +521,30 @@
 
         function showChartTooltip(event, point) {
           const shellBounds = chartShell.getBoundingClientRect();
-          const x = Math.min(event.clientX - shellBounds.left + 14, shellBounds.width - 252);
-          const y = Math.max(event.clientY - shellBounds.top - 82, 16);
-          tooltip.style.left = `${Math.max(16, x)}px`;
-          tooltip.style.top = `${y}px`;
           tooltipOverline.textContent = quarterLabel(point.date);
           tooltipBody.innerHTML = `Glissement annuel : ${formatPercent(point[metric.yoyKey])}<br>Niveau : ${metric.tooltipLevel(point[metric.levelKey])}`;
           tooltip.classList.add("is-visible");
           tooltip.setAttribute("aria-hidden", "false");
+
+          const margin = 12;
+          const cursorGap = 14;
+          const tooltipBounds = tooltip.getBoundingClientRect();
+          const cursorX = event.clientX - shellBounds.left;
+          const cursorY = event.clientY - shellBounds.top;
+          let x = cursorX + cursorGap;
+          let y = cursorY - tooltipBounds.height - cursorGap;
+
+          if (x + tooltipBounds.width > shellBounds.width - margin) {
+            x = cursorX - tooltipBounds.width - cursorGap;
+          }
+          if (y < margin) {
+            y = cursorY + cursorGap;
+          }
+
+          x = Math.min(Math.max(margin, x), shellBounds.width - tooltipBounds.width - margin);
+          y = Math.min(Math.max(margin, y), shellBounds.height - tooltipBounds.height - margin);
+          tooltip.style.left = `${x}px`;
+          tooltip.style.top = `${y}px`;
         }
 
         chart.append("g")
@@ -573,7 +589,7 @@
 
         document.getElementById(config.chartTitleId).textContent = metric.chartTitle;
         document.getElementById(config.chartMetaId).textContent = config.metricKey === "effectifs_cvs"
-          ? `${scopeLabel()} · emploi secteur privé hors agricole · dernier trimestre disponible`
+          ? `${scopeLabel()} · effectifs privés hors agricole · dernier trimestre disponible`
           : `${scopeLabel()} · Masse salariale secteur privé hors agricole · dernier trimestre disponible`;
         document.getElementById(config.legendLineId).textContent = metric.legendLine;
         document.getElementById(config.focusTitleId).textContent = narrative.title;
@@ -592,6 +608,228 @@
           : "Fenêtre de focus";
 
         drawEmploymentChart(config, points, metric, focuses, activeFocus);
+      }
+
+      function sectorTreemapMetricFormatter(metricKey, value) {
+        return metricKey === "masse_cvs" ? formatCurrency(value) : formatCount(value);
+      }
+
+      function sectorTreemapLatestRows(scope, metric) {
+        if (!scope || !scope.seriesOptions || !scope.series) return [];
+        return scope.seriesOptions
+          .filter((option) => option.key !== scope.defaultSeriesKey && option.key !== "population-entiere")
+          .map((option) => {
+            const series = scope.series[option.key];
+            const point = series && series.points
+              ? [...series.points].reverse().find((item) => item && item[metric.levelKey] > 0)
+              : null;
+            if (!point) return null;
+            return {
+              key: option.key,
+              label: option.label,
+              date: point.date,
+              value: point[metric.levelKey],
+              yoy: point[metric.yoyKey],
+            };
+          })
+          .filter(Boolean)
+          .sort((left, right) => right.value - left.value);
+      }
+
+      function sectorTreemapColorScale(rows) {
+        const yoyValues = rows.map((row) => row.yoy).filter((value) => value != null);
+        const maxAbs = Math.max(1.5, d3.max(yoyValues.map((value) => Math.abs(value))) || 1.5);
+        return d3.scaleLinear()
+          .domain([-maxAbs, 0, maxAbs])
+          .range([
+            paletteToken("employment-treemap-negative", "#D94B65"),
+            paletteToken("employment-treemap-neutral", "#F3E7D4"),
+            paletteToken("employment-treemap-positive", "#0EA5A8"),
+          ])
+          .clamp(true);
+      }
+
+      function sectorTreemapTextFill(yoy) {
+        return "rgb(7, 23, 47)";
+      }
+
+      function sectorTreemapTrimLabel(label) {
+        return String(label || "")
+          .replace(/^[A-Z]{1,3}[a-z]?\s+/, "")
+          .replace(/\s*\[[^\]]+\]/g, "")
+          .trim();
+      }
+
+      function renderSectorTreemap() {
+        const scope = getSectorRegionalScopeData();
+        const metricKey = state.sectorTreemapMetric || "effectifs_cvs";
+        const metric = employmentMetricConfig(metricKey);
+        const metrics = DATA.modules.sector.regional.metrics || [];
+        const shell = document.getElementById("employmentTreemapShell");
+        const meta = document.getElementById("employmentTreemapMeta");
+        const legend = document.getElementById("employmentTreemapLegend");
+        const tooltip = document.getElementById("employmentTreemapTooltip");
+        const svg = d3.select("#employmentTreemapSvg");
+        const rows = sectorTreemapLatestRows(scope, metric);
+
+        renderMetricSwitch("employmentTreemapMetricSwitch", metrics, metricKey, (key) => {
+          state.sectorTreemapMetric = key;
+          renderSectorTreemap();
+        });
+
+        svg.selectAll("*").remove();
+        if (!rows.length) {
+          meta.textContent = `${scopeLabel()} / aucun secteur exploitable`;
+          legend.innerHTML = "";
+          shell.classList.add("is-empty");
+          renderEmptyState(shell, "Composition indisponible", "Les séries sectorielles ne contiennent pas de niveau exploitable pour ce territoire.");
+          return;
+        }
+        shell.classList.remove("is-empty");
+        if (!shell.querySelector("#employmentTreemapSvg")) {
+          shell.innerHTML = `
+            <svg id="employmentTreemapSvg" viewBox="0 0 980 620" role="img" aria-labelledby="employmentTreemapTitleSvg employmentTreemapDescSvg">
+              <title id="employmentTreemapTitleSvg">Treemap sectorielle des effectifs et de la masse salariale</title>
+              <desc id="employmentTreemapDescSvg">La surface represente le niveau et la couleur represente le glissement annuel.</desc>
+            </svg>
+            <div id="employmentTreemapTooltip" class="employment-tooltip employment-treemap-tooltip" aria-hidden="true">
+              <div class="tooltip-overline"></div>
+              <div class="tooltip-body"></div>
+            </div>
+          `;
+        }
+
+        const rootSvg = d3.select("#employmentTreemapSvg");
+        rootSvg.selectAll("*").remove();
+        const width = 980;
+        const height = 620;
+        const padding = 18;
+        const color = sectorTreemapColorScale(rows);
+        const latestDate = rows[0].date;
+
+        meta.textContent = `${scopeLabel()} / ${quarterLabel(latestDate)} / surface = ${metric.label.toLowerCase()} / couleur = glissement annuel`;
+        legend.innerHTML = `
+          <span class="legend-chip"><i class="employment-treemap-swatch is-negative"></i>Repli annuel</span>
+          <span class="legend-chip"><i class="employment-treemap-swatch is-neutral"></i>Quasi stable</span>
+          <span class="legend-chip"><i class="employment-treemap-swatch is-positive"></i>Hausse annuelle</span>
+        `;
+
+        const root = d3.hierarchy({ children: rows })
+          .sum((row) => row.value)
+          .sort((left, right) => right.value - left.value);
+        d3.treemap()
+          .tile(d3.treemapSquarify.ratio(1.22))
+          .size([width - padding * 2, height - padding * 2])
+          .paddingInner(5)
+          .paddingOuter(0)
+          .round(true)(root);
+
+        const defs = rootSvg.append("defs");
+        const glow = defs.append("filter")
+          .attr("id", "employmentTreemapGlow")
+          .attr("x", "-16%")
+          .attr("y", "-16%")
+          .attr("width", "132%")
+          .attr("height", "132%");
+        glow.append("feDropShadow")
+          .attr("dx", 0)
+          .attr("dy", 16)
+          .attr("stdDeviation", 12)
+          .attr("flood-color", "rgba(11,29,58,0.24)");
+
+        const chart = rootSvg.append("g").attr("transform", `translate(${padding},${padding})`);
+        const leaves = chart.selectAll("g")
+          .data(root.leaves())
+          .join("g")
+          .attr("class", "employment-treemap-tile")
+          .attr("transform", (leaf) => `translate(${leaf.x0},${leaf.y0})`);
+
+        leaves.append("rect")
+          .attr("width", (leaf) => Math.max(0, leaf.x1 - leaf.x0))
+          .attr("height", (leaf) => Math.max(0, leaf.y1 - leaf.y0))
+          .attr("rx", 10)
+          .attr("fill", (leaf) => color(leaf.data.yoy ?? 0))
+          .attr("stroke", "rgba(255,255,255,0.82)")
+          .attr("stroke-width", 1.4);
+
+        leaves.each(function(leaf) {
+          const tile = d3.select(this);
+          const tileWidth = leaf.x1 - leaf.x0;
+          const tileHeight = leaf.y1 - leaf.y0;
+          const area = tileWidth * tileHeight;
+          const fill = sectorTreemapTextFill(leaf.data.yoy);
+          if (tileWidth < 112 || tileHeight < 58 || area < 9800) return;
+          const label = sectorTreemapTrimLabel(leaf.data.label);
+          const maxChars = Math.max(8, Math.floor((tileWidth - 42) / 7.7));
+          const displayLabel = label.length > maxChars ? `${label.slice(0, Math.max(5, maxChars - 3))}...` : label;
+          tile.append("text")
+            .attr("x", 14)
+            .attr("y", 24)
+            .attr("fill", fill)
+            .attr("class", "employment-treemap-label")
+            .text(displayLabel);
+          if (tileHeight >= 92 && tileWidth >= 150) {
+            tile.append("text")
+              .attr("x", 14)
+              .attr("y", 50)
+              .attr("fill", fill)
+              .attr("class", "employment-treemap-value")
+              .text(sectorTreemapMetricFormatter(metricKey, leaf.data.value));
+            tile.append("text")
+              .attr("x", 14)
+              .attr("y", 73)
+              .attr("fill", fill)
+              .attr("class", "employment-treemap-yoy")
+              .text(`GA ${formatPercent(leaf.data.yoy)}`);
+          }
+        });
+
+        const tooltipNode = document.getElementById("employmentTreemapTooltip");
+        const tooltipOverline = tooltipNode.querySelector(".tooltip-overline");
+        const tooltipBody = tooltipNode.querySelector(".tooltip-body");
+
+        function hideTreemapTooltip() {
+          tooltipNode.classList.remove("is-visible");
+          tooltipNode.setAttribute("aria-hidden", "true");
+        }
+
+        function showTreemapTooltip(event, row) {
+          const shellBounds = shell.getBoundingClientRect();
+          tooltipOverline.textContent = sectorTreemapTrimLabel(row.label);
+          tooltipBody.innerHTML = `${metric.label} : ${sectorTreemapMetricFormatter(metricKey, row.value)}<br>Glissement annuel : ${formatPercent(row.yoy)}<br>${quarterLabel(row.date)}`;
+          tooltipNode.classList.add("is-visible");
+          tooltipNode.setAttribute("aria-hidden", "false");
+
+          const gap = 16;
+          const margin = 12;
+          const bounds = tooltipNode.getBoundingClientRect();
+          let x = event.clientX - shellBounds.left + gap;
+          let y = event.clientY - shellBounds.top - bounds.height - gap;
+          if (x + bounds.width > shellBounds.width - margin) x = event.clientX - shellBounds.left - bounds.width - gap;
+          if (y < margin) y = event.clientY - shellBounds.top + gap;
+          tooltipNode.style.left = `${Math.min(Math.max(margin, x), shellBounds.width - bounds.width - margin)}px`;
+          tooltipNode.style.top = `${Math.min(Math.max(margin, y), shellBounds.height - bounds.height - margin)}px`;
+        }
+
+        leaves
+          .on("mouseenter", function(event, leaf) {
+            d3.select(this).raise().classed("is-hovered", true);
+            showTreemapTooltip(event, leaf.data);
+          })
+          .on("mousemove", (event, leaf) => showTreemapTooltip(event, leaf.data))
+          .on("mouseleave", function() {
+            d3.select(this).classed("is-hovered", false);
+            hideTreemapTooltip();
+          });
+        rootSvg.on("mouseleave", hideTreemapTooltip);
+
+        if (!REDUCED_MOTION) {
+          gsap.fromTo(
+            leaves.nodes(),
+            { opacity: 0, scale: 0.94, transformOrigin: "50% 50%" },
+            { opacity: 1, scale: 1, duration: 0.58, stagger: 0.015, ease: "power3.out" },
+          );
+        }
       }
 
       function departmentMetricValue(department, sectorKey, metricKey) {
@@ -616,6 +854,7 @@
         const mapShell = document.getElementById("employmentDeptMapShell");
         const legend = document.getElementById("employmentDeptLegend");
         const ranking = document.getElementById("employmentDeptRanking");
+        const mapGrid = document.querySelector("#module-sector .employment-map-grid");
         const featuresByRegion = getSectorDepartmentFeaturesByRegion();
 
         renderMetricSwitch("employmentDeptMetricSwitch", departmentModule.metrics, state.sectorDepartmentMetric, (key) => {
@@ -651,6 +890,7 @@
           mapShell.innerHTML = `<div class="empty-state"><strong>Choisir une région</strong><p>La carte départementale s'active après sélection d'un territoire dans la rail des régions.</p></div>`;
           legend.innerHTML = "";
           ranking.innerHTML = `<div class="empty-state"><strong>Classement indisponible</strong><p>Le classement départemental n'est pas affiché à l'échelle France entière.</p></div>`;
+          syncDepartmentRankingHeight(mapGrid);
           return;
         }
 
@@ -668,6 +908,7 @@
           mapShell.innerHTML = `<div class="empty-state"><strong>Données indisponibles</strong><p>Le fichier départemental ne documente pas ce territoire pour le dernier trimestre retenu.</p></div>`;
           legend.innerHTML = "";
           ranking.innerHTML = `<div class="empty-state"><strong>Aucun classement</strong><p>Les départements de cette région ne sont pas présents dans la source départementale fournie.</p></div>`;
+          syncDepartmentRankingHeight(mapGrid);
           return;
         }
 
@@ -738,6 +979,7 @@
             `;
             ranking.appendChild(article);
           });
+        syncDepartmentRankingHeight(mapGrid);
       }
 
       function renderSectorModule() {
@@ -798,5 +1040,6 @@
           focusLevelMetaId: "employmentPayrollFocusLevelMeta",
         });
 
+        renderSectorTreemap();
         renderSectorDepartmentModule();
       }

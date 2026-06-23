@@ -32,6 +32,7 @@
         const rankingMeta = document.getElementById("autoRankingMeta");
         const autoPanel = document.getElementById("autoMapPanel");
         const autoRanking = document.getElementById("autoRanking");
+        const mapGrid = document.querySelector("#module-auto .department-map-grid");
         const departmentIndex = getAutoDepartmentIndex();
         const featuresByRegion = getAutoDepartmentFeaturesByRegion();
         const scopeDepartmentCodes = state.phase === "national"
@@ -63,6 +64,7 @@
           subtitle.textContent = `${scopeLabel()} / aucun département exploitable.`;
           renderEmptyState(autoPanel, "Données manquantes", "Les auto-entrepreneurs ne sont pas documentés ici dans les CSV fournis.");
           autoRanking.innerHTML = "";
+          syncDepartmentRankingHeight(mapGrid);
           return;
         }
 
@@ -140,4 +142,5 @@
             article.innerHTML = `<div class="topline"><strong>${department.name}</strong><strong>${state.autoMetric === "turnover" ? formatCurrency(department.metric) : formatCount(department.metric)}</strong></div><span>${regionsByCode.get(department.regionCode).name}</span>`;
             autoRanking.appendChild(article);
           });
+        syncDepartmentRankingHeight(mapGrid);
       }

@@ -11,12 +11,12 @@
             </div>
           </div>
           <div class="employment-stack snap-track">
-            <article class="employment-block">
+            <article class="employment-block snap-card" data-snap-card data-snap-label="Emploi du secteur privé : niveau et évolution" aria-label="Emploi du secteur privé : niveau et évolution">
               <div class="section-grid employment-grid">
-                <div class="viz-panel employment-main snap-card" data-snap-card data-snap-label="Emploi du secteur privé : niveau et évolution Graph" aria-label="Emploi du secteur privé : niveau et évolution Graph">
+                <div class="viz-panel employment-main">
                   <div class="employment-intro">
                     <div class="viz-title employment-title">
-                      <strong id="employmentEffectifsChartTitle">Emploi du secteur privé : niveau et évolution</strong>
+                      <strong id="employmentEffectifsChartTitle">Effectifs privés : niveau et évolution</strong>
                       <span id="employmentEffectifsChartMeta"></span>
                     </div>
                     <div class="employment-controls">
@@ -75,9 +75,9 @@
               </div>
             </article>
 
-            <article class="employment-block">
+            <article class="employment-block snap-card" data-snap-card data-snap-label="Masse salariale du secteur privé : niveau et évolution" aria-label="Masse salariale du secteur privé : niveau et évolution">
               <div class="section-grid employment-grid">
-                <div class="viz-panel employment-main snap-card" data-snap-card data-snap-label="Masse salariale du secteur privé : niveau et évolution Graph" aria-label="Masse salariale du secteur privé : niveau et évolution Graph">
+                <div class="viz-panel employment-main">
                   <div class="employment-intro">
                     <div class="viz-title employment-title">
                       <strong id="employmentPayrollChartTitle">Masse salariale du secteur privé : niveau et évolution</strong>
@@ -139,12 +139,37 @@
               </div>
             </article>
 
-            <article class="employment-block">
+            <article class="employment-block snap-card employment-treemap-card" data-snap-card data-snap-label="Composition sectorielle : niveau et glissement annuel" aria-label="Composition sectorielle : niveau et glissement annuel">
+              <div class="section-grid employment-treemap-grid">
+                <div class="viz-panel employment-treemap-panel">
+                  <div class="employment-treemap-head">
+                    <div class="viz-title employment-title">
+                      <strong>Composition sectorielle : niveau et glissement annuel</strong>
+                      <span id="employmentTreemapMeta"></span>
+                    </div>
+                    <div class="metric-switch" id="employmentTreemapMetricSwitch" aria-label="Indicateur de la composition sectorielle"></div>
+                  </div>
+                  <div class="employment-treemap-shell" id="employmentTreemapShell">
+                    <svg id="employmentTreemapSvg" viewBox="0 0 980 620" role="img" aria-labelledby="employmentTreemapTitleSvg employmentTreemapDescSvg">
+                      <title id="employmentTreemapTitleSvg">Treemap sectorielle des effectifs et de la masse salariale</title>
+                      <desc id="employmentTreemapDescSvg">La surface represente le niveau et la couleur represente le glissement annuel.</desc>
+                    </svg>
+                    <div id="employmentTreemapTooltip" class="employment-tooltip employment-treemap-tooltip" aria-hidden="true">
+                      <div class="tooltip-overline"></div>
+                      <div class="tooltip-body"></div>
+                    </div>
+                  </div>
+                  <div class="legend-row employment-legend employment-treemap-legend" id="employmentTreemapLegend"></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="employment-block snap-card" data-snap-card data-snap-label="Carte et classement départemental" aria-label="Carte et classement départemental">
               <div class="section-grid employment-map-grid">
-                <div class="viz-panel map-card employment-map-panel snap-card" data-snap-card data-snap-label="Carte départementale Map" aria-label="Carte départementale Map">
+                <div class="viz-panel map-card employment-map-panel">
                   <div class="employment-map-head">
                     <div class="viz-title">
-                      <strong>Carte départementale</strong>
+                      <strong>Carte départementale des effectifs privés et de la masse salariale</strong>
                       <span id="employmentDeptMapMeta"></span>
                     </div>
                     <div class="employment-map-controls">
@@ -162,7 +187,7 @@
                 </div>
                 <div class="viz-panel employment-ranking-panel department-ranking-panel">
                   <div class="viz-title">
-                    <strong>Classement départemental</strong>
+                    <strong>Classement départemental des effectifs privés et de la masse salariale</strong>
                     <span id="employmentDeptRankingMeta"></span>
                   </div>
                   <div class="ranking-list" id="employmentDeptRanking"></div>

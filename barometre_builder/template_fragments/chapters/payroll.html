@@ -6,14 +6,13 @@
                 <span class="section-kicker-rule" aria-hidden="true"></span>
               </div>
               <h2 data-chapter-title></h2>
-              <span class="section-title-meta" data-chapter-meta></span>
               <p class="section-note" id="payrollSubtitle"></p>
             </div>
           </div>
-          <div class="section-grid">
-            <div class="viz-panel snap-card" data-snap-card data-snap-label="Evolution recente Graph" aria-label="Evolution recente Graph">
+          <div class="section-grid snap-card" data-snap-card data-snap-label="Evolution recente et dernier point" aria-label="Evolution recente et dernier point">
+            <div class="viz-panel">
               <div class="viz-title">
-                <strong>Evolution recente</strong>
+                <strong>Chômage partiel</strong>
                 <span id="payrollChartMeta"></span>
               </div>
               <svg id="payrollSvg" viewBox="0 0 760 420"></svg>
@@ -24,10 +23,28 @@
             </div>
             <div class="viz-panel">
               <div class="viz-title">
-                <strong>Dernier point</strong>
+                <strong>Dernier point de masse salariale</strong>
                 <span id="payrollStatsMeta"></span>
               </div>
               <div class="mini-grid" id="payrollStats"></div>
+            </div>
+          </div>
+          <div class="payroll-rar-block" id="module-rar">
+            <div class="section-grid snap-card" id="rarGrid" data-snap-card data-snap-label="RAR mensuel et dernier point" aria-label="RAR mensuel et dernier point">
+              <div class="viz-panel" id="rarPrimaryPanel">
+                <div class="viz-title">
+                  <strong id="rarPrimaryTitle">Courbes mensuelles RAR</strong>
+                  <span id="rarPrimaryMeta"></span>
+                </div>
+                <svg id="rarPrimarySvg" viewBox="0 0 760 420"></svg>
+              </div>
+              <div class="viz-panel" id="rarSecondaryPanel">
+                <div class="viz-title">
+                  <strong id="rarSecondaryTitle">Dernier point RAR</strong>
+                  <span id="rarSecondaryMeta"></span>
+                </div>
+                <div id="rarSecondaryBody"></div>
+              </div>
             </div>
           </div>
         </section>

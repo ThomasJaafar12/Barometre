@@ -4339,6 +4339,8 @@ __CHAPTER_REGISTRY_SCRIPT__
         if (settled || timedOut) {
           clearChapterScrollLock();
           syncActiveChapter({ force: true });
+          syncActiveSnapCard();
+          scheduleScrollTriggerRefresh();
           return;
         }
         chapterScrollLockFrame = requestAnimationFrame(monitorChapterScrollLock);
@@ -4359,9 +4361,18 @@ __CHAPTER_REGISTRY_SCRIPT__
         if (REDUCED_MOTION) {
           clearChapterScrollLock();
           syncActiveChapter({ force: true });
+          syncActiveSnapCard();
+          scheduleScrollTriggerRefresh();
           return;
         }
         chapterScrollLockFrame = requestAnimationFrame(monitorChapterScrollLock);
+        window.setTimeout(() => {
+          if (chapterScrollLockKey === chapter.key) {
+            syncActiveChapter({ force: true });
+            syncActiveSnapCard();
+            scheduleScrollTriggerRefresh();
+          }
+        }, REDUCED_MOTION ? 0 : 720);
       }
 
       function detectActiveChapter() {
@@ -4502,6 +4513,25 @@ __CHAPTER_REGISTRY_SCRIPT__
           mountSnapCardObserver();
           syncActiveChapter({ force: true });
         });
+      }
+
+      function scheduleScrollTriggerRefresh() {
+        if (REDUCED_MOTION || !window.ScrollTrigger) return;
+        const refresh = () => {
+          updateChapterLayoutVars();
+          ScrollTrigger.refresh();
+          syncActiveChapter({ force: true });
+          syncActiveSnapCard();
+        };
+        requestAnimationFrame(() => {
+          refresh();
+          requestAnimationFrame(refresh);
+        });
+        window.setTimeout(refresh, 260);
+        window.setTimeout(refresh, 900);
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(refresh).catch(() => {});
+        }
       }
 
       function renderSubjectNav() {
@@ -5117,7 +5147,7 @@ __CHAPTER_REGISTRY_SCRIPT__
               hydrateChapterSections();
               refreshChapterTracking();
               mountScrollReveal();
-              ScrollTrigger.refresh();
+              scheduleScrollTriggerRefresh();
             })
             .catch((error) => console.error("Deferred payload error", error));
         });
@@ -5128,6 +5158,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         switchRail.classList.add("is-visible");
         renderSwitchRail();
         refreshChapterTracking();
+        scheduleScrollTriggerRefresh();
       }
 
       function applyPhase(phase) {
@@ -5205,18 +5236,38 @@ __CHAPTER_REGISTRY_SCRIPT__
         renderLandingMap();
         renderHero();
         if (REDUCED_MOTION || fromRail) {
-          animateFranceRipple();
+          try {
+            animateFranceRipple();
+          } catch (error) {
+            console.error("National ripple animation error", error);
+          }
           revealContent();
           scheduleStoryRender();
           setMapStageMode("national");
           return;
         }
-        const timeline = gsap.timeline();
-        timeline.add(() => animateFranceRipple(), 0.05);
-        timeline.call(() => {
+        let revealDone = false;
+        const finishReveal = () => {
+          if (revealDone) return;
+          revealDone = true;
           revealContent();
           scheduleStoryRender();
           setMapStageMode("national");
+        };
+        const revealFallback = window.setTimeout(finishReveal, 1800);
+        const timeline = gsap.timeline();
+        timeline.add(() => {
+          try {
+            animateFranceRipple();
+          } catch (error) {
+            console.error("National ripple animation error", error);
+            window.clearTimeout(revealFallback);
+            finishReveal();
+          }
+        }, 0.05);
+        timeline.call(() => {
+          window.clearTimeout(revealFallback);
+          finishReveal();
         }, null, 1.45);
       }
 
@@ -5375,6 +5426,11 @@ __CHAPTER_MODULES_SCRIPT__
         stageVideo.muted = true;
         setMapStageMode("landing");
         ensureDeferredData().catch((error) => console.error("Deferred payload error", error));
+        if (document.readyState === "complete") {
+          scheduleScrollTriggerRefresh();
+        } else {
+          window.addEventListener("load", scheduleScrollTriggerRefresh, { once: true });
+        }
       }
 
       boot();

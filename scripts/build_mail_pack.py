@@ -9,7 +9,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_HTML = ROOT / "barometre.html"
+DEFAULT_HTML = ROOT / "index.html"
 DEFAULT_OUTPUT_DIR = ROOT / "dist" / "mail_pack"
 
 LOCAL_ASSET_PATTERN = re.compile(r"Assets/[A-Za-z0-9._/\-]+")
@@ -18,7 +18,7 @@ REMOTE_URL_PATTERN = re.compile(r"https://[^\s\"'()<>]+")
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Build a lightweight pack with barometre.html and only the local assets it references.",
+        description="Build a lightweight pack with index.html and only the local assets it references.",
     )
     parser.add_argument(
         "--html",

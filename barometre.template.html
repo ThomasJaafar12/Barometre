@@ -4055,7 +4055,6 @@ __CHAPTER_SECTIONS_HTML__
         },
       };
       let storyRenderHandle = null;
-      let scrollRevealMounted = false;
       let deferredDataPromise = null;
       let regionTransitionToken = 0;
       let chapterObserver = null;
@@ -5115,13 +5114,10 @@ __CHAPTER_REGISTRY_SCRIPT__
           ensureDeferredData()
             .then(() => {
               renderStoryModules();
+              hydrateChapterSections();
               refreshChapterTracking();
-              if (!scrollRevealMounted) {
-                mountScrollReveal();
-                scrollRevealMounted = true;
-              } else {
-                ScrollTrigger.refresh();
-              }
+              mountScrollReveal();
+              ScrollTrigger.refresh();
             })
             .catch((error) => console.error("Deferred payload error", error));
         });
@@ -5347,14 +5343,21 @@ __CHAPTER_MODULES_SCRIPT__
       }
 
       function mountScrollReveal() {
-        d3.selectAll(".section-card, .snap-card").each(function() {
-          gsap.from(this, {
+        const revealItems = gsap.utils.toArray(".section-card, .snap-card")
+          .filter((element) => !element.dataset.revealMounted);
+        revealItems.forEach((element) => {
+          element.dataset.revealMounted = "true";
+          gsap.from(element, {
             opacity: 0,
             y: 24,
             duration: REDUCED_MOTION ? 0.01 : 0.75,
             ease: "power2.out",
             clearProps: "opacity,transform",
-            scrollTrigger: { trigger: this, start: "top 82%" },
+            scrollTrigger: {
+              trigger: element,
+              start: "top 82%",
+              once: true,
+            },
           });
         });
       }

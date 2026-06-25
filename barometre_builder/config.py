@@ -13,7 +13,7 @@ LOGO_PATH = ASSETS_DIR / "logo" / "Urssaf_blanc.png"
 REGION_GEOJSON_PATH = GEO_DIR / "france_regions_source.geojson"
 GEO_METADATA_PATH = GEO_DIR / "contours_administratifs_dataset.json"
 DEPARTMENT_GEOJSON_CACHE = GEO_DIR / "departements-50m.geojson"
-OUTPUT_HTML_PATH = ROOT / "barometre.html"
+OUTPUT_HTML_PATH = ROOT / "index.html"
 TEMPLATE_PATH = ROOT / "barometre.template.html"
 
 MAP_LAYOUT = {

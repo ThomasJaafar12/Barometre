@@ -15,6 +15,7 @@ class ChapterFragment:
     number: str
     rail_kicker: str
     label: str
+    nav_label: str
     rail_meta: str
     section_kicker: str
     section_title: str
@@ -32,6 +33,7 @@ CHAPTERS: tuple[ChapterFragment, ...] = (
         number="01",
         rail_kicker="lecture",
         label="Conjoncture de l'emploi",
+        nav_label="Conjoncture",
         rail_meta="emploi, masse salariale, lecture territoriale",
         section_kicker="01 / CONJONCTURE DE L'EMPLOI",
         section_title="Conjoncture de l'emploi.",
@@ -47,6 +49,7 @@ CHAPTERS: tuple[ChapterFragment, ...] = (
         number="02",
         rail_kicker="rythme",
         label="Santé des entreprises",
+        nav_label="Santé",
         rail_meta="masse salariale, assiette, signaux d'activité",
         section_kicker="02 / Santé des entreprises",
         section_title="Santé des entreprises.",
@@ -62,6 +65,7 @@ CHAPTERS: tuple[ChapterFragment, ...] = (
         number="03",
         rail_kicker="focus",
         label="Travailleurs indépendants",
+        nav_label="Indépendants",
         rail_meta="auto-entrepreneurs, lecture territoriale",
         section_kicker="03 / Travailleurs indépendants",
         section_title="Travailleurs indépendants.",
@@ -87,6 +91,7 @@ def build_chapter_fragments() -> dict[str, str]:
             "number": chapter.number,
             "railKicker": chapter.rail_kicker,
             "label": chapter.label,
+            "navLabel": chapter.nav_label,
             "railMeta": chapter.rail_meta,
             "sectionKicker": f"#{chapter.number}",
             "sectionTitle": chapter.section_title,

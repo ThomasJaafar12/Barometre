@@ -3840,6 +3840,359 @@
       }
     }
 
+    .story.is-visible {
+      position: relative;
+      padding-left: 0;
+      transform: none;
+      animation: none;
+    }
+
+    .story .chapter-section.section-card {
+      overflow: visible;
+      padding: 0 0 18px;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+    }
+
+    .subject-nav {
+      --chapter-nav-ink: #07172F;
+      --chapter-nav-muted: #56677D;
+      --chapter-nav-surface: rgba(255,255,255,0.94);
+      --chapter-nav-line: #BFCBDC;
+      --chapter-nav-blue: #0B5CFF;
+      --chapter-nav-red: #E8233A;
+      --chapter-nav-yellow: #FFD600;
+      position: fixed;
+      top: 50%;
+      left: max(12px, calc((100vw - 1440px) / 2 - 32px));
+      z-index: 30;
+      width: 236px;
+      max-height: calc(100vh - 72px);
+      padding: 4px 10px 4px 4px;
+      display: grid;
+      align-items: start;
+      gap: 18px;
+      overflow-x: visible;
+      overflow-y: auto;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-18px, -50%) scale(0.98);
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      scrollbar-width: none;
+      transition:
+        opacity 360ms ease,
+        transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    body.chapter-nav-ready .subject-nav {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(-50%);
+    }
+
+    .subject-nav::-webkit-scrollbar,
+    .subject-nav::before,
+    .subject-nav::after {
+      display: none;
+    }
+
+    .chapter-nav-group {
+      position: relative;
+      display: grid;
+      justify-items: start;
+      gap: 10px;
+    }
+
+    .chapter-tab,
+    .chapter-tab:last-child {
+      position: relative;
+      width: auto;
+      max-width: 54px;
+      min-width: 0;
+      height: 50px;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      color: var(--chapter-nav-ink);
+      opacity: 1;
+      transform: none;
+      filter: none;
+      border: 2px solid var(--chapter-nav-ink);
+      border-radius: 999px;
+      background: var(--chapter-nav-surface);
+      box-shadow: 4px 4px 0 var(--chapter-nav-ink);
+      transition:
+        max-width 420ms cubic-bezier(0.16, 1, 0.3, 1),
+        transform 220ms ease,
+        box-shadow 220ms ease,
+        background 220ms ease,
+        color 220ms ease,
+        border-color 220ms ease;
+    }
+
+    .chapter-tab:hover,
+    .chapter-tab:focus-visible,
+    .chapter-tab.is-active {
+      max-width: 220px;
+      transform: translate(-1px, -1px);
+      filter: none;
+      outline: none;
+      box-shadow: 6px 6px 0 var(--chapter-nav-ink);
+    }
+
+    .chapter-tab.is-active[data-tone="1"],
+    .chapter-nav-group[data-tone="1"]:hover .chapter-tab {
+      color: #FFFFFF;
+      background: var(--chapter-nav-blue);
+      border-color: var(--chapter-nav-ink);
+    }
+
+    .chapter-tab.is-active[data-tone="2"],
+    .chapter-nav-group[data-tone="2"]:hover .chapter-tab {
+      color: #FFFFFF;
+      background: var(--chapter-nav-red);
+      border-color: var(--chapter-nav-ink);
+    }
+
+    .chapter-tab.is-active[data-tone="3"],
+    .chapter-nav-group[data-tone="3"]:hover .chapter-tab {
+      color: var(--chapter-nav-ink);
+      background: var(--chapter-nav-yellow);
+      border-color: var(--chapter-nav-ink);
+    }
+
+    .chapter-tab__shape,
+    .chapter-tab.is-active .chapter-tab__shape,
+    .chapter-tab[data-tone="1"] .chapter-tab__shape,
+    .chapter-tab[data-tone="2"] .chapter-tab__shape,
+    .chapter-tab[data-tone="3"] .chapter-tab__shape,
+    .chapter-tab[data-tone="4"] .chapter-tab__shape {
+      min-height: 0;
+      height: 100%;
+      padding: 0 15px 0 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: inherit;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      clip-path: none;
+      box-shadow: none;
+      white-space: nowrap;
+    }
+
+    .chapter-tab__index,
+    .chapter-tab__label {
+      color: inherit;
+      font-family: "Inter", system-ui, sans-serif;
+      letter-spacing: 0;
+      line-height: 1;
+    }
+
+    .chapter-tab__index {
+      min-width: 28px;
+      font-size: 1rem;
+      font-weight: 900;
+      opacity: 1;
+    }
+
+    .chapter-tab__index::after,
+    .chapter-tab__meta {
+      display: none;
+    }
+
+    .chapter-tab__label {
+      font-size: 0.92rem;
+      font-weight: 800;
+      opacity: 0;
+      transform: translateX(-6px);
+      transition: opacity 220ms ease, transform 220ms ease;
+    }
+
+    .chapter-tab:hover .chapter-tab__label,
+    .chapter-tab:focus-visible .chapter-tab__label,
+    .chapter-tab.is-active .chapter-tab__label,
+    .chapter-nav-group:hover .chapter-tab__label {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .chapter-subnav {
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+      max-height: 0;
+      margin: 0 0 0 26px;
+      padding: 0;
+      overflow: hidden;
+      list-style: none;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition:
+        max-height 420ms cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 220ms ease,
+        margin-top 220ms ease,
+        transform 220ms ease;
+    }
+
+    .chapter-nav-group.is-active .chapter-subnav,
+    .chapter-nav-group:hover .chapter-subnav,
+    .chapter-nav-group:focus-within .chapter-subnav {
+      max-height: 280px;
+      margin-top: 2px;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .chapter-subnav-link {
+      display: inline-flex;
+      align-items: center;
+      min-width: 18px;
+      width: auto;
+      max-width: 18px;
+      height: 18px;
+      overflow: hidden;
+      color: var(--chapter-nav-ink);
+      text-decoration: none;
+      white-space: nowrap;
+      background: var(--chapter-nav-surface);
+      border: 2px solid #6B7C93;
+      border-radius: 999px;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.8);
+      transition:
+        max-width 340ms cubic-bezier(0.16, 1, 0.3, 1),
+        height 220ms ease,
+        border-color 220ms ease,
+        background 220ms ease,
+        color 220ms ease,
+        transform 220ms ease;
+    }
+
+    .chapter-subnav-link span {
+      padding: 0 12px 0 8px;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 0.78rem;
+      font-weight: 800;
+      opacity: 0;
+      transform: translateX(-5px);
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .chapter-subnav-link:hover,
+    .chapter-subnav-link:focus-visible,
+    .chapter-subnav-link.is-active-sub {
+      max-width: 190px;
+      height: 32px;
+      transform: translateX(2px);
+      border-color: var(--chapter-nav-ink);
+      outline: none;
+    }
+
+    .chapter-subnav-link:hover span,
+    .chapter-subnav-link:focus-visible span,
+    .chapter-subnav-link.is-active-sub span {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .chapter-nav-group[data-tone="1"] .chapter-subnav-link.is-active-sub {
+      color: #FFFFFF;
+      background: var(--chapter-nav-blue);
+    }
+
+    .chapter-nav-group[data-tone="2"] .chapter-subnav-link.is-active-sub {
+      color: #FFFFFF;
+      background: var(--chapter-nav-red);
+    }
+
+    .chapter-nav-group[data-tone="3"] .chapter-subnav-link.is-active-sub {
+      color: var(--chapter-nav-ink);
+      background: var(--chapter-nav-yellow);
+    }
+
+    @media (max-width: 1180px) {
+      .story.is-visible {
+        padding-left: 0;
+      }
+
+      .subject-nav {
+        left: 18px;
+        width: 190px;
+      }
+
+      .chapter-tab:hover,
+      .chapter-tab:focus-visible,
+      .chapter-tab.is-active {
+        max-width: 176px;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .story.is-visible {
+        padding-left: 0;
+        padding-bottom: 84px;
+      }
+
+      .subject-nav {
+        top: auto;
+        right: 12px;
+        bottom: 12px;
+        left: 12px;
+        width: auto;
+        max-height: 72px;
+        padding: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        transform: translateY(18px);
+        border: 1px solid var(--product-line, #D4DEE9);
+        border-radius: 999px;
+        background: rgba(255,255,255,0.94);
+        box-shadow: 0 18px 48px rgba(11,29,58,0.18);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+      }
+
+      body.chapter-nav-ready .subject-nav {
+        transform: none;
+      }
+
+      .chapter-nav-group {
+        display: block;
+        flex: 0 0 auto;
+      }
+
+      .chapter-tab,
+      .chapter-tab:last-child {
+        height: 44px;
+        width: auto;
+        max-width: 50px;
+        box-shadow: none;
+      }
+
+      .chapter-tab:hover,
+      .chapter-tab:focus-visible,
+      .chapter-tab.is-active {
+        max-width: 168px;
+        box-shadow: none;
+      }
+
+      .chapter-subnav {
+        display: none;
+      }
+    }
+
     .story .employment-treemap-card .employment-treemap-grid {
       grid-template-columns: 1fr;
     }
@@ -4060,6 +4413,7 @@ __CHAPTER_SECTIONS_HTML__
       let chapterObserver = null;
       let snapCardObserver = null;
       let snapCardSyncFrame = null;
+      let chapterNavVisibilityFrame = null;
       let activeChapterKey = null;
       let chapterScrollLockKey = null;
       let chapterScrollLockFrame = null;
@@ -4261,12 +4615,14 @@ __CHAPTER_REGISTRY_SCRIPT__
       }
 
       function chapterActivationLine() {
-        return chapterRailTop() + (subjectNav ? subjectNav.offsetHeight : 0) + 24;
+        if (window.matchMedia("(max-width: 860px)").matches) {
+          return Math.min(150, Math.max(104, window.innerHeight * 0.22));
+        }
+        return Math.min(320, Math.max(180, window.innerHeight * 0.34));
       }
 
       function updateChapterLayoutVars() {
-        const navHeight = subjectNav ? subjectNav.offsetHeight : 0;
-        const offset = Math.ceil(chapterRailTop() + navHeight + 26);
+        const offset = Math.ceil(chapterActivationLine() + chapterRailTop());
         document.documentElement.style.setProperty("--chapter-scroll-margin", `${offset}px`);
       }
 
@@ -4290,12 +4646,24 @@ __CHAPTER_REGISTRY_SCRIPT__
         if (!activeButton) return;
         const navRect = subjectNav.getBoundingClientRect();
         const buttonRect = activeButton.getBoundingClientRect();
-        const delta = (buttonRect.left + buttonRect.width / 2) - (navRect.left + navRect.width / 2);
+        const isMobileDock = window.matchMedia("(max-width: 860px)").matches;
+        const delta = isMobileDock
+          ? (buttonRect.left + buttonRect.width / 2) - (navRect.left + navRect.width / 2)
+          : (buttonRect.top + buttonRect.height / 2) - (navRect.top + navRect.height / 2);
         if (Math.abs(delta) < 1) return;
-        const maxScrollLeft = Math.max(0, subjectNav.scrollWidth - subjectNav.clientWidth);
-        const nextScrollLeft = Math.min(maxScrollLeft, Math.max(0, subjectNav.scrollLeft + delta));
+        if (isMobileDock) {
+          const maxScrollLeft = Math.max(0, subjectNav.scrollWidth - subjectNav.clientWidth);
+          const nextScrollLeft = Math.min(maxScrollLeft, Math.max(0, subjectNav.scrollLeft + delta));
+          subjectNav.scrollTo({
+            left: nextScrollLeft,
+            behavior: REDUCED_MOTION ? "auto" : "smooth",
+          });
+          return;
+        }
+        const maxScrollTop = Math.max(0, subjectNav.scrollHeight - subjectNav.clientHeight);
+        const nextScrollTop = Math.min(maxScrollTop, Math.max(0, subjectNav.scrollTop + delta));
         subjectNav.scrollTo({
-          left: nextScrollLeft,
+          top: nextScrollTop,
           behavior: REDUCED_MOTION ? "auto" : "smooth",
         });
       }
@@ -4308,6 +4676,9 @@ __CHAPTER_REGISTRY_SCRIPT__
           const isActive = button.dataset.key === key;
           button.classList.toggle("is-active", isActive);
           button.setAttribute("aria-pressed", String(isActive));
+        });
+        subjectNav.querySelectorAll(".chapter-nav-group").forEach((group) => {
+          group.classList.toggle("is-active", group.dataset.key === key);
         });
         scrollActiveChapterTabIntoView();
       }
@@ -4442,6 +4813,61 @@ __CHAPTER_REGISTRY_SCRIPT__
           card.classList.remove("is-snap-active");
           card.removeAttribute("aria-current");
         });
+        syncChapterSubLinks(null);
+      }
+
+      function slugifyForId(value) {
+        return String(value || "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "") || "item";
+      }
+
+      function chapterSnapCards(chapter) {
+        const section = document.getElementById(chapter.id);
+        if (!section) return [];
+        return Array.from(section.querySelectorAll("[data-snap-card]"));
+      }
+
+      function ensureSnapCardId(card, chapter, index) {
+        if (!card.id) {
+          card.id = `${chapter.id}-${slugifyForId(card.dataset.snapLabel || `step-${index + 1}`)}`;
+        }
+        card.dataset.chapterKey = chapter.key;
+        return card.id;
+      }
+
+      function syncChapterSubLinks(activeCard) {
+        if (!subjectNav) return;
+        const activeId = activeCard && activeCard.id ? activeCard.id : null;
+        subjectNav.querySelectorAll(".chapter-subnav-link").forEach((link) => {
+          const isActive = activeId != null && link.dataset.targetId === activeId;
+          link.classList.toggle("is-active-sub", isActive);
+          if (isActive) {
+            link.setAttribute("aria-current", "step");
+          } else {
+            link.removeAttribute("aria-current");
+          }
+        });
+      }
+
+      function scrollToSnapCard(card, chapter) {
+        if (!card) return;
+        clearChapterScrollLock();
+        setActiveChapter(chapter.key, { force: true });
+        syncChapterSubLinks(card);
+        const destination = window.scrollY + card.getBoundingClientRect().top - chapterActivationLine() + 2;
+        window.scrollTo({
+          top: Math.max(0, destination),
+          behavior: REDUCED_MOTION ? "auto" : "smooth",
+        });
+        window.setTimeout(() => {
+          syncActiveChapter({ force: true });
+          syncActiveSnapCard();
+          scheduleScrollTriggerRefresh();
+        }, REDUCED_MOTION ? 0 : 640);
       }
 
       function syncActiveSnapCard() {
@@ -4477,6 +4903,7 @@ __CHAPTER_REGISTRY_SCRIPT__
             card.removeAttribute("aria-current");
           }
         });
+        syncChapterSubLinks(activeCard);
       }
 
       function scheduleSnapCardSync() {
@@ -4539,6 +4966,12 @@ __CHAPTER_REGISTRY_SCRIPT__
         const initialKey = activeChapterKey || (chapterRegistry[0] ? chapterRegistry[0].key : null);
         chapterRegistry.forEach((chapter, index) => {
           const isActive = initialKey ? initialKey === chapter.key : index === 0;
+          const displayLabel = chapter.navLabel || chapter.label;
+          const group = document.createElement("div");
+          group.className = `chapter-nav-group${isActive ? " is-active" : ""}`;
+          group.dataset.key = chapter.key;
+          group.dataset.tone = chapter.tone;
+
           const button = document.createElement("button");
           button.type = "button";
           button.className = `chapter-tab${isActive ? " is-active" : ""}`;
@@ -4549,8 +4982,8 @@ __CHAPTER_REGISTRY_SCRIPT__
           button.setAttribute("aria-label", `${chapter.number}. ${chapter.label}`);
           button.innerHTML = `
             <span class="chapter-tab__shape">
-              <span class="chapter-tab__index">${chapter.number} / ${chapter.railKicker}</span>
-              <span class="chapter-tab__label">${chapter.label}</span>
+              <span class="chapter-tab__index">${chapter.number}</span>
+              <span class="chapter-tab__label">${displayLabel}</span>
               <span class="chapter-tab__meta">${chapter.railMeta}</span>
             </span>
           `;
@@ -4558,7 +4991,34 @@ __CHAPTER_REGISTRY_SCRIPT__
             setActiveChapter(chapter.key, { force: true });
             scrollToChapter(chapter);
           });
-          subjectNav.appendChild(button);
+
+          const subnav = document.createElement("ul");
+          subnav.className = "chapter-subnav";
+          subnav.setAttribute("aria-label", `${chapter.label} - sections`);
+          chapterSnapCards(chapter).forEach((card, cardIndex) => {
+            const cardId = ensureSnapCardId(card, chapter, cardIndex);
+            const label = card.dataset.snapNavLabel || card.dataset.snapLabel || `${chapter.label} ${cardIndex + 1}`;
+            const ariaLabel = card.dataset.snapLabel || label;
+            const item = document.createElement("li");
+            const link = document.createElement("a");
+            link.className = "chapter-subnav-link";
+            link.href = `#${cardId}`;
+            link.dataset.targetId = cardId;
+            link.setAttribute("aria-label", ariaLabel);
+            link.innerHTML = `<span>${label}</span>`;
+            link.addEventListener("click", (event) => {
+              event.preventDefault();
+              scrollToSnapCard(card, chapter);
+            });
+            item.appendChild(link);
+            subnav.appendChild(item);
+          });
+
+          group.appendChild(button);
+          if (subnav.children.length) {
+            group.appendChild(subnav);
+          }
+          subjectNav.appendChild(group);
         });
         activeChapterKey = initialKey;
         updateChapterLayoutVars();
@@ -5137,6 +5597,20 @@ __CHAPTER_REGISTRY_SCRIPT__
         gsap.set(mapStage, { opacity: 0 });
       }
 
+      function syncChapterNavVisibility() {
+        const heroIsFullyAboveViewport = stageShell.getBoundingClientRect().bottom <= 0;
+        const shouldShow = story.classList.contains("is-visible") && state.phase !== "landing" && heroIsFullyAboveViewport;
+        document.body.classList.toggle("chapter-nav-ready", shouldShow);
+      }
+
+      function scheduleChapterNavVisibility() {
+        if (chapterNavVisibilityFrame != null) return;
+        chapterNavVisibilityFrame = requestAnimationFrame(() => {
+          chapterNavVisibilityFrame = null;
+          syncChapterNavVisibility();
+        });
+      }
+
       function scheduleStoryRender() {
         if (storyRenderHandle != null) cancelAnimationFrame(storyRenderHandle);
         storyRenderHandle = requestAnimationFrame(() => {
@@ -5148,6 +5622,7 @@ __CHAPTER_REGISTRY_SCRIPT__
               refreshChapterTracking();
               mountScrollReveal();
               scheduleScrollTriggerRefresh();
+              scheduleChapterNavVisibility();
             })
             .catch((error) => console.error("Deferred payload error", error));
         });
@@ -5159,6 +5634,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         renderSwitchRail();
         refreshChapterTracking();
         scheduleScrollTriggerRefresh();
+        scheduleChapterNavVisibility();
       }
 
       function applyPhase(phase) {
@@ -5171,6 +5647,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         clearChapterScrollLock();
         renderHeaderActions();
         if (phase === "landing") {
+          document.body.classList.remove("chapter-nav-ready");
           story.classList.remove("is-visible");
           switchRail.classList.remove("is-visible");
           if (chapterObserver) {
@@ -5180,6 +5657,9 @@ __CHAPTER_REGISTRY_SCRIPT__
           setMapStageMode("landing");
         } else if (phase === "national") {
           setMapStageMode("national");
+          scheduleChapterNavVisibility();
+        } else {
+          scheduleChapterNavVisibility();
         }
       }
 
@@ -5389,8 +5869,14 @@ __CHAPTER_MODULES_SCRIPT__
       function initChapterNavigation() {
         hydrateChapterSections();
         renderSubjectNav();
-        window.addEventListener("scroll", scheduleSnapCardSync, { passive: true });
-        window.addEventListener("resize", refreshChapterTracking, { passive: true });
+        window.addEventListener("scroll", () => {
+          scheduleSnapCardSync();
+          scheduleChapterNavVisibility();
+        }, { passive: true });
+        window.addEventListener("resize", () => {
+          refreshChapterTracking();
+          scheduleChapterNavVisibility();
+        }, { passive: true });
       }
 
       function mountScrollReveal() {

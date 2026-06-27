@@ -4998,6 +4998,12 @@ __CHAPTER_REGISTRY_SCRIPT__
         }, REDUCED_MOTION ? 0 : 640);
       }
 
+      function releaseChapterNavPointerFocus(event) {
+        if (event.detail > 0 && event.currentTarget && typeof event.currentTarget.blur === "function") {
+          event.currentTarget.blur();
+        }
+      }
+
       function syncActiveSnapCard() {
         if (!story.classList.contains("is-visible")) return;
         const cards = Array.from(story.querySelectorAll("[data-snap-card]"));
@@ -5115,9 +5121,10 @@ __CHAPTER_REGISTRY_SCRIPT__
               <span class="chapter-tab__meta">${chapter.railMeta}</span>
             </span>
           `;
-          button.addEventListener("click", () => {
+          button.addEventListener("click", (event) => {
             setActiveChapter(chapter.key, { force: true });
             scrollToChapter(chapter);
+            releaseChapterNavPointerFocus(event);
           });
 
           const subnav = document.createElement("ul");
@@ -5137,6 +5144,7 @@ __CHAPTER_REGISTRY_SCRIPT__
             link.addEventListener("click", (event) => {
               event.preventDefault();
               scrollToSnapCard(card, chapter);
+              releaseChapterNavPointerFocus(event);
             });
             item.appendChild(link);
             subnav.appendChild(item);

@@ -3863,13 +3863,16 @@
       --chapter-nav-blue: #0B5CFF;
       --chapter-nav-red: #E8233A;
       --chapter-nav-yellow: #FFD600;
+      --chapter-node-size: 18px;
+      --chapter-node-muted: #CBD6E3;
+      --chapter-node-hit: 30px;
       position: fixed;
       top: 50%;
       left: max(12px, calc((100vw - 1440px) / 2 - 32px));
       z-index: 30;
-      width: 236px;
+      width: 52px;
       max-height: calc(100vh - 72px);
-      padding: 4px 10px 4px 4px;
+      padding: 6px 10px 6px 4px;
       display: grid;
       align-items: start;
       gap: 18px;
@@ -3887,6 +3890,7 @@
       scrollbar-width: none;
       transition:
         opacity 360ms ease,
+        width 420ms cubic-bezier(0.16, 1, 0.3, 1),
         transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
     }
 
@@ -3902,33 +3906,43 @@
       display: none;
     }
 
+    .subject-nav:hover,
+    .subject-nav:focus-within {
+      width: 236px;
+    }
+
     .chapter-nav-group {
       position: relative;
       display: grid;
       justify-items: start;
       gap: 10px;
+      min-height: var(--chapter-node-hit);
+      align-items: center;
     }
 
     .chapter-tab,
     .chapter-tab:last-child {
       position: relative;
-      width: auto;
-      max-width: 54px;
+      width: var(--chapter-node-size);
+      max-width: var(--chapter-node-size);
       min-width: 0;
-      height: 50px;
-      margin: 0;
+      height: var(--chapter-node-size);
+      margin: 6px;
       padding: 0;
       overflow: hidden;
       color: var(--chapter-nav-ink);
       opacity: 1;
       transform: none;
       filter: none;
-      border: 2px solid var(--chapter-nav-ink);
+      border: 0;
       border-radius: 999px;
-      background: var(--chapter-nav-surface);
-      box-shadow: 4px 4px 0 var(--chapter-nav-ink);
+      background: var(--chapter-node-muted);
+      box-shadow: none;
       transition:
+        width 420ms cubic-bezier(0.16, 1, 0.3, 1),
         max-width 420ms cubic-bezier(0.16, 1, 0.3, 1),
+        height 220ms ease,
+        margin 220ms ease,
         transform 220ms ease,
         box-shadow 220ms ease,
         background 220ms ease,
@@ -3936,17 +3950,42 @@
         border-color 220ms ease;
     }
 
+    .chapter-tab.is-active {
+      border: 2px solid var(--chapter-nav-ink);
+      box-shadow: 4px 4px 0 var(--chapter-nav-ink);
+    }
+
+    .chapter-tab.is-active[data-tone="1"] {
+      background: var(--chapter-nav-blue);
+    }
+
+    .chapter-tab.is-active[data-tone="2"] {
+      background: var(--chapter-nav-red);
+    }
+
+    .chapter-tab.is-active[data-tone="3"] {
+      background: var(--chapter-nav-yellow);
+    }
+
     .chapter-tab:hover,
     .chapter-tab:focus-visible,
-    .chapter-tab.is-active {
+    .subject-nav:hover .chapter-tab,
+    .subject-nav:focus-within .chapter-tab {
+      width: auto;
       max-width: 220px;
+      height: 50px;
+      margin: 0;
       transform: translate(-1px, -1px);
       filter: none;
       outline: none;
       box-shadow: 6px 6px 0 var(--chapter-nav-ink);
+      border: 2px solid var(--chapter-nav-ink);
+      background: var(--chapter-nav-surface);
     }
 
     .chapter-tab.is-active[data-tone="1"],
+    .subject-nav:hover .chapter-tab.is-active[data-tone="1"],
+    .subject-nav:focus-within .chapter-tab.is-active[data-tone="1"],
     .chapter-nav-group[data-tone="1"]:hover .chapter-tab {
       color: #FFFFFF;
       background: var(--chapter-nav-blue);
@@ -3954,6 +3993,8 @@
     }
 
     .chapter-tab.is-active[data-tone="2"],
+    .subject-nav:hover .chapter-tab.is-active[data-tone="2"],
+    .subject-nav:focus-within .chapter-tab.is-active[data-tone="2"],
     .chapter-nav-group[data-tone="2"]:hover .chapter-tab {
       color: #FFFFFF;
       background: var(--chapter-nav-red);
@@ -3961,6 +4002,8 @@
     }
 
     .chapter-tab.is-active[data-tone="3"],
+    .subject-nav:hover .chapter-tab.is-active[data-tone="3"],
+    .subject-nav:focus-within .chapter-tab.is-active[data-tone="3"],
     .chapter-nav-group[data-tone="3"]:hover .chapter-tab {
       color: var(--chapter-nav-ink);
       background: var(--chapter-nav-yellow);
@@ -3975,10 +4018,12 @@
     .chapter-tab[data-tone="4"] .chapter-tab__shape {
       min-height: 0;
       height: 100%;
-      padding: 0 15px 0 12px;
+      width: 100%;
+      padding: 0;
       display: inline-flex;
       align-items: center;
-      gap: 12px;
+      justify-content: center;
+      gap: 0;
       color: inherit;
       background: transparent;
       border: 0;
@@ -3986,6 +4031,16 @@
       clip-path: none;
       box-shadow: none;
       white-space: nowrap;
+    }
+
+    .subject-nav:hover .chapter-tab__shape,
+    .subject-nav:focus-within .chapter-tab__shape,
+    .chapter-tab:hover .chapter-tab__shape,
+    .chapter-tab:focus-visible .chapter-tab__shape {
+      width: auto;
+      padding: 0 15px 0 12px;
+      justify-content: flex-start;
+      gap: 12px;
     }
 
     .chapter-tab__index,
@@ -3997,9 +4052,21 @@
     }
 
     .chapter-tab__index {
-      min-width: 28px;
+      min-width: 0;
+      width: 0;
       font-size: 1rem;
       font-weight: 900;
+      opacity: 0;
+      overflow: hidden;
+      transition: opacity 180ms ease, width 220ms ease, min-width 220ms ease;
+    }
+
+    .subject-nav:hover .chapter-tab__index,
+    .subject-nav:focus-within .chapter-tab__index,
+    .chapter-tab:hover .chapter-tab__index,
+    .chapter-tab:focus-visible .chapter-tab__index {
+      min-width: 28px;
+      width: auto;
       opacity: 1;
     }
 
@@ -4018,7 +4085,8 @@
 
     .chapter-tab:hover .chapter-tab__label,
     .chapter-tab:focus-visible .chapter-tab__label,
-    .chapter-tab.is-active .chapter-tab__label,
+    .subject-nav:hover .chapter-tab__label,
+    .subject-nav:focus-within .chapter-tab__label,
     .chapter-nav-group:hover .chapter-tab__label {
       opacity: 1;
       transform: translateX(0);
@@ -4042,7 +4110,10 @@
         transform 220ms ease;
     }
 
-    .chapter-nav-group.is-active .chapter-subnav,
+    .subject-nav:hover .chapter-nav-group.is-active .chapter-subnav,
+    .subject-nav:focus-within .chapter-nav-group.is-active .chapter-subnav,
+    .subject-nav:hover .chapter-nav-group:hover .chapter-subnav,
+    .subject-nav:focus-within .chapter-nav-group:focus-within .chapter-subnav,
     .chapter-nav-group:hover .chapter-subnav,
     .chapter-nav-group:focus-within .chapter-subnav {
       max-height: 280px;
@@ -4126,11 +4197,18 @@
 
       .subject-nav {
         left: 18px;
+        width: 52px;
+      }
+
+      .subject-nav:hover,
+      .subject-nav:focus-within {
         width: 190px;
       }
 
       .chapter-tab:hover,
       .chapter-tab:focus-visible,
+      .subject-nav:hover .chapter-tab,
+      .subject-nav:focus-within .chapter-tab,
       .chapter-tab.is-active {
         max-width: 176px;
       }
@@ -4164,6 +4242,11 @@
         -webkit-backdrop-filter: blur(14px);
       }
 
+      .subject-nav:hover,
+      .subject-nav:focus-within {
+        width: auto;
+      }
+
       body.chapter-nav-ready .subject-nav {
         transform: none;
       }
@@ -4178,6 +4261,9 @@
         height: 44px;
         width: auto;
         max-width: 50px;
+        margin: 0;
+        border: 2px solid var(--chapter-nav-ink);
+        background: var(--chapter-nav-surface);
         box-shadow: none;
       }
 
@@ -4186,6 +4272,48 @@
       .chapter-tab.is-active {
         max-width: 168px;
         box-shadow: none;
+      }
+
+      .subject-nav:hover .chapter-tab:not(:hover):not(:focus-visible):not(.is-active),
+      .subject-nav:focus-within .chapter-tab:not(:hover):not(:focus-visible):not(.is-active) {
+        max-width: 50px;
+        height: 44px;
+        box-shadow: none;
+      }
+
+      .chapter-tab__shape,
+      .chapter-tab.is-active .chapter-tab__shape,
+      .chapter-tab[data-tone="1"] .chapter-tab__shape,
+      .chapter-tab[data-tone="2"] .chapter-tab__shape,
+      .chapter-tab[data-tone="3"] .chapter-tab__shape,
+      .chapter-tab[data-tone="4"] .chapter-tab__shape {
+        width: auto;
+        padding: 0 15px 0 12px;
+        justify-content: flex-start;
+        gap: 12px;
+      }
+
+      .chapter-tab__index {
+        min-width: 28px;
+        width: auto;
+        opacity: 1;
+      }
+
+      .chapter-tab__label {
+        opacity: 0;
+      }
+
+      .chapter-tab:hover .chapter-tab__label,
+      .chapter-tab:focus-visible .chapter-tab__label,
+      .chapter-tab.is-active .chapter-tab__label {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      .subject-nav:hover .chapter-tab:not(:hover):not(:focus-visible):not(.is-active) .chapter-tab__label,
+      .subject-nav:focus-within .chapter-tab:not(:hover):not(:focus-visible):not(.is-active) .chapter-tab__label {
+        opacity: 0;
+        transform: translateX(-6px);
       }
 
       .chapter-subnav {

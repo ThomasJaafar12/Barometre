@@ -3,7 +3,16 @@
 from datetime import UTC, datetime
 
 from .chapters import build_chapter_fragments
-from .config import DOM_REGION_CODES, EXPERIENCE_REGION_CODES, LOGO_PATH, MAP_LAYOUT, OUTPUT_HTML_PATH, TEMPLATE_PATH
+from .config import (
+    DOM_REGION_CODES,
+    EXPERIENCE_REGION_CODES,
+    LOGO_PATH,
+    MAP_LAYOUT,
+    OUTPUT_HTML_PATH,
+    PUBLICATION_DATE_LABEL,
+    PUBLICATION_ISSUE_NUMBER,
+    TEMPLATE_PATH,
+)
 from .geometry import build_geographies
 from .modules import build_modules
 from .palettes import build_color_system
@@ -17,6 +26,8 @@ def build_payloads() -> tuple[dict, dict]:
     boot_payload = {
         "meta": {
             "generatedAt": datetime.now(UTC).isoformat(),
+            "publicationDateLabel": PUBLICATION_DATE_LABEL,
+            "publicationIssueNumber": PUBLICATION_ISSUE_NUMBER,
             "mapLayout": MAP_LAYOUT,
             "experienceRegionCodes": EXPERIENCE_REGION_CODES,
             "domRegionCodes": sorted(DOM_REGION_CODES),

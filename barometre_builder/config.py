@@ -1,6 +1,7 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass
+import os
 from pathlib import Path
 
 
@@ -15,6 +16,8 @@ GEO_METADATA_PATH = GEO_DIR / "contours_administratifs_dataset.json"
 DEPARTMENT_GEOJSON_CACHE = GEO_DIR / "departements-50m.geojson"
 OUTPUT_HTML_PATH = ROOT / "index.html"
 TEMPLATE_PATH = ROOT / "barometre.template.html"
+PUBLICATION_DATE_LABEL = os.getenv("BAROMETRE_PUBLICATION_DATE", "24 juin 2026")
+PUBLICATION_ISSUE_NUMBER = os.getenv("BAROMETRE_ISSUE_NUMBER", "189")
 
 MAP_LAYOUT = {
     "width": 1200,

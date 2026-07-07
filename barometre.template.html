@@ -3550,13 +3550,276 @@
       color: var(--product-muted);
     }
 
+    .econ-header {
+      --econ-bg: #2EBFC9;
+      --econ-teal-deep: #00A3BB;
+      --econ-coral: #F05A66;
+      --econ-sky: #BACFE3;
+      --econ-yellow: #FFD400;
+      --econ-blue: #0074BC;
+      --econ-orange: #F89B1B;
+      --econ-date-blue: #164C8E;
+      position: relative;
+      z-index: 20;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(236px, 300px);
+      align-items: center;
+      gap: clamp(16px, 2vw, 28px);
+      min-height: 122px;
+      padding: 22px 28px 18px 206px;
+      overflow: visible;
+      isolation: isolate;
+      color: #FFFFFF;
+      background: var(--econ-bg);
+      border: 0;
+      border-radius: 0;
+      box-shadow: 0 18px 46px rgba(0, 116, 188, 0.18);
+    }
+
+    .econ-header-art-frame {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 185px;
+      pointer-events: none;
+    }
+
+    .econ-header-art {
+      display: block;
+      width: 185px;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .econ-header-copy {
+      min-width: 0;
+      display: grid;
+      gap: 13px;
+      align-self: center;
+    }
+
+    .econ-header-copy h1 {
+      margin: 0;
+      color: #FFFFFF;
+      font-size: clamp(2.35rem, 3.65vw, 3.55rem);
+      line-height: 0.92;
+      font-weight: 900;
+      white-space: nowrap;
+      text-wrap: balance;
+    }
+
+    .econ-header-copy p {
+      margin: 0;
+      color: var(--econ-date-blue);
+      font-size: clamp(0.82rem, 1.1vw, 0.96rem);
+      font-weight: 500;
+    }
+
+    .geo-control {
+      position: relative;
+      z-index: 12;
+      justify-self: end;
+      width: min(100%, 320px);
+    }
+
+    .geo-trigger {
+      position: relative;
+      width: 100%;
+      min-height: 68px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-areas:
+        "kicker chevron"
+        "value chevron"
+        "meta chevron";
+      align-items: center;
+      column-gap: 16px;
+      padding: 12px 16px 12px 18px;
+      appearance: none;
+      text-align: left;
+      color: #0B1D3A;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.98), rgba(239,249,252,0.90)),
+        radial-gradient(circle at 94% 16%, rgba(46,191,201,0.22), transparent 30%);
+      border: 1px solid rgba(255,255,255,0.88);
+      border-radius: 18px;
+      box-shadow:
+        0 20px 44px rgba(0, 116, 188, 0.18),
+        inset 0 1px 0 rgba(255,255,255,0.86);
+      cursor: pointer;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .geo-trigger:hover,
+    .geo-trigger:focus-visible,
+    .geo-control.is-open .geo-trigger {
+      transform: translateY(-1px);
+      border-color: #FFFFFF;
+      box-shadow:
+        0 24px 54px rgba(0, 116, 188, 0.24),
+        0 0 0 3px rgba(255,255,255,0.36),
+        inset 0 1px 0 rgba(255,255,255,0.96);
+      outline: none;
+    }
+
+    .geo-trigger-kicker {
+      grid-area: kicker;
+      color: #0074BC;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .geo-trigger-value {
+      grid-area: value;
+      min-width: 0;
+      color: #07172F;
+      font-size: clamp(1rem, 1.4vw, 1.2rem);
+      line-height: 1.1;
+      font-weight: 900;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .geo-trigger-meta {
+      grid-area: meta;
+      color: #536273;
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+
+    .geo-trigger-chevron {
+      grid-area: chevron;
+      position: relative;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: #0B1D3A;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.16);
+    }
+
+    .geo-trigger-chevron::before {
+      content: "";
+      position: absolute;
+      width: 9px;
+      height: 9px;
+      top: 10px;
+      left: 12px;
+      border-right: 2px solid #FFFFFF;
+      border-bottom: 2px solid #FFFFFF;
+      transform: rotate(45deg);
+      transition: transform 180ms ease, top 180ms ease;
+    }
+
+    .geo-control.is-open .geo-trigger-chevron::before {
+      top: 13px;
+      transform: rotate(225deg);
+    }
+
+    .geo-menu {
+      position: absolute;
+      z-index: 40;
+      top: calc(100% + 10px);
+      right: 0;
+      width: min(380px, calc(100vw - 48px));
+      max-height: min(520px, calc(100vh - 180px));
+      display: none;
+      grid-template-columns: 1fr;
+      gap: 6px;
+      padding: 10px;
+      overflow: auto;
+      color: #07172F;
+      background: rgba(255,255,255,0.98);
+      border: 1px solid rgba(185,199,214,0.78);
+      border-radius: 18px;
+      box-shadow: 0 28px 78px rgba(7, 23, 47, 0.26);
+    }
+
+    .geo-control.is-open .geo-menu {
+      display: grid;
+    }
+
+    .geo-option {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      min-height: 48px;
+      padding: 10px 12px;
+      appearance: none;
+      text-align: left;
+      color: #0B1D3A;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 150ms ease, border-color 150ms ease, transform 150ms ease;
+    }
+
+    .geo-option:hover,
+    .geo-option:focus-visible {
+      background: #F1F7FA;
+      border-color: #D9E2EC;
+      outline: none;
+      transform: translateX(1px);
+    }
+
+    .geo-option.is-selected {
+      color: #FFFFFF;
+      background:
+        linear-gradient(135deg, #0B1D3A, #164C8E);
+      border-color: #0B1D3A;
+    }
+
+    .geo-option-main {
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+    }
+
+    .geo-option-title {
+      font-size: 0.94rem;
+      font-weight: 850;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .geo-option-subtitle {
+      color: #64748B;
+      font-size: 0.72rem;
+      font-weight: 750;
+    }
+
+    .geo-option.is-selected .geo-option-subtitle {
+      color: rgba(255,255,255,0.74);
+    }
+
+    .geo-option-mark {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: #2EBFC9;
+      box-shadow: 0 0 0 4px rgba(46,191,201,0.18);
+      opacity: 0;
+    }
+
+    .geo-option.is-selected .geo-option-mark {
+      opacity: 1;
+    }
+
+    .switch-rail {
+      display: none !important;
+    }
+
     @media (max-width: 980px) {
       .page {
         width: min(calc(100% - 24px), 1480px);
         margin-top: 12px;
       }
 
-      .topbar {
+      .topbar:not(.econ-header) {
         align-items: flex-start;
         gap: 14px;
       }
@@ -3575,6 +3838,26 @@
       .hero-panel {
         max-width: 100%;
       }
+
+      .econ-header {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        padding: 24px;
+      }
+
+      .econ-header-art {
+        opacity: 0.22;
+      }
+
+      .econ-header-copy h1 {
+        white-space: normal;
+        max-width: 12ch;
+      }
+
+      .geo-control {
+        justify-self: stretch;
+        width: min(100%, 420px);
+      }
     }
 
     @media (max-width: 860px) {
@@ -3587,7 +3870,7 @@
         padding: 8px;
       }
 
-      .topbar {
+      .topbar:not(.econ-header) {
         min-height: 0;
         padding: 12px;
       }
@@ -4383,17 +4666,37 @@
 <body>
   <div class="page">
     <div class="shell">
-      <header class="topbar">
-        <div class="brand">
-          <img id="brandLogo" src="__LOGO_PATH__" alt="Urssaf">
-          <div class="brand-meta">
-            <span class="mono">Baromètre territorial</span>
-            <strong id="brandScopeMeta">France entière · dernières données disponibles</strong>
-          </div>
+      <header class="topbar econ-header" id="econHeader">
+        <div class="econ-header-art-frame" aria-hidden="true">
+          <svg class="econ-header-art" viewBox="0 0 185 122" focusable="false">
+            <rect x="0" y="0" width="185" height="122" fill="var(--econ-bg)" shape-rendering="crispEdges"></rect>
+            <circle cx="31" cy="31" r="31" fill="var(--econ-teal-deep)"></circle>
+            <circle cx="77" cy="15" r="15" fill="#FFFFFF"></circle>
+            <circle cx="107" cy="15" r="15" fill="var(--econ-sky)"></circle>
+            <circle cx="77" cy="45" r="15" fill="var(--econ-sky)"></circle>
+            <circle cx="107" cy="45" r="15" fill="var(--econ-yellow)"></circle>
+            <circle cx="31" cy="91.5" r="31.5" fill="var(--econ-sky)"></circle>
+            <circle cx="0" cy="91.5" r="31.5" fill="var(--econ-yellow)"></circle>
+            <rect x="62" y="60" width="62" height="62" fill="var(--econ-coral)" shape-rendering="crispEdges"></rect>
+            <circle cx="92.5" cy="90.5" r="15" fill="#FFFFFF"></circle>
+            <rect x="122" y="60" width="63" height="62" fill="var(--econ-orange)" shape-rendering="crispEdges"></rect>
+            <circle cx="184" cy="60" r="63" fill="var(--econ-blue)"></circle>
+            <circle cx="184" cy="60" r="32" fill="var(--econ-bg)"></circle>
+            <rect x="122" y="0" width="63" height="60" fill="var(--econ-bg)" shape-rendering="crispEdges"></rect>
+          </svg>
         </div>
-        <div class="topbar-actions">
-          <button class="hero-action" id="backToMapButton" type="button" hidden>Retour à la carte</button>
-          <button class="hero-action" id="franceButton" type="button">France entière</button>
+        <div class="econ-header-copy">
+          <h1>Baromètre économique</h1>
+          <p id="publicationMeta">24 juin 2026 – N°189</p>
+        </div>
+        <div class="geo-control" id="geoControl">
+          <button class="geo-trigger" id="geoTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+            <span class="geo-trigger-kicker">Territoire</span>
+            <span class="geo-trigger-value" id="geoCurrent">France entière</span>
+            <span class="geo-trigger-meta">France entière / Région</span>
+            <span class="geo-trigger-chevron" aria-hidden="true"></span>
+          </button>
+          <div class="geo-menu" id="geoMenu" role="listbox" aria-label="Sélectionner une géographie"></div>
         </div>
       </header>
 
@@ -4422,7 +4725,7 @@
         </div>
       </section>
 
-      <div class="switch-rail" id="switchRail"></div>
+      <div class="switch-rail" id="switchRail" hidden aria-hidden="true"></div>
 
       <main class="story" id="story">
         <nav class="subject-nav" id="subjectNav" aria-label="Chapitres"></nav>
@@ -4500,9 +4803,11 @@ __CHAPTER_SECTIONS_HTML__
       const story = document.getElementById("story");
       const switchRail = document.getElementById("switchRail");
       const subjectNav = document.getElementById("subjectNav");
-      const backToMapButton = document.getElementById("backToMapButton");
-      const brandScopeMeta = document.getElementById("brandScopeMeta");
-      const franceButton = document.getElementById("franceButton");
+      const publicationMeta = document.getElementById("publicationMeta");
+      const geoControl = document.getElementById("geoControl");
+      const geoTrigger = document.getElementById("geoTrigger");
+      const geoCurrent = document.getElementById("geoCurrent");
+      const geoMenu = document.getElementById("geoMenu");
       const tooltip = document.getElementById("tooltip");
       const tooltipLabel = document.getElementById("tooltipLabel");
       const tooltipValue = document.getElementById("tooltipValue");
@@ -4523,6 +4828,10 @@ __CHAPTER_SECTIONS_HTML__
         autoSector: null,
         rarMetric: "rar_90",
       };
+
+      const publicationLabel = DATA.meta.publicationDateLabel && DATA.meta.publicationIssueNumber
+        ? `${DATA.meta.publicationDateLabel} – N°${DATA.meta.publicationIssueNumber}`
+        : "24 juin 2026 – N°189";
 
       const chartRefs = {
         regionMap: {
@@ -5161,26 +5470,59 @@ __CHAPTER_REGISTRY_SCRIPT__
       }
 
       function renderSwitchRail() {
-        switchRail.innerHTML = "";
-        const franceButton = document.createElement("button");
-        franceButton.type = "button";
-        franceButton.className = `liquid-button${state.phase === "national" ? " is-active" : ""}`;
-        franceButton.textContent = "France entière";
-        franceButton.addEventListener("click", () => transitionToNational(true));
-        switchRail.appendChild(franceButton);
-        DATA.regions.forEach((region) => {
-          const button = document.createElement("button");
-          button.type = "button";
-          button.className = `liquid-button${state.phase === "region" && state.selectedRegion === region.code ? " is-active" : ""}`;
-          button.textContent = region.name;
-          button.addEventListener("click", () => transitionToRegion(region.code, true));
-          switchRail.appendChild(button);
-        });
-        switchRail.classList.toggle("is-visible", state.phase !== "landing");
+        renderGeographySelector();
       }
 
       function renderHeaderActions() {
-        backToMapButton.hidden = state.phase === "landing";
+        renderGeographySelector();
+      }
+
+      function selectedGeoKey() {
+        return state.phase === "region" ? state.selectedRegion : "national";
+      }
+
+      function setGeoMenuOpen(isOpen) {
+        geoControl.classList.toggle("is-open", isOpen);
+        geoTrigger.setAttribute("aria-expanded", String(isOpen));
+      }
+
+      function renderGeographySelector() {
+        const activeKey = selectedGeoKey();
+        geoCurrent.textContent = activeKey === "national" ? "France entière" : currentRegion().name;
+        geoMenu.innerHTML = "";
+
+        const options = [
+          { key: "national", title: "France entière", subtitle: "Vue nationale" },
+          ...DATA.regions.map((region) => ({
+            key: region.code,
+            title: region.name,
+            subtitle: region.group === "dom" ? "Outre-mer" : "Région",
+          })),
+        ];
+
+        options.forEach((option) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = `geo-option${option.key === activeKey ? " is-selected" : ""}`;
+          button.setAttribute("role", "option");
+          button.setAttribute("aria-selected", String(option.key === activeKey));
+          button.innerHTML = `
+            <span class="geo-option-main">
+              <span class="geo-option-title">${option.title}</span>
+              <span class="geo-option-subtitle">${option.subtitle}</span>
+            </span>
+            <span class="geo-option-mark" aria-hidden="true"></span>
+          `;
+          button.addEventListener("click", () => {
+            setGeoMenuOpen(false);
+            if (option.key === "national") {
+              transitionToNational(true);
+            } else {
+              transitionToRegion(option.key, true);
+            }
+          });
+          geoMenu.appendChild(button);
+        });
       }
 
       function renderHero() {
@@ -5190,8 +5532,6 @@ __CHAPTER_REGISTRY_SCRIPT__
         const heroDates = document.getElementById("heroDates");
         const heroKpis = document.getElementById("heroKpis");
         const heroData = heroPayloadForScope();
-        brandScopeMeta.textContent = `${headerScopeLabel()} · dernières données disponibles`;
-
         if (state.phase === "national") {
           eyebrow.textContent = "France entière";
           title.textContent = "France entière";
@@ -5766,7 +6106,6 @@ __CHAPTER_REGISTRY_SCRIPT__
 
       function revealContent() {
         story.classList.add("is-visible");
-        switchRail.classList.add("is-visible");
         renderSwitchRail();
         refreshChapterTracking();
         scheduleScrollTriggerRefresh();
@@ -5785,7 +6124,6 @@ __CHAPTER_REGISTRY_SCRIPT__
         if (phase === "landing") {
           document.body.classList.remove("chapter-nav-ready");
           story.classList.remove("is-visible");
-          switchRail.classList.remove("is-visible");
           if (chapterObserver) {
             chapterObserver.disconnect();
           }
@@ -5997,9 +6335,22 @@ __CHAPTER_MODULES_SCRIPT__
         document.getElementById("footerTimestamp").textContent = `Généré ${generatedAt.toLocaleDateString("fr-FR", { dateStyle: "medium" })} / ${generatedAt.toLocaleTimeString("fr-FR", { timeStyle: "short" })}`;
       }
 
-      function initStageButtons() {
-        franceButton.addEventListener("click", () => transitionToNational(false));
-        backToMapButton.addEventListener("click", transitionToLanding);
+      function initGeographySelector() {
+        publicationMeta.textContent = publicationLabel;
+        geoTrigger.addEventListener("click", () => {
+          setGeoMenuOpen(!geoControl.classList.contains("is-open"));
+        });
+        document.addEventListener("click", (event) => {
+          if (!geoControl.contains(event.target)) {
+            setGeoMenuOpen(false);
+          }
+        });
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            setGeoMenuOpen(false);
+            geoTrigger.focus();
+          }
+        });
       }
 
       function initChapterNavigation() {
@@ -6040,7 +6391,7 @@ __CHAPTER_MODULES_SCRIPT__
         setTheme(null);
         initChapterNavigation();
         setupFooter();
-        initStageButtons();
+        initGeographySelector();
         renderLandingMap();
         renderHero();
         renderSwitchRail();

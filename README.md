@@ -36,6 +36,14 @@ Depuis la racine du projet :
 python builder.py
 ```
 
+La date et le numéro affichés dans le header peuvent être configurés au moment de la génération :
+
+```powershell
+$env:BAROMETRE_PUBLICATION_DATE = "24 juin 2026"
+$env:BAROMETRE_ISSUE_NUMBER = "189"
+python builder.py
+```
+
 La commande :
 
 1. charge les donnees et geographies depuis `Assets/`

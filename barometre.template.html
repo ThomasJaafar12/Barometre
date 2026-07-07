@@ -4669,6 +4669,11 @@
       <header class="topbar econ-header" id="econHeader">
         <div class="econ-header-art-frame" aria-hidden="true">
           <svg class="econ-header-art" viewBox="0 0 185 122" focusable="false">
+            <defs>
+              <clipPath id="econRightBlockClip" clipPathUnits="userSpaceOnUse">
+                <rect x="123" y="60" width="62" height="62"></rect>
+              </clipPath>
+            </defs>
             <rect x="0" y="0" width="185" height="122" fill="var(--econ-bg)" shape-rendering="crispEdges"></rect>
             <circle cx="31" cy="31" r="31" fill="var(--econ-teal-deep)"></circle>
             <circle cx="77" cy="15" r="15" fill="#FFFFFF"></circle>
@@ -4677,12 +4682,15 @@
             <circle cx="107" cy="45" r="15" fill="var(--econ-yellow)"></circle>
             <circle cx="31" cy="91.5" r="31.5" fill="var(--econ-sky)"></circle>
             <circle cx="0" cy="91.5" r="31.5" fill="var(--econ-yellow)"></circle>
-            <rect x="62" y="60" width="62" height="62" fill="var(--econ-coral)" shape-rendering="crispEdges"></rect>
+            <rect x="62" y="60" width="61" height="62" fill="var(--econ-coral)" shape-rendering="crispEdges"></rect>
             <circle cx="92.5" cy="90.5" r="15" fill="#FFFFFF"></circle>
-            <rect x="122" y="60" width="63" height="62" fill="var(--econ-orange)" shape-rendering="crispEdges"></rect>
-            <circle cx="184" cy="60" r="63" fill="var(--econ-blue)"></circle>
-            <circle cx="184" cy="60" r="32" fill="var(--econ-bg)"></circle>
-            <rect x="122" y="0" width="63" height="60" fill="var(--econ-bg)" shape-rendering="crispEdges"></rect>
+            <rect x="123" y="60" width="62" height="62" fill="var(--econ-orange)" shape-rendering="crispEdges"></rect>
+            <g clip-path="url(#econRightBlockClip)">
+              <circle cx="184" cy="60" r="63" fill="var(--econ-blue)"></circle>
+              <circle cx="184" cy="60" r="32" fill="var(--econ-bg)"></circle>
+            </g>
+            <rect x="123" y="60" width="29" height="1" fill="var(--econ-blue)" shape-rendering="crispEdges"></rect>
+            <rect x="152" y="60" width="33" height="1" fill="var(--econ-bg)" shape-rendering="crispEdges"></rect>
           </svg>
         </div>
         <div class="econ-header-copy">

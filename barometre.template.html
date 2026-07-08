@@ -2763,6 +2763,12 @@
       --product-shadow: 0 18px 44px rgba(11, 29, 58, 0.10);
       --product-shadow-strong: 0 24px 70px rgba(11, 29, 58, 0.16);
       --product-focus: 0 0 0 3px rgba(14, 165, 168, 0.22), 0 0 0 1px #0EA5A8;
+      --landing-map-fill: #CBD8E6;
+      --landing-map-empty-fill: #E4EBF3;
+      --landing-map-stroke: rgba(255,255,255,0.98);
+      --landing-map-shadow: drop-shadow(0 18px 26px rgba(11,29,58,0.18)) drop-shadow(0 3px 5px rgba(11,29,58,0.10));
+      --landing-map-inset-stroke: #B7C7D8;
+      --landing-map-inset-shadow: drop-shadow(0 14px 28px rgba(11,29,58,0.12));
       --chapter-title-rail: 106px;
       --chapter-title-min-height: 98px;
       --chapter-title-shadow: 8px 8px 0 rgba(7, 23, 47, 0.94);
@@ -3349,6 +3355,31 @@
       stroke-width: 1.15px;
     }
 
+    .stage-shell[data-phase="landing"] #landingMap .mainland-layer,
+    .stage-shell[data-phase="landing"] #landingMap .inset-path-layer {
+      filter: var(--landing-map-shadow);
+    }
+
+    .stage-shell[data-phase="landing"] #landingMap .path-region:not(.is-unavailable):not(.is-hovered):not(.is-selected) {
+      fill: var(--landing-map-fill);
+      stroke: var(--landing-map-stroke);
+      stroke-width: 1.32px;
+    }
+
+    .stage-shell[data-phase="landing"] #landingMap .path-region.is-unavailable {
+      fill: var(--landing-map-empty-fill) !important;
+      opacity: 0.72;
+      stroke: var(--landing-map-stroke);
+      stroke-width: 1.2px;
+    }
+
+    .stage-shell[data-phase="landing"] #landingMap .inset-card {
+      fill: rgba(255,255,255,0.88);
+      stroke: var(--landing-map-inset-stroke);
+      stroke-width: 1.35px;
+      filter: var(--landing-map-inset-shadow);
+    }
+
     .stage-shell[data-phase="landing"] #landingMap .path-region.is-hovered:not(.is-unavailable) {
       stroke: #FFFFFF;
       stroke-width: 2.45px;
@@ -3357,7 +3388,7 @@
         drop-shadow(0 0 20px var(--region-hover-shadow, rgba(14,165,168,0.28)));
     }
     .stage-shell.is-map-hover-locked #landingMap .path-region.is-hovered {
-      fill: var(--map-idle) !important;
+      fill: var(--landing-map-fill, var(--map-idle)) !important;
       stroke-width: 1.15px;
       filter: none;
     }

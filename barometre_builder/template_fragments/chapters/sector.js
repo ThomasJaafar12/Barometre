@@ -555,8 +555,10 @@
           .attr("y", 0)
           .attr("width", Math.max(barWidth * 2, 18))
           .attr("height", innerHeight)
-          .attr("fill", "transparent")
+          .attr("fill", "rgba(255,255,255,0.001)")
+          .attr("pointer-events", "all")
           .style("cursor", "pointer")
+          .on("mouseenter", (event, point) => showChartTooltip(event, point))
           .on("mousemove", (event, point) => showChartTooltip(event, point))
           .on("mouseleave", hideChartTooltip);
 

@@ -896,23 +896,18 @@
       min-width: 0;
       scroll-margin-top: var(--chapter-scroll-margin);
       opacity: 1;
-      transform: translateY(18px) scale(0.975);
       transform-origin: center top;
       transition:
         opacity 260ms ease,
         transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
-        filter 260ms ease,
         border-color 260ms ease,
         box-shadow 260ms ease;
-      will-change: transform, opacity;
     }
 
     .snap-card.is-snap-active {
       opacity: 1;
-      transform: translateY(0) scale(1);
       border-color: var(--line-strong);
       box-shadow: 0 24px 58px rgba(0,0,0,0.16);
-      filter: drop-shadow(0 18px 34px rgba(0,0,0,0.12));
     }
 
     .viz-panel {
@@ -1003,6 +998,9 @@
     .employment-side {
       position: relative;
       overflow: hidden;
+    }
+    .employment-side {
+      overflow: visible;
     }
     .employment-main {
       gap: 18px;
@@ -3067,7 +3065,6 @@
     .snap-card.is-snap-active {
       border-color: var(--product-line-strong);
       box-shadow: 0 20px 48px rgba(11,29,58,0.13);
-      filter: drop-shadow(0 18px 34px rgba(11,29,58,0.10));
     }
 
     .section-head,

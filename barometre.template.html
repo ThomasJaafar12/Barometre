@@ -1630,19 +1630,6 @@
       text-transform: none;
       margin-top: 6px;
     }
-    .footer {
-      margin-top: 16px;
-      padding: 0 6px;
-      color: var(--muted-soft);
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-      font: 500 11px "IBM Plex Mono", monospace;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
     .path-region,
     .path-department {
       stroke: rgba(255,255,255,0.16);
@@ -2603,10 +2590,6 @@
       box-shadow: 0 16px 40px rgba(15,23,42,0.14);
     }
 
-    .footer {
-      color: var(--muted-soft);
-    }
-
     body.deck-ready .switch-rail {
       top: 10px;
     }
@@ -3543,11 +3526,6 @@
     .deck-menu {
       border-color: var(--product-line);
       box-shadow: 0 22px 54px rgba(11,29,58,0.18);
-    }
-
-    .footer {
-      padding-top: 24px;
-      color: var(--product-muted);
     }
 
     .econ-header {
@@ -4995,10 +4973,6 @@
 __CHAPTER_SECTIONS_HTML__
       </main>
 
-      <footer class="footer">
-        <span id="footerTimestamp">Généré à partir des CSV locaux</span>
-        <span>Données Urssaf / rendu statique HTML / JS</span>
-      </footer>
     </div>
   </div>
 
@@ -6716,11 +6690,6 @@ __CHAPTER_MODULES_SCRIPT__
         chapterRegistry.forEach((chapter) => chapter.render());
       }
 
-      function setupFooter() {
-        const generatedAt = new Date(DATA.meta.generatedAt);
-        document.getElementById("footerTimestamp").textContent = `Généré ${generatedAt.toLocaleDateString("fr-FR", { dateStyle: "medium" })} / ${generatedAt.toLocaleTimeString("fr-FR", { timeStyle: "short" })}`;
-      }
-
       function initGeographySelector() {
         publicationMeta.textContent = publicationLabel;
         geoTrigger.addEventListener("click", () => {
@@ -6776,7 +6745,6 @@ __CHAPTER_MODULES_SCRIPT__
         applyColorTokens();
         setTheme(null);
         initChapterNavigation();
-        setupFooter();
         initGeographySelector();
         renderLandingMap();
         renderHero();

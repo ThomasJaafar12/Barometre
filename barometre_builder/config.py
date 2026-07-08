@@ -22,13 +22,13 @@ PUBLICATION_ISSUE_NUMBER = os.getenv("BAROMETRE_ISSUE_NUMBER", "189")
 MAP_LAYOUT = {
     "width": 1200,
     "height": 860,
-    "mainlandExtent": [72, 92, 770, 760],
+    "mainlandExtent": [42, 52, 840, 820],
     "domInsets": {
-        "01": {"x": 840, "y": 96, "width": 276, "height": 118},
-        "02": {"x": 840, "y": 228, "width": 276, "height": 118},
-        "03": {"x": 840, "y": 360, "width": 276, "height": 118},
-        "04": {"x": 840, "y": 492, "width": 276, "height": 118},
-        "06": {"x": 840, "y": 624, "width": 276, "height": 118},
+        "01": {"x": 880, "y": 62, "width": 292, "height": 122},
+        "02": {"x": 880, "y": 194, "width": 292, "height": 122},
+        "03": {"x": 880, "y": 326, "width": 292, "height": 122},
+        "04": {"x": 880, "y": 458, "width": 292, "height": 122},
+        "06": {"x": 880, "y": 590, "width": 292, "height": 122},
     },
 }
 

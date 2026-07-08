@@ -3385,6 +3385,14 @@
       filter: var(--landing-map-inset-shadow);
     }
 
+    .stage-shell.is-camera-moving #landingMap .feature-layer,
+    .stage-shell.is-camera-moving #landingMap .mainland-layer,
+    .stage-shell.is-camera-moving #landingMap .inset-path-layer,
+    .stage-shell.is-camera-moving #landingMap .inset-card,
+    .stage-shell.is-camera-moving #landingMap .path-region.is-hovered:not(.is-unavailable) {
+      filter: none;
+    }
+
     .stage-shell[data-phase="landing"] #landingMap .path-region.is-hovered:not(.is-unavailable) {
       stroke: #FFFFFF;
       stroke-width: 2.45px;
@@ -5030,7 +5038,7 @@
           <video class="stage-video" id="stageVideo" playsinline muted loop preload="auto"></video>
           <div class="video-glow"></div>
           <div class="map-stage" id="mapStage">
-            <svg id="landingMap" viewBox="0 0 1200 860" role="img" aria-labelledby="mapTitle mapDesc">
+            <svg id="landingMap" viewBox="0 0 1200 860" preserveAspectRatio="xMidYMin meet" role="img" aria-labelledby="mapTitle mapDesc">
               <title id="mapTitle">Carte des régions françaises</title>
               <desc id="mapDesc">Carte interactive avec régions métropolitaines et encarts ultramarins.</desc>
             </svg>
@@ -6364,6 +6372,10 @@ __CHAPTER_REGISTRY_SCRIPT__
         }
       }
 
+      function setMapCameraMoving(isMoving) {
+        stageShell.classList.toggle("is-camera-moving", isMoving);
+      }
+
       function applyCameraTransform() {
         const { cameraGroup, cameraState } = chartRefs.regionMap;
         if (!cameraGroup || !cameraState) return;
@@ -6606,6 +6618,7 @@ __CHAPTER_REGISTRY_SCRIPT__
 
       function transitionToLanding() {
         regionTransitionToken += 1;
+        setMapCameraMoving(false);
         clearFocusOverlay();
         gsap.killTweensOf(chartRefs.regionMap.cameraState);
         gsap.killTweensOf(mapStage);
@@ -6622,6 +6635,7 @@ __CHAPTER_REGISTRY_SCRIPT__
 
       function transitionToNational(fromRail) {
         regionTransitionToken += 1;
+        setMapCameraMoving(false);
         clearFocusOverlay();
         gsap.killTweensOf(chartRefs.regionMap.cameraState);
         gsap.killTweensOf(mapStage);
@@ -6671,6 +6685,7 @@ __CHAPTER_REGISTRY_SCRIPT__
 
       async function transitionToRegion(regionCode, fromRail) {
         const transitionToken = ++regionTransitionToken;
+        setMapCameraMoving(false);
         state.mapHoverLocked = true;
         stageShell.classList.add("is-map-hover-locked");
         chartRefs.regionMap.pathByCode.forEach((element) => element.classed("is-hovered", false));
@@ -6697,6 +6712,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         gsap.set(mapStage, { opacity: 1 });
         resetCamera();
 
+        setMapCameraMoving(true);
         await animateCameraToTarget(
           getRegionCameraTarget(regionCode),
           { duration: 1.2, ease: "power2.inOut" },
@@ -6717,6 +6733,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         );
         if (transitionToken !== regionTransitionToken) return;
 
+        setMapCameraMoving(false);
         clearFocusOverlay();
         applyPhase("region");
         renderHero();

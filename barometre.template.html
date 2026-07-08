@@ -6,7 +6,7 @@
   <title>Baromètre territorial Urssaf</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #154389;
@@ -3618,195 +3618,448 @@
       position: relative;
       z-index: 12;
       justify-self: end;
-      width: min(100%, 320px);
+      width: auto;
+      max-width: min(100%, 320px);
+      font-family: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     .geo-trigger {
+      --geo-trigger-ease: cubic-bezier(.16, 1, .3, 1);
       position: relative;
-      width: 100%;
-      min-height: 68px;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      grid-template-areas:
-        "kicker chevron"
-        "value chevron"
-        "meta chevron";
+      min-width: 176px;
+      max-width: 100%;
+      height: 48px;
+      display: flex;
       align-items: center;
-      column-gap: 16px;
-      padding: 12px 16px 12px 18px;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 0 8px 0 22px;
       appearance: none;
-      text-align: left;
-      color: #0B1D3A;
+      border: 1px solid rgba(255,255,255,.30);
+      border-radius: 999px;
+      outline: 0;
+      color: #FFFFFF;
       background:
-        linear-gradient(135deg, rgba(255,255,255,0.98), rgba(239,249,252,0.90)),
-        radial-gradient(circle at 94% 16%, rgba(46,191,201,0.22), transparent 30%);
-      border: 1px solid rgba(255,255,255,0.88);
-      border-radius: 18px;
+        linear-gradient(180deg, rgba(0,92,106,.10), rgba(255,255,255,.12)),
+        rgba(0,81,92,.07);
       box-shadow:
-        0 20px 44px rgba(0, 116, 188, 0.18),
-        inset 0 1px 0 rgba(255,255,255,0.86);
+        inset 0 2px 7px rgba(0,64,74,.15),
+        inset 0 -1px 0 rgba(255,255,255,.17),
+        0 1px 0 rgba(255,255,255,.12);
       cursor: pointer;
-      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+      overflow: hidden;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition:
+        transform .45s var(--geo-trigger-ease),
+        border-color .45s var(--geo-trigger-ease),
+        background .45s var(--geo-trigger-ease),
+        box-shadow .45s var(--geo-trigger-ease);
     }
 
     .geo-trigger:hover,
     .geo-trigger:focus-visible,
     .geo-control.is-open .geo-trigger {
       transform: translateY(-1px);
-      border-color: #FFFFFF;
+      border-color: rgba(255,255,255,.44);
+      background: linear-gradient(180deg, rgba(0,92,106,.06), rgba(255,255,255,.17));
       box-shadow:
-        0 24px 54px rgba(0, 116, 188, 0.24),
-        0 0 0 3px rgba(255,255,255,0.36),
-        inset 0 1px 0 rgba(255,255,255,0.96);
+        inset 0 1px 5px rgba(0,64,74,.09),
+        inset 0 -1px 0 rgba(255,255,255,.24),
+        0 10px 20px rgba(0,63,73,.09);
       outline: none;
-    }
-
-    .geo-trigger-kicker {
-      grid-area: kicker;
-      color: #0074BC;
-      font-size: 0.72rem;
-      font-weight: 800;
-      text-transform: uppercase;
     }
 
     .geo-trigger-value {
-      grid-area: value;
       min-width: 0;
-      color: #07172F;
-      font-size: clamp(1rem, 1.4vw, 1.2rem);
-      line-height: 1.1;
-      font-weight: 900;
+      max-width: 226px;
+      color: #FFFFFF;
+      font-size: 14px;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: -0.025em;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-    }
-
-    .geo-trigger-meta {
-      grid-area: meta;
-      color: #536273;
-      font-size: 0.74rem;
-      font-weight: 700;
+      text-shadow: 0 1px 0 rgba(0,80,90,.12);
+      transition:
+        color .45s var(--geo-trigger-ease),
+        transform .45s var(--geo-trigger-ease),
+        opacity .45s var(--geo-trigger-ease),
+        text-shadow .45s var(--geo-trigger-ease);
     }
 
     .geo-trigger-chevron {
-      grid-area: chevron;
       position: relative;
-      width: 34px;
-      height: 34px;
+      z-index: 2;
+      width: 32px;
+      height: 32px;
+      flex: 0 0 32px;
+      display: grid;
+      place-items: center;
       border-radius: 999px;
-      background: #0B1D3A;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.16);
+      background: rgba(255,255,255,.94);
+      box-shadow:
+        inset 0 -2px 4px rgba(46,191,201,.10),
+        0 3px 10px rgba(0,63,73,.14);
+      transition:
+        transform .52s var(--geo-trigger-ease),
+        background .52s var(--geo-trigger-ease),
+        box-shadow .52s var(--geo-trigger-ease),
+        opacity .52s var(--geo-trigger-ease);
     }
 
-    .geo-trigger-chevron::before {
-      content: "";
-      position: absolute;
-      width: 9px;
-      height: 9px;
-      top: 10px;
-      left: 12px;
-      border-right: 2px solid #FFFFFF;
-      border-bottom: 2px solid #FFFFFF;
-      transform: rotate(45deg);
-      transition: transform 180ms ease, top 180ms ease;
+    .geo-trigger-chevron svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: #2EBFC9;
+      stroke-width: 2.6px;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition:
+        transform .52s var(--geo-trigger-ease),
+        stroke .52s var(--geo-trigger-ease),
+        opacity .52s var(--geo-trigger-ease);
     }
 
-    .geo-control.is-open .geo-trigger-chevron::before {
-      top: 13px;
-      transform: rotate(225deg);
+    .geo-trigger:hover .geo-trigger-chevron,
+    .geo-control.is-open .geo-trigger-chevron {
+      transform: scale(1.035);
+    }
+
+    .geo-control.is-open .geo-trigger-chevron svg {
+      transform: rotate(180deg);
     }
 
     .geo-menu {
+      --geo-brand-teal: #00B4D8;
+      --geo-brand-dark: #0F172A;
+      --geo-text-main: #1E293B;
+      --geo-text-muted: #64748B;
+      --geo-border-color: rgba(15, 23, 42, 0.08);
+      --geo-highlight-pink: #FF007F;
+      --geo-highlight-blue: #0084FF;
+      --geo-highlight-yellow: #FFCC00;
+      --geo-highlight-purple: #7000FF;
+      --geo-shadow: 0 0 0 1px rgba(0,0,0,0.03), 0 2px 4px rgba(0,0,0,0.01), 0 12px 32px rgba(15,23,42,0.06);
+      --geo-ease-out: cubic-bezier(0.25, 1, 0.5, 1);
       position: absolute;
       z-index: 40;
-      top: calc(100% + 10px);
+      top: calc(100% + 12px);
       right: 0;
-      width: min(380px, calc(100vw - 48px));
+      width: min(820px, calc(100vw - 48px));
       max-height: min(520px, calc(100vh - 180px));
       display: none;
-      grid-template-columns: 1fr;
-      gap: 6px;
-      padding: 10px;
+      flex-direction: column;
+      gap: 28px;
+      padding: 32px;
       overflow: auto;
-      color: #07172F;
-      background: rgba(255,255,255,0.98);
-      border: 1px solid rgba(185,199,214,0.78);
-      border-radius: 18px;
-      box-shadow: 0 28px 78px rgba(7, 23, 47, 0.26);
+      color: var(--geo-text-main);
+      background: #FFFFFF;
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: 12px;
+      box-shadow: var(--geo-shadow);
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     .geo-control.is-open .geo-menu {
-      display: grid;
+      display: flex;
     }
 
-    .geo-option {
-      width: 100%;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 10px;
+    .geo-menu-action-header {
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      min-height: 48px;
-      padding: 10px 12px;
-      appearance: none;
-      text-align: left;
-      color: #0B1D3A;
+      min-height: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--geo-border-color);
+    }
+
+    .geo-control.has-return-action .geo-menu-action-header {
+      min-height: 36px;
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+
+    .geo-context-label {
+      font-family: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--geo-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .geo-return-button {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
       background: transparent;
-      border: 1px solid transparent;
-      border-radius: 12px;
+      border: 0;
+      color: var(--geo-brand-dark);
+      font-family: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
       cursor: pointer;
-      transition: background-color 150ms ease, border-color 150ms ease, transform 150ms ease;
-    }
-
-    .geo-option:hover,
-    .geo-option:focus-visible {
-      background: #F1F7FA;
-      border-color: #D9E2EC;
-      outline: none;
-      transform: translateX(1px);
-    }
-
-    .geo-option.is-selected {
-      color: #FFFFFF;
-      background:
-        linear-gradient(135deg, #0B1D3A, #164C8E);
-      border-color: #0B1D3A;
-    }
-
-    .geo-option-main {
-      min-width: 0;
-      display: grid;
-      gap: 2px;
-    }
-
-    .geo-option-title {
-      font-size: 0.94rem;
-      font-weight: 850;
-      white-space: nowrap;
       overflow: hidden;
-      text-overflow: ellipsis;
     }
 
-    .geo-option-subtitle {
-      color: #64748B;
-      font-size: 0.72rem;
-      font-weight: 750;
+    .geo-return-button::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--geo-brand-dark);
+      transform: scaleX(0);
+      transform-origin: right;
+      transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
     }
 
-    .geo-option.is-selected .geo-option-subtitle {
-      color: rgba(255,255,255,0.74);
+    .geo-return-button:hover::after,
+    .geo-return-button:focus-visible::after {
+      transform: scaleX(1);
+      transform-origin: left;
     }
 
-    .geo-option-mark {
-      width: 12px;
-      height: 12px;
-      border-radius: 999px;
-      background: #2EBFC9;
-      box-shadow: 0 0 0 4px rgba(46,191,201,0.18);
+    .geo-return-button svg {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.5px;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+
+    .geo-return-button:hover svg,
+    .geo-return-button:focus-visible svg {
+      transform: translateX(-5px);
+    }
+
+    .geo-selector-grid {
+      display: grid;
+      grid-template-columns: 160px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+      gap: 28px;
+      align-items: start;
+    }
+
+    .geo-selector-column {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .geo-column-title-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .geo-column-title {
+      font-family: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 2px 6px;
+      border-radius: 2px;
+    }
+
+    .geo-selector-column:nth-child(1) .geo-column-title { background: var(--geo-highlight-pink); color: #FFFFFF; }
+    .geo-selector-column:nth-child(2) .geo-column-title { background: var(--geo-highlight-blue); color: #FFFFFF; }
+    .geo-selector-column:nth-child(3) .geo-column-title { background: var(--geo-highlight-yellow); color: #000000; }
+    .geo-selector-column:nth-child(4) .geo-column-title { background: var(--geo-highlight-purple); color: #FFFFFF; }
+
+    .geo-column-counter {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--geo-text-muted);
+      background: rgba(15,23,42,0.04);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .geo-list-container {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      max-height: 320px;
+      overflow-y: auto;
+      padding: 0 6px 0 0;
+      margin: 0;
+    }
+
+    .geo-list-container::-webkit-scrollbar { width: 3px; }
+    .geo-list-container::-webkit-scrollbar-track { background: transparent; }
+    .geo-list-container::-webkit-scrollbar-thumb { background: rgba(15,23,42,0.12); border-radius: 10px; }
+    .geo-list-container:hover::-webkit-scrollbar-thumb { background: rgba(15,23,42,0.25); }
+
+    .geo-selector-row,
+    .geo-selector-static-row {
+      width: 100%;
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 10px;
+      color: var(--geo-text-main);
+      font-family: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      line-height: 1.25;
+      text-align: left;
+      background: transparent;
+      border: 0;
+      border-radius: 6px;
+    }
+
+    .geo-selector-row {
+      cursor: pointer;
+      transition:
+        color 0.2s var(--geo-ease-out),
+        background-color 0.2s var(--geo-ease-out),
+        transform 0.2s var(--geo-ease-out);
+    }
+
+    .geo-selector-row:hover,
+    .geo-selector-row:focus-visible {
+      color: var(--geo-brand-dark);
+      background: rgba(15,23,42,0.03);
+      outline: none;
+      transform: translateX(3px);
+    }
+
+    .geo-selector-row.is-active,
+    .geo-selector-static-row.is-active {
+      color: #000000;
+      font-weight: 700;
+    }
+
+    .geo-active-dot {
+      width: 4px;
+      height: 4px;
+      flex: 0 0 4px;
+      border-radius: 50%;
+      background: var(--geo-brand-teal);
       opacity: 0;
+      transition: opacity 0.2s var(--geo-ease-out);
     }
 
-    .geo-option.is-selected .geo-option-mark {
+    .geo-selector-row.is-active .geo-active-dot,
+    .geo-selector-static-row.is-active .geo-active-dot {
       opacity: 1;
+    }
+
+    .geo-national-card {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 16px;
+      color: var(--geo-text-main);
+      text-align: left;
+      background: #FFFFFF;
+      border: 1px solid var(--geo-border-color);
+      border-radius: 10px;
+      cursor: pointer;
+      transition:
+        border-color 0.2s var(--geo-ease-out),
+        background-color 0.2s var(--geo-ease-out);
+    }
+
+    .geo-national-card:hover,
+    .geo-national-card:focus-visible {
+      background: rgba(15,23,42,0.01);
+      border-color: var(--geo-brand-dark);
+      outline: none;
+    }
+
+    .geo-national-card.is-active {
+      border-color: rgba(15,23,42,0.18);
+    }
+
+    .geo-national-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .geo-national-desc {
+      color: var(--geo-text-muted);
+      font-size: 0.75rem;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 980px) {
+      .geo-menu {
+        width: min(680px, calc(100vw - 32px));
+      }
+
+      .geo-selector-grid {
+        grid-template-columns: 150px minmax(0, 1fr) minmax(0, 1fr);
+      }
+
+      .geo-selector-column:nth-child(4) {
+        grid-column: 2 / span 2;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .geo-menu {
+        right: 50%;
+        width: min(380px, calc(100vw - 32px));
+        padding: 22px;
+        transform: translateX(50%);
+      }
+
+      .geo-menu-action-header {
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .geo-control.has-return-action .geo-menu-action-header {
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .geo-selector-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .geo-selector-column:nth-child(4) {
+        grid-column: auto;
+      }
+
+      .geo-list-container {
+        max-height: none;
+        overflow: visible;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .geo-trigger {
+        min-width: 48px;
+        width: 48px;
+        padding: 0 8px;
+        justify-content: center;
+        gap: 0;
+      }
+
+      .geo-trigger-value {
+        display: none;
+      }
     }
 
     .switch-rail {
@@ -4698,11 +4951,13 @@
           <p id="publicationMeta">24 juin 2026 – N°189</p>
         </div>
         <div class="geo-control" id="geoControl">
-          <button class="geo-trigger" id="geoTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
-            <span class="geo-trigger-kicker">Territoire</span>
+          <button class="geo-trigger" id="geoTrigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Choisir la zone géographique, actuellement France entière">
             <span class="geo-trigger-value" id="geoCurrent">France entière</span>
-            <span class="geo-trigger-meta">France entière / Région</span>
-            <span class="geo-trigger-chevron" aria-hidden="true"></span>
+            <span class="geo-trigger-chevron" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
           </button>
           <div class="geo-menu" id="geoMenu" role="listbox" aria-label="Sélectionner une géographie"></div>
         </div>
@@ -5489,6 +5744,33 @@ __CHAPTER_REGISTRY_SCRIPT__
         return state.phase === "region" ? state.selectedRegion : "national";
       }
 
+      const SELECTOR_CURRENT_REGION_CODES = ["84", "27", "53", "24", "94", "44", "32", "11", "28", "75", "76", "52", "93"];
+      const SELECTOR_OVERSEAS_REGION_CODES = ["01", "03", "04", "02", "06"];
+      const SELECTOR_HISTORICAL_TERRITORIES = [
+        "Alsace",
+        "Aquitaine",
+        "Auvergne",
+        "Basse-Normandie",
+        "Bourgogne",
+        "Centre",
+        "Champagne-Ardenne",
+        "Franche-Comté",
+        "Haute-Normandie",
+        "Languedoc-Roussillon",
+        "Limousin",
+        "Lorraine",
+        "Midi-Pyrénées",
+        "Nord-Pas-de-Calais",
+        "Picardie",
+        "Poitou-Charentes",
+        "Rhône-Alpes",
+        "Bretagne",
+        "Corse",
+        "Île-de-France",
+        "Pays de la Loire",
+        "Provence-Alpes-Côte d'Azur",
+      ];
+
       function setGeoMenuOpen(isOpen) {
         geoControl.classList.toggle("is-open", isOpen);
         geoTrigger.setAttribute("aria-expanded", String(isOpen));
@@ -5496,41 +5778,137 @@ __CHAPTER_REGISTRY_SCRIPT__
 
       function renderGeographySelector() {
         const activeKey = selectedGeoKey();
-        geoCurrent.textContent = activeKey === "national" ? "France entière" : currentRegion().name;
+        const activeLabel = activeKey === "national" ? "France entière" : currentRegion().name;
+        const hasReturnAction = state.phase !== "landing";
+        geoCurrent.textContent = activeLabel;
+        geoTrigger.setAttribute("aria-label", `Choisir la zone géographique, actuellement ${activeLabel}`);
+        geoControl.classList.toggle("has-return-action", hasReturnAction);
         geoMenu.innerHTML = "";
 
-        const options = [
-          { key: "national", title: "France entière", subtitle: "Vue nationale" },
-          ...DATA.regions.map((region) => ({
-            key: region.code,
-            title: region.name,
-            subtitle: region.group === "dom" ? "Outre-mer" : "Région",
-          })),
-        ];
+        const header = document.createElement("div");
+        header.className = "geo-menu-action-header";
+        const contextLabel = document.createElement("span");
+        contextLabel.className = "geo-context-label";
+        contextLabel.textContent = "Sélection du Territoire";
+        header.appendChild(contextLabel);
+        if (hasReturnAction) {
+          const returnButton = document.createElement("button");
+          returnButton.type = "button";
+          returnButton.className = "geo-return-button";
+          returnButton.innerHTML = `
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span>Retour à la carte</span>
+          `;
+          returnButton.addEventListener("click", () => {
+            setGeoMenuOpen(false);
+            transitionToLanding();
+          });
+          header.appendChild(returnButton);
+        }
+        geoMenu.appendChild(header);
 
-        options.forEach((option) => {
+        const grid = document.createElement("div");
+        grid.className = "geo-selector-grid";
+        geoMenu.appendChild(grid);
+
+        const createColumn = (title, counterText = null) => {
+          const column = document.createElement("div");
+          column.className = "geo-selector-column";
+          const titleBar = document.createElement("div");
+          titleBar.className = "geo-column-title-bar";
+          const titleElement = document.createElement("span");
+          titleElement.className = "geo-column-title";
+          titleElement.textContent = title;
+          titleBar.appendChild(titleElement);
+          if (counterText != null) {
+            const counter = document.createElement("span");
+            counter.className = "geo-column-counter";
+            counter.textContent = String(counterText);
+            titleBar.appendChild(counter);
+          }
+          column.appendChild(titleBar);
+          grid.appendChild(column);
+          return column;
+        };
+
+        const createActiveDot = () => {
+          const dot = document.createElement("span");
+          dot.className = "geo-active-dot";
+          dot.setAttribute("aria-hidden", "true");
+          return dot;
+        };
+
+        const nationalColumn = createColumn("National");
+        const nationalButton = document.createElement("button");
+        nationalButton.type = "button";
+        nationalButton.className = `geo-national-card${activeKey === "national" ? " is-active" : ""}`;
+        nationalButton.setAttribute("role", "option");
+        nationalButton.setAttribute("aria-selected", String(activeKey === "national"));
+        nationalButton.innerHTML = `
+          <span class="geo-national-title">France entière</span>
+          <span class="geo-national-desc">Vue consolidée sur tout le territoire.</span>
+        `;
+        nationalButton.addEventListener("click", () => {
+          setGeoMenuOpen(false);
+          transitionToNational(true);
+        });
+        nationalColumn.appendChild(nationalButton);
+
+        const createList = (column) => {
+          const list = document.createElement("ul");
+          list.className = "geo-list-container";
+          column.appendChild(list);
+          return list;
+        };
+
+        const appendRegionRow = (list, region) => {
+          if (!region) return;
+          const item = document.createElement("li");
           const button = document.createElement("button");
           button.type = "button";
-          button.className = `geo-option${option.key === activeKey ? " is-selected" : ""}`;
+          button.className = `geo-selector-row${region.code === activeKey ? " is-active" : ""}`;
           button.setAttribute("role", "option");
-          button.setAttribute("aria-selected", String(option.key === activeKey));
-          button.innerHTML = `
-            <span class="geo-option-main">
-              <span class="geo-option-title">${option.title}</span>
-              <span class="geo-option-subtitle">${option.subtitle}</span>
-            </span>
-            <span class="geo-option-mark" aria-hidden="true"></span>
-          `;
+          button.setAttribute("aria-selected", String(region.code === activeKey));
+          const label = document.createElement("span");
+          label.textContent = region.name;
+          button.appendChild(label);
+          button.appendChild(createActiveDot());
           button.addEventListener("click", () => {
             setGeoMenuOpen(false);
-            if (option.key === "national") {
-              transitionToNational(true);
-            } else {
-              transitionToRegion(option.key, true);
-            }
+            transitionToRegion(region.code, true);
           });
-          geoMenu.appendChild(button);
-        });
+          item.appendChild(button);
+          list.appendChild(item);
+        };
+
+        const appendHistoricalRow = (list, labelText) => {
+          const item = document.createElement("li");
+          const row = document.createElement("div");
+          row.className = "geo-selector-static-row";
+          row.setAttribute("role", "option");
+          row.setAttribute("aria-selected", "false");
+          row.setAttribute("aria-disabled", "true");
+          const label = document.createElement("span");
+          label.textContent = labelText;
+          row.appendChild(label);
+          row.appendChild(createActiveDot());
+          item.appendChild(row);
+          list.appendChild(item);
+        };
+
+        const currentColumn = createColumn("Actuelles", 13);
+        const currentList = createList(currentColumn);
+        SELECTOR_CURRENT_REGION_CODES.forEach((code) => appendRegionRow(currentList, regionsByCode.get(code)));
+
+        const historicalColumn = createColumn("Anciennes", 22);
+        const historicalList = createList(historicalColumn);
+        SELECTOR_HISTORICAL_TERRITORIES.forEach((territory) => appendHistoricalRow(historicalList, territory));
+
+        const overseasColumn = createColumn("Outre-mer", 5);
+        const overseasList = createList(overseasColumn);
+        SELECTOR_OVERSEAS_REGION_CODES.forEach((code) => appendRegionRow(overseasList, regionsByCode.get(code)));
       }
 
       function renderHero() {

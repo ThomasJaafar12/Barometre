@@ -305,6 +305,21 @@
       height: 100%;
       display: block;
     }
+    .landing-map-stack {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    .landing-map-stack > svg {
+      position: absolute;
+      inset: 0;
+    }
+    #landingMapShadow {
+      pointer-events: none;
+    }
+    #landingMap {
+      z-index: 1;
+    }
     .map-stage.is-muted {
       opacity: 0.24;
     }
@@ -1603,17 +1618,21 @@
 
     .tooltip {
       position: fixed;
+      left: 0;
+      top: 0;
       z-index: 12;
       padding: 12px 14px;
       border-radius: 18px;
       background: var(--panel-strong);
       border: 1px solid rgba(255,255,255,0.12);
       box-shadow: 0 22px 48px rgba(0,0,0,0.34);
-      backdrop-filter: blur(16px);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
       pointer-events: none;
       opacity: 0;
-      transform: translate(-50%, calc(-100% - 10px));
+      transform: translate3d(0, 0, 0) translate(-50%, calc(-100% - 10px));
       transition: opacity 160ms ease;
+      will-change: transform, opacity;
       max-width: 280px;
     }
     .tooltip.is-visible {
@@ -1632,7 +1651,7 @@
     .path-department {
       stroke: rgba(255,255,255,0.16);
       stroke-width: 1.3px;
-      transition: fill 220ms ease, opacity 220ms ease, stroke 220ms ease, stroke-width 220ms ease, filter 220ms ease;
+      transition: fill 220ms ease, opacity 220ms ease, stroke 220ms ease, stroke-width 220ms ease;
       cursor: pointer;
     }
     .path-region.is-unavailable,
@@ -1648,9 +1667,6 @@
       fill: var(--region-hover-fill, var(--accent)) !important;
       stroke: rgba(255,255,255,0.92);
       stroke-width: 2.35px;
-      filter:
-        drop-shadow(0 16px 24px rgba(11,29,58,0.16))
-        drop-shadow(0 0 18px var(--region-hover-shadow, var(--accent-glow)));
     }
     .stage-shell.is-map-hover-locked #landingMap .path-region.is-hovered {
       fill: var(--map-idle) !important;
@@ -3353,13 +3369,31 @@
       stroke-width: 1.15px;
     }
 
-    .stage-shell[data-phase="landing"] #landingMap .feature-layer {
+    #landingMapShadow .map-static-shadow-layer,
+    #landingMap .map-hover-shadow-layer {
+      pointer-events: none;
+    }
+
+    #landingMapShadow .map-static-shadow-shape {
+      fill: var(--landing-map-fill);
+      stroke: var(--landing-map-stroke);
+    }
+
+    .stage-shell:not([data-phase="landing"]) #landingMapShadow {
+      display: none;
+    }
+
+    .stage-shell[data-phase="landing"] #landingMapShadow .map-static-shadow-layer {
       filter: var(--landing-map-underlay);
     }
 
-    .stage-shell[data-phase="landing"] #landingMap .mainland-layer,
-    .stage-shell[data-phase="landing"] #landingMap .inset-path-layer {
+    .stage-shell[data-phase="landing"] #landingMapShadow .map-static-mainland-shadow,
+    .stage-shell[data-phase="landing"] #landingMapShadow .map-static-inset-path-shadow {
       filter: var(--landing-map-shadow);
+    }
+
+    .stage-shell[data-phase="landing"] #landingMapShadow .map-static-shadow-shape {
+      stroke-width: 1.42px;
     }
 
     .stage-shell[data-phase="landing"] #landingMap .path-region:not(.is-unavailable):not(.is-hovered):not(.is-selected) {
@@ -3379,23 +3413,54 @@
       fill: rgba(255,255,255,0.92);
       stroke: var(--landing-map-inset-stroke);
       stroke-width: 1.45px;
+    }
+
+    .stage-shell[data-phase="landing"] #landingMapShadow .map-static-inset-card-shadow {
+      fill: rgba(255,255,255,0.92);
+      stroke: var(--landing-map-inset-stroke);
+      stroke-width: 1.45px;
       filter: var(--landing-map-inset-shadow);
     }
 
-    .stage-shell.is-camera-moving #landingMap .feature-layer,
-    .stage-shell.is-camera-moving #landingMap .mainland-layer,
-    .stage-shell.is-camera-moving #landingMap .inset-path-layer,
-    .stage-shell.is-camera-moving #landingMap .inset-card,
-    .stage-shell.is-camera-moving #landingMap .path-region.is-hovered:not(.is-unavailable) {
-      filter: none;
+    .stage-shell.is-camera-moving #landingMapShadow,
+    .stage-shell.is-camera-moving #landingMap .map-hover-shadow-layer {
+      display: none;
     }
 
     .stage-shell[data-phase="landing"] #landingMap .path-region.is-hovered:not(.is-unavailable) {
       stroke: #FFFFFF;
       stroke-width: 2.45px;
-      filter:
-        drop-shadow(0 18px 28px rgba(11,29,58,0.18))
-        drop-shadow(0 0 20px var(--region-hover-shadow, rgba(14,165,168,0.28)));
+    }
+
+    .stage-shell[data-phase="landing"] #landingMap .map-hover-effect-path {
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .stage-shell[data-phase="landing"] #landingMap .map-hover-depth-far {
+      fill: rgba(11,29,58,0.055);
+      stroke: rgba(11,29,58,0.055);
+      stroke-width: 18px;
+    }
+
+    .stage-shell[data-phase="landing"] #landingMap .map-hover-depth-near {
+      fill: rgba(11,29,58,0.075);
+      stroke: rgba(11,29,58,0.075);
+      stroke-width: 8px;
+    }
+
+    .stage-shell[data-phase="landing"] #landingMap .map-hover-glow-outer {
+      fill: none;
+      stroke: var(--region-hover-shadow, rgba(14,165,168,0.28));
+      stroke-width: 32px;
+      opacity: 0.24;
+    }
+
+    .stage-shell[data-phase="landing"] #landingMap .map-hover-glow-inner {
+      fill: none;
+      stroke: var(--region-hover-shadow, rgba(14,165,168,0.28));
+      stroke-width: 16px;
+      opacity: 0.42;
     }
     .stage-shell.is-map-hover-locked #landingMap .path-region.is-hovered {
       fill: var(--landing-map-fill, var(--map-idle)) !important;
@@ -3523,6 +3588,12 @@
       background: rgba(255,255,255,0.98);
       border-color: var(--product-line-strong);
       box-shadow: 0 18px 46px rgba(11,29,58,0.18);
+    }
+
+    .tooltip {
+      background: #FFFFFF;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
     }
 
     .deck-control-bar,
@@ -5035,10 +5106,13 @@
           <video class="stage-video" id="stageVideo" playsinline muted loop preload="auto"></video>
           <div class="video-glow"></div>
           <div class="map-stage" id="mapStage">
-            <svg id="landingMap" viewBox="0 0 1200 860" preserveAspectRatio="xMidYMin meet" role="img" aria-labelledby="mapTitle mapDesc">
-              <title id="mapTitle">Carte des régions françaises</title>
-              <desc id="mapDesc">Carte interactive avec régions métropolitaines et encarts ultramarins.</desc>
-            </svg>
+            <div class="landing-map-stack">
+              <svg id="landingMapShadow" viewBox="0 0 1200 860" preserveAspectRatio="xMidYMin meet" aria-hidden="true" focusable="false"></svg>
+              <svg id="landingMap" viewBox="0 0 1200 860" preserveAspectRatio="xMidYMin meet" role="img" aria-labelledby="mapTitle mapDesc">
+                <title id="mapTitle">Carte des régions françaises</title>
+                <desc id="mapDesc">Carte interactive avec régions métropolitaines et encarts ultramarins.</desc>
+              </svg>
+            </div>
           </div>
         </div>
 
@@ -5137,6 +5211,7 @@ __CHAPTER_SECTIONS_HTML__
       const tooltip = document.getElementById("tooltip");
       const tooltipLabel = document.getElementById("tooltipLabel");
       const tooltipValue = document.getElementById("tooltipValue");
+      const landingMapShadowSvg = d3.select("#landingMapShadow");
       const landingMapSvg = d3.select("#landingMap");
 
       const state = {
@@ -6085,22 +6160,65 @@ __CHAPTER_REGISTRY_SCRIPT__
       const displayRegionsGeojson = { ...DATA.geography.regions, features: displayRegionFeatures };
       const displayRegionFeatureByCode = new Map(displayRegionFeatures.map((feature) => [feature.properties.code, feature]));
 
+      let tooltipMoveFrame = null;
+      let tooltipClientX = 0;
+      let tooltipClientY = 0;
+
+      function applyTooltipPosition() {
+        tooltipMoveFrame = null;
+        tooltip.style.transform = `translate3d(${tooltipClientX}px, ${tooltipClientY}px, 0) translate(-50%, calc(-100% - 10px))`;
+      }
+
+      function moveTooltip(event) {
+        tooltipClientX = event.clientX;
+        tooltipClientY = event.clientY;
+        if (tooltipMoveFrame != null) return;
+        tooltipMoveFrame = requestAnimationFrame(applyTooltipPosition);
+      }
+
       function showTooltip(event, label, value) {
-        tooltipLabel.textContent = label;
-        tooltipValue.textContent = value;
-        tooltip.style.left = `${event.clientX}px`;
-        tooltip.style.top = `${event.clientY}px`;
+        if (tooltipMoveFrame != null) {
+          cancelAnimationFrame(tooltipMoveFrame);
+          tooltipMoveFrame = null;
+        }
+        tooltipClientX = event.clientX;
+        tooltipClientY = event.clientY;
+        applyTooltipPosition();
+        if (tooltipLabel.textContent !== label) tooltipLabel.textContent = label;
+        if (tooltipValue.textContent !== value) tooltipValue.textContent = value;
         tooltip.classList.add("is-visible");
       }
 
       function hideTooltip() {
+        if (tooltipMoveFrame != null) {
+          cancelAnimationFrame(tooltipMoveFrame);
+          tooltipMoveFrame = null;
+        }
         tooltip.classList.remove("is-visible");
       }
 
       function drawCompositeMap(selection, featureCollection, config) {
         selection.selectAll("*").remove();
+        if (config.shadowSelection) config.shadowSelection.selectAll("*").remove();
+        const staticShadowRoot = config.isolateShadows && config.shadowSelection
+          ? config.shadowSelection.append("g").attr("class", "map-root")
+          : null;
+        const staticShadowLayer = staticShadowRoot
+          ? staticShadowRoot.append("g").attr("class", "map-static-shadow-layer").attr("aria-hidden", "true")
+          : null;
         const root = selection.append("g").attr("class", "map-root");
         const cameraGroup = root.append("g").attr("class", "camera-group");
+        const hoverShadowLayer = config.isolateShadows
+          ? cameraGroup.append("g").attr("class", "map-hover-shadow-layer").attr("aria-hidden", "true")
+          : null;
+        const hoverEffectPaths = hoverShadowLayer
+          ? [
+              hoverShadowLayer.append("path").attr("class", "map-hover-effect-path map-hover-depth-far").attr("transform", "translate(0 12)").attr("display", "none"),
+              hoverShadowLayer.append("path").attr("class", "map-hover-effect-path map-hover-depth-near").attr("transform", "translate(0 7)").attr("display", "none"),
+              hoverShadowLayer.append("path").attr("class", "map-hover-effect-path map-hover-glow-outer").attr("display", "none"),
+              hoverShadowLayer.append("path").attr("class", "map-hover-effect-path map-hover-glow-inner").attr("display", "none"),
+            ]
+          : [];
         const featureLayer = cameraGroup.append("g").attr("class", "feature-layer");
         const focusGroup = cameraGroup.append("g").attr("class", "focus-layer");
         const features = featureCollection.features;
@@ -6113,23 +6231,90 @@ __CHAPTER_REGISTRY_SCRIPT__
         const pathByCode = new Map();
         const labelByCode = new Map();
         const pathGeneratorByCode = new Map();
+        let hoveredElement = null;
+        const clearHoverShadow = () => {
+          hoverEffectPaths.forEach((effectPath) => effectPath.attr("display", "none").attr("d", null));
+        };
         const clearPathHover = () => {
           if (!config.hoverClass) return;
-          pathByCode.forEach((pathElement) => pathElement.classed(config.hoverClass, false));
+          if (hoveredElement) hoveredElement.classed(config.hoverClass, false);
+          hoveredElement = null;
+          clearHoverShadow();
         };
         const canUseHoverEffect = () => !config.canHover || config.canHover();
         const canShowPathTooltip = () => !config.canShowTooltip || config.canShowTooltip();
-        const setPathHover = (element, enabled) => {
+        const setPathHover = (element, datum, pathGenerator, enabled) => {
           if (!config.hoverClass) return;
           if (enabled && !canUseHoverEffect()) {
             clearPathHover();
             return;
           }
           if (enabled) {
-            clearPathHover();
+            if (hoveredElement !== element) clearPathHover();
+            hoveredElement = element;
+            element.classed(config.hoverClass, true);
+            if (hoverEffectPaths.length) {
+              const hoverEffect = config.hoverEffectResolver ? config.hoverEffectResolver(datum) : null;
+              if (hoverEffect) {
+                const pathData = pathGenerator(datum);
+                hoverEffectPaths.forEach((effectPath) => {
+                  effectPath
+                    .attr("d", pathData)
+                    .style("--region-hover-shadow", hoverEffect.shadow)
+                    .attr("display", null);
+                });
+              } else {
+                clearHoverShadow();
+              }
+            }
+            return;
           }
-          element.classed(config.hoverClass, enabled);
+          if (hoveredElement === element) clearPathHover();
         };
+        const bindPathInteractions = (element, key, pathGenerator) => {
+          element
+            .on("mouseenter", (event, datum) => {
+              if (!canUseHoverEffect()) {
+                clearPathHover();
+              } else {
+                setPathHover(element, datum, pathGenerator, true);
+              }
+              if (!canShowPathTooltip()) {
+                hideTooltip();
+                return;
+              }
+              const tooltipText = config.tooltipResolver(datum);
+              showTooltip(event, tooltipText.label, tooltipText.value);
+            })
+            .on("mousemove", (event) => {
+              if (!canUseHoverEffect()) clearPathHover();
+              if (!canShowPathTooltip()) {
+                hideTooltip();
+                return;
+              }
+              moveTooltip(event);
+            })
+            .on("mouseleave", (event, datum) => {
+              setPathHover(element, datum, pathGenerator, false);
+              hideTooltip();
+            });
+          if (config.clickable) {
+            element.on("click", () => {
+              clearPathHover();
+              hideTooltip();
+              config.onClick(key);
+            });
+          }
+        };
+
+        if (staticShadowLayer) {
+          const mainlandShadowGroup = staticShadowLayer.append("g").attr("class", "map-static-mainland-shadow");
+          mainlandFeatures
+            .filter((feature) => !config.shadowFeatureFilter || config.shadowFeatureFilter(feature))
+            .forEach((feature) => {
+              mainlandShadowGroup.append("path").datum(feature).attr("class", "map-static-shadow-shape").attr("d", path);
+            });
+        }
 
         const mainlandGroup = featureLayer.append("g").attr("class", "mainland-layer");
         const labelLayer = config.showMainlandLabels ? featureLayer.append("g").attr("class", "mainland-label-layer") : null;
@@ -6139,44 +6324,9 @@ __CHAPTER_REGISTRY_SCRIPT__
             .datum(feature)
             .attr("class", config.className(feature))
             .attr("d", path)
-              .attr("fill", config.fillResolver(feature))
-              .attr("data-code", key)
-              .on("mouseenter", (event, datum) => {
-                if (!canUseHoverEffect()) {
-                  clearPathHover();
-                } else {
-                  setPathHover(element, true);
-                  element.raise();
-                }
-                if (!canShowPathTooltip()) {
-                  hideTooltip();
-                  return;
-                }
-                const tooltipText = config.tooltipResolver(datum);
-                showTooltip(event, tooltipText.label, tooltipText.value);
-              })
-              .on("mousemove", (event, datum) => {
-                if (!canUseHoverEffect()) {
-                  clearPathHover();
-                }
-                if (!canShowPathTooltip()) {
-                  hideTooltip();
-                  return;
-                }
-                const tooltipText = config.tooltipResolver(datum);
-                showTooltip(event, tooltipText.label, tooltipText.value);
-              })
-              .on("mouseleave", () => {
-                setPathHover(element, false);
-                hideTooltip();
-              });
-          if (config.clickable) {
-            element.on("click", () => {
-              clearPathHover();
-              hideTooltip();
-              config.onClick(key);
-            });
-          }
+            .attr("fill", config.fillResolver(feature))
+            .attr("data-code", key);
+          bindPathInteractions(element, key, path);
           pathByCode.set(key, element);
           pathGeneratorByCode.set(key, path);
         });
@@ -6211,15 +6361,31 @@ __CHAPTER_REGISTRY_SCRIPT__
 
         Object.entries(mapLayout.domInsets).forEach(([regionCode, inset]) => {
           const insetFeatures = features.filter((feature) => config.regionResolver(feature) === regionCode);
-          const group = featureLayer.append("g").attr("class", `inset inset-${regionCode}`);
-          group.append("rect").attr("class", "inset-card").attr("x", inset.x).attr("y", inset.y).attr("width", inset.width).attr("height", inset.height).attr("rx", 24);
-          const pathGroup = group.append("g").attr("class", "inset-path-layer");
-          group.append("text").attr("class", "inset-label").attr("x", inset.x + 16).attr("y", inset.y + 22).text(regionsByCode.get(regionCode).name);
           const insetProjection = d3.geoMercator().fitExtent(
             [[inset.x + 18, inset.y + 34], [inset.x + inset.width - 18, inset.y + inset.height - 18]],
             { type: "FeatureCollection", features: insetFeatures },
           );
           const insetPath = d3.geoPath(insetProjection);
+          if (staticShadowLayer) {
+            const insetShadowGroup = staticShadowLayer.append("g").attr("class", `map-static-inset-shadow inset-${regionCode}`);
+            insetShadowGroup.append("rect")
+              .attr("class", "map-static-inset-card-shadow")
+              .attr("x", inset.x)
+              .attr("y", inset.y)
+              .attr("width", inset.width)
+              .attr("height", inset.height)
+              .attr("rx", 24);
+            const insetPathShadowGroup = insetShadowGroup.append("g").attr("class", "map-static-inset-path-shadow");
+            insetFeatures
+              .filter((feature) => !config.shadowFeatureFilter || config.shadowFeatureFilter(feature))
+              .forEach((feature) => {
+                insetPathShadowGroup.append("path").datum(feature).attr("class", "map-static-shadow-shape").attr("d", insetPath);
+              });
+          }
+          const group = featureLayer.append("g").attr("class", `inset inset-${regionCode}`);
+          group.append("rect").attr("class", "inset-card").attr("x", inset.x).attr("y", inset.y).attr("width", inset.width).attr("height", inset.height).attr("rx", 24);
+          const pathGroup = group.append("g").attr("class", "inset-path-layer");
+          group.append("text").attr("class", "inset-label").attr("x", inset.x + 16).attr("y", inset.y + 22).text(regionsByCode.get(regionCode).name);
           insetFeatures.forEach((feature) => {
             const key = config.keyResolver(feature);
             const element = pathGroup.append("path")
@@ -6227,43 +6393,8 @@ __CHAPTER_REGISTRY_SCRIPT__
               .attr("class", config.className(feature))
               .attr("d", insetPath)
               .attr("fill", config.fillResolver(feature))
-              .attr("data-code", key)
-              .on("mouseenter", (event, datum) => {
-                if (!canUseHoverEffect()) {
-                  clearPathHover();
-                } else {
-                  setPathHover(element, true);
-                  element.raise();
-                }
-                if (!canShowPathTooltip()) {
-                  hideTooltip();
-                  return;
-                }
-                const tooltipText = config.tooltipResolver(datum);
-                showTooltip(event, tooltipText.label, tooltipText.value);
-              })
-              .on("mousemove", (event, datum) => {
-                if (!canUseHoverEffect()) {
-                  clearPathHover();
-                }
-                if (!canShowPathTooltip()) {
-                  hideTooltip();
-                  return;
-                }
-                const tooltipText = config.tooltipResolver(datum);
-                showTooltip(event, tooltipText.label, tooltipText.value);
-              })
-              .on("mouseleave", () => {
-                setPathHover(element, false);
-                hideTooltip();
-              });
-            if (config.clickable) {
-              element.on("click", () => {
-                clearPathHover();
-                hideTooltip();
-                config.onClick(key);
-              });
-            }
+              .attr("data-code", key);
+            bindPathInteractions(element, key, insetPath);
             pathByCode.set(key, element);
             pathGeneratorByCode.set(key, insetPath);
           });
@@ -6273,6 +6404,8 @@ __CHAPTER_REGISTRY_SCRIPT__
           rootGroup: root,
           cameraGroup,
           cameraState: { scale: 1, x: 0, y: 0 },
+          staticShadowLayer,
+          hoverEffectPaths,
           featureLayer,
           focusGroup,
           pathByCode,
@@ -6291,6 +6424,15 @@ __CHAPTER_REGISTRY_SCRIPT__
           clickable: true,
           showMainlandLabels: true,
           hoverClass: "is-hovered",
+          isolateShadows: state.phase === "landing",
+          shadowSelection: landingMapShadowSvg,
+          shadowFeatureFilter: (feature) => regionsByCode.get(feature.properties.code).hasData,
+          hoverEffectResolver: (feature) => {
+            const region = regionsByCode.get(feature.properties.code);
+            if (!region.hasData) return null;
+            const theme = themeForRegion(feature.properties.code);
+            return { shadow: colorWithAlpha(theme.glow) };
+          },
           canHover: () => state.phase === "landing" && !state.mapHoverLocked,
           canShowTooltip: () => !state.mapHoverLocked,
           keyResolver: (feature) => feature.properties.code,

@@ -1,7 +1,5 @@
 ﻿from __future__ import annotations
 
-from datetime import UTC, datetime
-
 from .chapters import build_chapter_fragments
 from .config import (
     DOM_REGION_CODES,
@@ -25,7 +23,6 @@ def build_payloads() -> tuple[dict, dict]:
     color_system = build_color_system()
     boot_payload = {
         "meta": {
-            "generatedAt": datetime.now(UTC).isoformat(),
             "publicationDateLabel": PUBLICATION_DATE_LABEL,
             "publicationIssueNumber": PUBLICATION_ISSUE_NUMBER,
             "mapLayout": MAP_LAYOUT,

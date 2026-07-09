@@ -99,5 +99,5 @@ def dump_json(value: Any) -> str:
 
 def gzip_base64_json(value: Any) -> str:
     payload = dump_json(value).encode("utf-8")
-    compressed = gzip.compress(payload, compresslevel=9)
+    compressed = gzip.compress(payload, compresslevel=9, mtime=0)
     return base64.b64encode(compressed).decode("ascii")

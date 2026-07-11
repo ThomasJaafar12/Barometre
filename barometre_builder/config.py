@@ -14,6 +14,8 @@ LOGO_PATH = ASSETS_DIR / "logo" / "Urssaf_blanc.png"
 REGION_GEOJSON_PATH = GEO_DIR / "france_regions_source.geojson"
 GEO_METADATA_PATH = GEO_DIR / "contours_administratifs_dataset.json"
 DEPARTMENT_GEOJSON_CACHE = GEO_DIR / "departements-50m.geojson"
+DERIVED_CACHE_DIR = ROOT / ".cache" / "barometre"
+GEOGRAPHY_CACHE_PATH = DERIVED_CACHE_DIR / "geographies.json"
 OUTPUT_HTML_PATH = ROOT / "index.html"
 TEMPLATE_PATH = ROOT / "barometre.template.html"
 PUBLICATION_DATE_LABEL = os.getenv("BAROMETRE_PUBLICATION_DATE", "24 juin 2026")
@@ -62,3 +64,7 @@ class GeometryOptimization:
 
 
 GEOMETRY_OPTIMIZATION = GeometryOptimization()
+
+SECTOR_DISPLAY_START_DATE = "2014-01-01"
+PAYROLL_WINDOW_MONTHS = 48
+RAR_WINDOW_MONTHS = 36

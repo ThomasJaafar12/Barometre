@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Baromètre territorial Urssaf</title>
+  <link rel="icon" href="data:,">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -5154,7 +5155,9 @@ __CHAPTER_SECTIONS_HTML__
   <script>
     (() => {
       const DATA = window.BAROMETRE_BOOT;
-      const DEFERRED_GZIP = window.BAROMETRE_DEFERRED_GZIP;
+      let deferredGzip = window.BAROMETRE_DEFERRED_GZIP;
+      window.BAROMETRE_BOOT = null;
+      window.BAROMETRE_DEFERRED_GZIP = null;
       const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const regionOrder = DATA.meta.experienceRegionCodes;
       const domCodes = new Set(DATA.meta.domRegionCodes);
@@ -5363,10 +5366,6 @@ __CHAPTER_REGISTRY_SCRIPT__
 
       function scopeLabel() {
         return state.phase === "national" ? "France entière" : currentRegion().name;
-      }
-
-      function headerScopeLabel() {
-        return state.phase === "region" ? currentRegion().name : "France entière";
       }
 
       const highlightTerms = [
@@ -6625,8 +6624,12 @@ __CHAPTER_REGISTRY_SCRIPT__
       }
 
       async function parseDeferredData() {
-        const binary = atob(DEFERRED_GZIP);
-        const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+        const binary = atob(deferredGzip);
+        deferredGzip = null;
+        const bytes = new Uint8Array(binary.length);
+        for (let index = 0; index < binary.length; index += 1) {
+          bytes[index] = binary.charCodeAt(index);
+        }
         const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
         return JSON.parse(await new Response(stream).text());
       }
@@ -6645,6 +6648,24 @@ __CHAPTER_REGISTRY_SCRIPT__
           return DATA;
         });
         return deferredDataPromise;
+      }
+
+      function scheduleDeferredPreload() {
+        const preload = () => {
+          ensureDeferredData().catch((error) => console.error("Deferred payload error", error));
+        };
+        const schedule = () => {
+          if ("requestIdleCallback" in window) {
+            window.requestIdleCallback(preload, { timeout: 1500 });
+          } else {
+            window.setTimeout(preload, 250);
+          }
+        };
+        if (document.readyState === "complete") {
+          schedule();
+        } else {
+          window.addEventListener("load", schedule, { once: true });
+        }
       }
 
       function resetCamera() {
@@ -6841,6 +6862,7 @@ __CHAPTER_REGISTRY_SCRIPT__
 
         if (REDUCED_MOTION || fromRail || state.phase !== "landing") {
           applyPhase("region");
+          renderHero();
           setMapStageMode("region");
           revealContent();
           scheduleStoryRender();
@@ -6992,7 +7014,7 @@ __CHAPTER_MODULES_SCRIPT__
         renderHeaderActions();
         stageVideo.muted = true;
         setMapStageMode("landing");
-        ensureDeferredData().catch((error) => console.error("Deferred payload error", error));
+        scheduleDeferredPreload();
         if (document.readyState === "complete") {
           scheduleScrollTriggerRefresh();
         } else {

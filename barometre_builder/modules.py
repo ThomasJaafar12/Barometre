@@ -3,7 +3,14 @@
 from collections import defaultdict
 from typing import Any
 
-from .config import DATA_DIR, EXPERIENCE_REGION_CODES, MP4_DIR
+from .config import (
+    DATA_DIR,
+    EXPERIENCE_REGION_CODES,
+    MP4_DIR,
+    PAYROLL_WINDOW_MONTHS,
+    RAR_WINDOW_MONTHS,
+    SECTOR_DISPLAY_START_DATE,
+)
 from .utils import (
     build_slug_index,
     compact_number,
@@ -95,7 +102,11 @@ def build_sector_module(
         latest_scope_date = None
 
         for series_key, points_by_date in series_map.items():
-            points = build_series(points_by_date)
+            points = [
+                point
+                for point in build_series(points_by_date)
+                if point["date"] >= SECTOR_DISPLAY_START_DATE
+            ]
             if not points:
                 continue
             latest_point = points[-1]
@@ -245,7 +256,7 @@ def build_sector_module(
     return (
         {
             "regional": {
-                "displayStartDate": "2014-01-01",
+                "displayStartDate": SECTOR_DISPLAY_START_DATE,
                 "metrics": [
                     {"key": "effectifs_cvs", "label": "Effectifs", "format": "count"},
                     {"key": "masse_cvs", "label": "Masse salariale", "format": "currency"},
@@ -319,8 +330,14 @@ def build_payroll_module(rows: list[dict[str, str]], region_meta: dict[str, dict
     national_latest = next(point for point in national_points if point["date"] == latest_date)
     return (
         {
-            "regions": {code: {"latestDate": latest_date, "points": sorted(points, key=lambda point: point["date"])} for code, points in region_series.items()},
-            "national": {"latestDate": latest_date, "points": national_points},
+            "regions": {
+                code: {
+                    "latestDate": latest_date,
+                    "points": sorted(points, key=lambda point: point["date"])[-PAYROLL_WINDOW_MONTHS:],
+                }
+                for code, points in region_series.items()
+            },
+            "national": {"latestDate": latest_date, "points": national_points[-PAYROLL_WINDOW_MONTHS:]},
         },
         {
             "regions": {code: {"date": point["date"], "value": point["payroll"], "yearlyChange": point["yearlyChange"]} for code, point in latest_regions.items()},
@@ -462,7 +479,7 @@ def build_rar_module(rows: list[dict[str, str]], region_meta: dict[str, dict[str
                 {"key": "rar_mois_suivant", "label": "Mois suivant", "format": "percent"},
                 {"key": "rar_90", "label": "+90 jours", "format": "percent"},
             ],
-            "regions": {code: {"points": points} for code, points in series.items()},
+            "regions": {code: {"points": points[-RAR_WINDOW_MONTHS:]} for code, points in series.items()},
             "national": {"latestByMetric": latest_by_metric},
         },
         {

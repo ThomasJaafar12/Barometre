@@ -5,3 +5,4 @@ __pycache__/builder.cpython-314.pyc
 *.pyc3
 
 dist/
+.cache/

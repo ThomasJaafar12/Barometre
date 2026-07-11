@@ -13,11 +13,9 @@ class ChapterFragment:
     key: str
     section_id: str
     number: str
-    rail_kicker: str
     label: str
     nav_label: str
     rail_meta: str
-    section_kicker: str
     section_title: str
     section_meta: str
     tone: int
@@ -31,11 +29,9 @@ CHAPTERS: tuple[ChapterFragment, ...] = (
         key="sector",
         section_id="module-sector",
         number="01",
-        rail_kicker="lecture",
         label="Conjoncture de l'emploi",
         nav_label="Conjoncture",
         rail_meta="emploi, masse salariale, lecture territoriale",
-        section_kicker="01 / CONJONCTURE DE L'EMPLOI",
         section_title="Conjoncture de l'emploi.",
         section_meta="",
         tone=1,
@@ -47,11 +43,9 @@ CHAPTERS: tuple[ChapterFragment, ...] = (
         key="payroll",
         section_id="module-payroll",
         number="02",
-        rail_kicker="rythme",
         label="Santé des entreprises",
         nav_label="Santé",
         rail_meta="masse salariale, assiette, signaux d'activité",
-        section_kicker="02 / Santé des entreprises",
         section_title="Santé des entreprises.",
         section_meta="Lecture mensuelle de l'activité déclarée, de la masse salariale et des tensions conjoncturelles.",
         tone=2,
@@ -63,11 +57,9 @@ CHAPTERS: tuple[ChapterFragment, ...] = (
         key="auto",
         section_id="module-auto",
         number="03",
-        rail_kicker="focus",
         label="Travailleurs indépendants",
         nav_label="Indépendants",
         rail_meta="auto-entrepreneurs, lecture territoriale",
-        section_kicker="03 / Travailleurs indépendants",
         section_title="Travailleurs indépendants.",
         section_meta="Focus départemental sur les indépendants, avec lecture sectorielle et hiérarchie territoriale.",
         tone=3,
@@ -89,7 +81,6 @@ def build_chapter_fragments() -> dict[str, str]:
             "key": chapter.key,
             "id": chapter.section_id,
             "number": chapter.number,
-            "railKicker": chapter.rail_kicker,
             "label": chapter.label,
             "navLabel": chapter.nav_label,
             "railMeta": chapter.rail_meta,

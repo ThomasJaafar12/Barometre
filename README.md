@@ -50,6 +50,10 @@ La commande :
 2. injecte les payloads dans `barometre.template.html`
 3. regenere `index.html`
 
+Les geographies simplifiees sont conservees dans `.cache/barometre/`. Le cache est
+automatiquement invalide lorsqu'une source GeoJSON ou un parametre de simplification
+change ; il peut donc etre supprime sans risque.
+
 Si tout se passe bien, le script affiche :
 
 ```text
@@ -57,6 +61,12 @@ Wrote index.html
 ```
 
 Ensuite, ouvrez `index.html` dans un navigateur pour verifier le rendu.
+
+Les tests de non-regression du generateur se lancent avec :
+
+```powershell
+python -m unittest discover -v
+```
 
 ## Workflow conseille
 

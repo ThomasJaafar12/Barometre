@@ -84,7 +84,7 @@ def load_csv(path: Path) -> list[dict[str, str]]:
         reader = csv.DictReader(handle, delimiter=";")
         reader.fieldnames = [normalize_header(name) for name in reader.fieldnames or []]
         return [
-            {normalize_header(key): (value or "").strip() for key, value in row.items()}
+            {key: (value or "").strip() for key, value in row.items() if key is not None}
             for row in reader
         ]
 

@@ -1,12 +1,25 @@
 ﻿from __future__ import annotations
 
-from copy import deepcopy
+from dataclasses import asdict
+import hashlib
+from pathlib import Path
+import tempfile
 from typing import Any
 
-from .config import DOM_REGION_CODES, EXPERIENCE_REGION_CODES, GEOMETRY_OPTIMIZATION, REGION_GEOJSON_PATH
+from .config import (
+    DEPARTMENT_GEOJSON_CACHE,
+    DOM_REGION_CODES,
+    EXPERIENCE_REGION_CODES,
+    GEOGRAPHY_CACHE_PATH,
+    GEOMETRY_OPTIMIZATION,
+    REGION_GEOJSON_PATH,
+)
 from .io import ensure_department_geojson
 from .palettes import DEFAULT_REGION_THEMES
-from .utils import load_json, normalize_code, normalize_department_code, slugify
+from .utils import dump_json, load_json, normalize_code, normalize_department_code, slugify
+
+
+GEOGRAPHY_CACHE_VERSION = 1
 
 
 def trim_region_geojson() -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
@@ -135,21 +148,103 @@ def simplify_geometry(geometry: dict[str, Any], tolerance: float, precision: int
 
 
 def simplify_feature_collection(feature_collection: dict[str, Any], tolerance: float) -> dict[str, Any]:
-    optimized = deepcopy(feature_collection)
-    for feature in optimized["features"]:
-        feature["geometry"] = simplify_geometry(
-            feature["geometry"],
-            tolerance=tolerance,
-            precision=GEOMETRY_OPTIMIZATION.coordinate_precision,
-        )
-    return optimized
+    return {
+        **feature_collection,
+        "features": [
+            {
+                **feature,
+                "geometry": simplify_geometry(
+                    feature["geometry"],
+                    tolerance=tolerance,
+                    precision=GEOMETRY_OPTIMIZATION.coordinate_precision,
+                ),
+            }
+            for feature in feature_collection["features"]
+        ],
+    }
 
 
-def build_geographies() -> tuple[dict[str, Any], dict[str, Any], dict[str, dict[str, Any]]]:
+def geography_fingerprint() -> str:
+    digest = hashlib.sha256()
+    inputs = {
+        "version": GEOGRAPHY_CACHE_VERSION,
+        "optimization": asdict(GEOMETRY_OPTIMIZATION),
+        "experienceRegionCodes": EXPERIENCE_REGION_CODES,
+        "domRegionCodes": sorted(DOM_REGION_CODES),
+        "regionThemes": DEFAULT_REGION_THEMES,
+    }
+    digest.update(dump_json(inputs).encode("utf-8"))
+    for path in (REGION_GEOJSON_PATH, DEPARTMENT_GEOJSON_CACHE):
+        digest.update(path.name.encode("utf-8"))
+        digest.update(path.stat().st_size.to_bytes(8, byteorder="big"))
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+    return digest.hexdigest()
+
+
+def load_geography_cache(cache_path: Path, fingerprint: str) -> tuple[dict[str, Any], dict[str, Any], dict[str, dict[str, Any]]] | None:
+    if not cache_path.exists():
+        return None
+    try:
+        cached = load_json(cache_path)
+        if cached.get("fingerprint") != fingerprint:
+            return None
+        return cached["regions"], cached["departments"], cached["regionMeta"]
+    except (AttributeError, KeyError, OSError, TypeError, ValueError):
+        return None
+
+
+def write_geography_cache(
+    cache_path: Path,
+    fingerprint: str,
+    regions: dict[str, Any],
+    departments: dict[str, Any],
+    region_meta: dict[str, dict[str, Any]],
+) -> None:
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = dump_json(
+        {
+            "fingerprint": fingerprint,
+            "regions": regions,
+            "departments": departments,
+            "regionMeta": region_meta,
+        }
+    )
+    temporary_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=cache_path.parent,
+            prefix=f"{cache_path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            handle.write(payload)
+            temporary_path = Path(handle.name)
+        temporary_path.replace(cache_path)
+    finally:
+        if temporary_path and temporary_path.exists():
+            temporary_path.unlink()
+
+
+def build_geographies(
+    cache_path: Path = GEOGRAPHY_CACHE_PATH,
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, dict[str, Any]]]:
+    if not DEPARTMENT_GEOJSON_CACHE.exists():
+        ensure_department_geojson()
+    fingerprint = geography_fingerprint()
+    cached = load_geography_cache(cache_path, fingerprint)
+    if cached is not None:
+        return cached
+
     regions_geojson, region_meta = trim_region_geojson()
     departments_geojson = trim_department_geojson(ensure_department_geojson())
-    return (
-        simplify_feature_collection(regions_geojson, GEOMETRY_OPTIMIZATION.region_tolerance),
-        simplify_feature_collection(departments_geojson, GEOMETRY_OPTIMIZATION.department_tolerance),
-        region_meta,
+    optimized_regions = simplify_feature_collection(regions_geojson, GEOMETRY_OPTIMIZATION.region_tolerance)
+    optimized_departments = simplify_feature_collection(
+        departments_geojson,
+        GEOMETRY_OPTIMIZATION.department_tolerance,
     )
+    write_geography_cache(cache_path, fingerprint, optimized_regions, optimized_departments, region_meta)
+    return optimized_regions, optimized_departments, region_meta

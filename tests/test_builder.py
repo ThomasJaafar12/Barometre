@@ -37,6 +37,23 @@ class CsvLoadingTests(unittest.TestCase):
 
 
 class GeographyCacheTests(unittest.TestCase):
+    def test_simplification_preserves_polygon_winding(self) -> None:
+        # A tiny Morbihan island whose three-point simplification used to reverse
+        # from clockwise to counter-clockwise, making D3 render the globe.
+        ring = [
+            [-2.88802, 47.56318],
+            [-2.88641, 47.56413],
+            [-2.88586, 47.56530],
+            [-2.88403, 47.56508],
+            [-2.88638, 47.56335],
+            [-2.88802, 47.56318],
+        ]
+
+        simplified = geometry.simplify_and_quantize_ring(ring, 0.002, 4)
+
+        self.assertLess(geometry.signed_ring_area(ring), 0)
+        self.assertLess(geometry.signed_ring_area(simplified), 0)
+
     def test_fingerprint_changes_when_a_source_changes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -85,6 +102,27 @@ class GeneratedPayloadTests(unittest.TestCase):
         )
         self.assertIn("regions", self.boot["geography"])
         self.assertIn("departments", self.deferred["geography"])
+
+    def test_every_current_region_has_valid_d3_department_rings(self) -> None:
+        features_by_region = {code: [] for code in EXPERIENCE_REGION_CODES}
+        for feature in self.deferred["geography"]["departments"]["features"]:
+            features_by_region[feature["properties"]["region"]].append(feature)
+
+            geometry_type = feature["geometry"]["type"]
+            coordinates = feature["geometry"]["coordinates"]
+            polygons = coordinates if geometry_type == "MultiPolygon" else [coordinates]
+            for polygon in polygons:
+                for ring_index, ring in enumerate(polygon):
+                    self.assertEqual(ring[0], ring[-1])
+                    self.assertGreaterEqual(len(set(map(tuple, ring[:-1]))), 3)
+                    area = geometry.signed_ring_area(ring)
+                    if ring_index == 0:
+                        self.assertLess(area, 0, feature["properties"])
+                    else:
+                        self.assertGreater(area, 0, feature["properties"])
+
+        for region_code, features in features_by_region.items():
+            self.assertTrue(features, f"No department geometry for current region {region_code}")
 
     def test_histories_match_the_rendered_windows(self) -> None:
         sector = self.deferred["modules"]["sector"]["regional"]

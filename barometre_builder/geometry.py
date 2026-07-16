@@ -19,7 +19,7 @@ from .palettes import DEFAULT_REGION_THEMES
 from .utils import dump_json, load_json, normalize_code, normalize_department_code, slugify
 
 
-GEOGRAPHY_CACHE_VERSION = 1
+GEOGRAPHY_CACHE_VERSION = 2
 
 
 def trim_region_geojson() -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
@@ -122,6 +122,26 @@ def simplify_line(points: list[list[float]], tolerance: float) -> list[list[floa
     return [start, end]
 
 
+def signed_ring_area(ring: list[list[float]]) -> float:
+    if len(ring) < 3:
+        return 0.0
+    return sum(
+        start[0] * end[1] - end[0] * start[1]
+        for start, end in zip(ring, ring[1:] + ring[:1])
+    ) / 2
+
+
+def preserve_ring_winding(
+    source_ring: list[list[float]],
+    simplified_ring: list[list[float]],
+) -> list[list[float]]:
+    source_area = signed_ring_area(source_ring)
+    simplified_area = signed_ring_area(simplified_ring)
+    if source_area * simplified_area < 0:
+        return list(reversed(simplified_ring))
+    return simplified_ring
+
+
 def simplify_ring(ring: list[list[float]], tolerance: float) -> list[list[float]]:
     if len(ring) <= 4:
         return ring
@@ -132,19 +152,38 @@ def simplify_ring(ring: list[list[float]], tolerance: float) -> list[list[float]
         simplified = work[:3]
     if is_closed:
         simplified.append(simplified[0])
-    return simplified
+    return preserve_ring_winding(ring, simplified)
+
+
+def simplify_and_quantize_ring(
+    ring: list[list[float]],
+    tolerance: float,
+    precision: int,
+) -> list[list[float]]:
+    simplified = simplify_ring(ring, tolerance)
+    quantized = [round_point(point, precision) for point in simplified]
+    return preserve_ring_winding(ring, quantized)
 
 
 def simplify_geometry(geometry: dict[str, Any], tolerance: float, precision: int) -> dict[str, Any]:
     geometry_type = geometry["type"]
     coordinates = geometry["coordinates"]
     if geometry_type == "Polygon":
-        simplified = [simplify_ring(ring, tolerance) for ring in coordinates]
+        simplified = [
+            simplify_and_quantize_ring(ring, tolerance, precision)
+            for ring in coordinates
+        ]
     elif geometry_type == "MultiPolygon":
-        simplified = [[simplify_ring(ring, tolerance) for ring in polygon] for polygon in coordinates]
+        simplified = [
+            [
+                simplify_and_quantize_ring(ring, tolerance, precision)
+                for ring in polygon
+            ]
+            for polygon in coordinates
+        ]
     else:
-        simplified = coordinates
-    return {"type": geometry_type, "coordinates": quantize_coordinates(simplified, precision)}
+        simplified = quantize_coordinates(coordinates, precision)
+    return {"type": geometry_type, "coordinates": simplified}
 
 
 def simplify_feature_collection(feature_collection: dict[str, Any], tolerance: float) -> dict[str, Any]:

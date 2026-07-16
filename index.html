@@ -1238,6 +1238,7 @@
       transform: scale(1.012);
     }
     .employment-treemap-label,
+    .employment-treemap-code,
     .employment-treemap-value,
     .employment-treemap-yoy {
       pointer-events: none;
@@ -1246,6 +1247,10 @@
     .employment-treemap-label {
       font: 800 15px "Manrope", sans-serif;
       letter-spacing: -0.01em;
+    }
+    .employment-treemap-code {
+      font: 800 11px "IBM Plex Mono", monospace;
+      letter-spacing: 0.025em;
     }
     .employment-treemap-value {
       font: 800 21px "Syne", sans-serif;
@@ -5296,6 +5301,324 @@
         grid-template-columns: 1fr;
       }
     }
+
+    /* Sélecteur NACE 28 : variante 1, avec une palette propre au chapitre secteur. */
+    .story .employment-grid .employment-intro {
+      z-index: 20;
+    }
+
+    .story .employment-grid .employment-main.has-open-sector-picker {
+      z-index: 50;
+    }
+
+    .employment-sector-picker {
+      --sector-picker-text: #24364A;
+      --sector-picker-muted: #60748A;
+      --sector-picker-border: #CBD5E1;
+      --sector-picker-active: #E05D32;
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 6px;
+      width: min(100%, 260px);
+      flex: 0 0 260px;
+      color: var(--sector-picker-text);
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .employment-sector-picker.is-open {
+      z-index: 60;
+    }
+
+    .employment-sector-trigger {
+      width: 100%;
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 9px 12px 9px 14px;
+      color: #13263D;
+      background: #FFFFFF;
+      border: 1px solid #BFCBDD;
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+      font: 700 0.88rem/1.2 "Inter", system-ui, sans-serif;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    }
+
+    .employment-sector-trigger:hover,
+    .employment-sector-trigger:focus-visible,
+    .employment-sector-picker.is-open .employment-sector-trigger {
+      border-color: #6F8299;
+      box-shadow: 0 0 0 3px rgba(0,109,119,0.12), 0 4px 12px rgba(15,23,42,0.08);
+      outline: none;
+    }
+
+    .employment-sector-trigger-value {
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .employment-sector-trigger svg {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 18px;
+      fill: none;
+      stroke: #60748A;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 180ms ease;
+    }
+
+    .employment-sector-picker.is-open .employment-sector-trigger svg {
+      transform: rotate(180deg);
+    }
+
+    .employment-sector-menu {
+      position: absolute;
+      z-index: 70;
+      top: calc(100% + 10px);
+      left: 0;
+      width: min(940px, calc(100vw - 80px));
+      max-height: min(590px, calc(100vh - 150px));
+      display: none;
+      padding: 28px 32px 30px;
+      overflow: auto;
+      color: var(--sector-picker-text);
+      background: #FFFFFF;
+      border: 1px solid rgba(15,23,42,0.08);
+      border-radius: 10px;
+      box-shadow: 0 18px 48px -12px rgba(15,23,42,0.28), 0 8px 18px -10px rgba(15,23,42,0.16);
+    }
+
+    .employment-sector-picker.is-open .employment-sector-menu {
+      display: block;
+      animation: employment-sector-menu-in 170ms cubic-bezier(.2,.8,.2,1) both;
+    }
+
+    @keyframes employment-sector-menu-in {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .employment-sector-menu-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 28px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--sector-picker-border);
+    }
+
+    .employment-sector-menu-title {
+      color: var(--sector-picker-muted);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.055em;
+      text-transform: uppercase;
+    }
+
+    .employment-sector-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .employment-sector-column {
+      position: relative;
+      min-width: 0;
+      padding-right: 18px;
+    }
+
+    .employment-sector-column:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      top: 38px;
+      right: -3px;
+      bottom: 8px;
+      width: 1px;
+      background: var(--sector-picker-border);
+    }
+
+    .employment-sector-column-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .employment-sector-badge {
+      max-width: 100%;
+      padding: 4px 7px;
+      overflow: hidden;
+      color: #FFFFFF;
+      border-radius: 4px;
+      font-size: 0.64rem;
+      font-weight: 900;
+      letter-spacing: 0.035em;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .employment-sector-column--industry .employment-sector-badge { background: #006D77; }
+    .employment-sector-column--trade .employment-sector-badge { background: #586A7A; }
+    .employment-sector-column--business .employment-sector-badge { background: #D46B28; }
+    .employment-sector-column--collective .employment-sector-badge { background: #6B7F2B; }
+
+    .employment-sector-count {
+      padding: 2px 6px;
+      color: var(--sector-picker-muted);
+      background: #F1F5F9;
+      border-radius: 4px;
+      font-size: 0.68rem;
+      font-weight: 700;
+    }
+
+    .employment-sector-list {
+      display: grid;
+      gap: 4px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .employment-sector-option {
+      width: 100%;
+      min-height: 34px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 6px;
+      color: var(--sector-picker-text);
+      background: transparent;
+      border: 0;
+      border-radius: 6px;
+      font: 500 0.76rem/1.42 "Inter", system-ui, sans-serif;
+      text-align: left;
+      cursor: pointer;
+      transition: color 150ms ease, background-color 150ms ease, transform 150ms ease;
+    }
+
+    .employment-sector-option:hover,
+    .employment-sector-option:focus-visible {
+      color: #081B2E;
+      background: #F4F7FA;
+      outline: none;
+      transform: translateX(2px);
+    }
+
+    .employment-sector-option.is-active {
+      color: #13263D;
+      font-weight: 800;
+    }
+
+    .employment-sector-active-dot {
+      width: 5px;
+      height: 5px;
+      flex: 0 0 5px;
+      margin-top: 0.48em;
+      border-radius: 50%;
+      background: var(--sector-picker-active);
+      opacity: 0;
+    }
+
+    .employment-sector-option.is-active .employment-sector-active-dot {
+      opacity: 1;
+    }
+
+    .employment-sector-all-option {
+      width: auto;
+      min-height: 32px;
+      align-items: center;
+      padding: 6px 10px;
+      color: #13263D;
+      background: #F1F5F9;
+      border: 1px solid #DCE4ED;
+      font-size: 0.72rem;
+      white-space: nowrap;
+    }
+
+    .employment-sector-all-option .employment-sector-active-dot {
+      margin-top: 0;
+    }
+
+    @media (max-width: 980px) {
+      .employment-sector-picker {
+        width: min(100%, 320px);
+        flex-basis: 320px;
+      }
+
+      .employment-sector-menu {
+        width: min(720px, calc(100vw - 64px));
+      }
+
+      .employment-sector-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .employment-sector-column {
+        padding: 0 0 20px;
+        border-bottom: 1px solid #E2E8F0;
+      }
+
+      .employment-sector-column:nth-last-child(-n + 2) {
+        padding-bottom: 0;
+        border-bottom: 0;
+      }
+
+      .employment-sector-column:not(:last-child)::after {
+        display: none;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .employment-sector-picker {
+        width: 100%;
+        flex-basis: auto;
+      }
+
+      .employment-sector-menu {
+        width: calc(100vw - 48px);
+        max-height: 68vh;
+        padding: 22px 20px 24px;
+      }
+
+      .employment-sector-menu-header {
+        align-items: flex-start;
+        flex-direction: column;
+        margin-bottom: 22px;
+      }
+
+      .employment-sector-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .employment-sector-column:nth-last-child(-n + 2) {
+        padding-bottom: 20px;
+        border-bottom: 1px solid #E2E8F0;
+      }
+
+      .employment-sector-column:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+      }
+
+      .employment-sector-option {
+        font-size: 0.8rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -5398,10 +5721,14 @@
                       <strong id="employmentEffectifsChartTitle">Effectifs privés : niveau et évolution</strong>
                     </div>
                     <div class="employment-controls">
-                      <label class="employment-select-wrap" for="employmentEffectifsSeriesSelect">
+                      <div class="employment-sector-picker" id="employmentEffectifsSeriesPicker">
                         <span class="mono employment-select-label">Secteur</span>
-                        <select id="employmentEffectifsSeriesSelect" aria-label="Secteur effectifs"></select>
-                      </label>
+                        <button class="employment-sector-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                          <span class="employment-sector-trigger-value">Population entière</span>
+                          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="m5 7.5 5 5 5-5"></path></svg>
+                        </button>
+                        <div class="employment-sector-menu" role="listbox" aria-label="Sélection du secteur d’activité"></div>
+                      </div>
                       <div class="employment-focus-switch" id="employmentEffectifsFocusSwitch"></div>
                     </div>
                   </div>
@@ -5459,10 +5786,14 @@
                       <strong id="employmentPayrollChartTitle">Masse salariale du secteur privé : niveau et évolution</strong>
                     </div>
                     <div class="employment-controls">
-                      <label class="employment-select-wrap" for="employmentPayrollSeriesSelect">
+                      <div class="employment-sector-picker" id="employmentPayrollSeriesPicker">
                         <span class="mono employment-select-label">Secteur</span>
-                        <select id="employmentPayrollSeriesSelect" aria-label="Secteur masse salariale"></select>
-                      </label>
+                        <button class="employment-sector-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                          <span class="employment-sector-trigger-value">Population entière</span>
+                          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="m5 7.5 5 5 5-5"></path></svg>
+                        </button>
+                        <div class="employment-sector-menu" role="listbox" aria-label="Sélection du secteur d’activité"></div>
+                      </div>
                       <div class="employment-focus-switch" id="employmentPayrollFocusSwitch"></div>
                     </div>
                   </div>
@@ -7651,22 +7982,164 @@
           .text(detail);
       }
 
-      function renderEmploymentSeriesSelect(selectId, scope, stateKey, onRender) {
-        const select = document.getElementById(selectId);
-        select.innerHTML = "";
-        scope.seriesOptions.forEach((option) => {
-          const element = document.createElement("option");
-          element.value = option.key;
-          element.textContent = option.label;
-          element.selected = option.key === state[stateKey];
-          select.appendChild(element);
+      const EMPLOYMENT_SECTOR_GROUPS = [
+        { key: "industry", label: "Industrie & énergie", codes: ["BZ", "CA", "CB", "CC", "CD-CE-CF", "CG", "CH", "CI-CJ", "CK-CL", "CM", "DZ-EZ"] },
+        { key: "trade", label: "Commerce & transp.", codes: ["GZ", "FZ", "HZ", "IZ"] },
+        { key: "business", label: "Services entreprises", codes: ["JA-JB-JC", "KZ", "LZ", "MA", "MB-MC", "NZa", "NZb"] },
+        { key: "collective", label: "Services collectifs", codes: ["OZ", "PZ", "QA", "QB", "RZ", "SZ"] },
+      ];
+
+      function employmentSectorCode(option) {
+        return option.label.trim().split(/\s+/, 1)[0];
+      }
+
+      function employmentSectorDisplayLabel(option) {
+        if (option.key === "population-entiere") return option.label;
+        const code = employmentSectorCode(option);
+        const description = option.label.slice(code.length).trim();
+        return description ? `${code} — ${description}` : option.label;
+      }
+
+      function setEmploymentSectorPickerOpen(control, isOpen, focusPosition = "active") {
+        const trigger = control.querySelector(".employment-sector-trigger");
+        const menu = control.querySelector(".employment-sector-menu");
+        control.closest(".employment-main")?.classList.toggle("has-open-sector-picker", isOpen);
+        control.classList.toggle("is-open", isOpen);
+        trigger.setAttribute("aria-expanded", String(isOpen));
+        if (!isOpen) return;
+        requestAnimationFrame(() => {
+          const options = [...menu.querySelectorAll(".employment-sector-option")];
+          const target = focusPosition === "last"
+            ? options[options.length - 1]
+            : options.find((option) => option.getAttribute("aria-selected") === "true") || options[0];
+          target?.focus();
         });
-        if (!select.dataset.bound) {
-          select.addEventListener("change", (event) => {
-            state[stateKey] = event.target.value;
-            onRender();
+      }
+
+      function closeEmploymentSectorPickers(except = null) {
+        document.querySelectorAll(".employment-sector-picker.is-open").forEach((control) => {
+          if (control !== except) setEmploymentSectorPickerOpen(control, false);
+        });
+      }
+
+      function renderEmploymentSeriesPicker(controlId, scope, stateKey, onRender) {
+        const control = document.getElementById(controlId);
+        const trigger = control.querySelector(".employment-sector-trigger");
+        const triggerValue = control.querySelector(".employment-sector-trigger-value");
+        const menu = control.querySelector(".employment-sector-menu");
+        const selectedOption = scope.seriesOptions.find((option) => option.key === state[stateKey]) || scope.seriesOptions[0];
+        const aggregateOption = scope.seriesOptions.find((option) => option.key === "population-entiere");
+
+        triggerValue.textContent = selectedOption.label;
+        trigger.setAttribute("aria-label", `Choisir le secteur, actuellement ${selectedOption.label}`);
+        menu.id = `${controlId}Menu`;
+        trigger.setAttribute("aria-controls", menu.id);
+        menu.innerHTML = "";
+
+        const createOptionButton = (option, extraClass = "") => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = `employment-sector-option${extraClass ? ` ${extraClass}` : ""}${option.key === state[stateKey] ? " is-active" : ""}`;
+          button.dataset.sectorKey = option.key;
+          button.setAttribute("role", "option");
+          button.setAttribute("aria-selected", String(option.key === state[stateKey]));
+          const label = document.createElement("span");
+          label.textContent = employmentSectorDisplayLabel(option);
+          const dot = document.createElement("span");
+          dot.className = "employment-sector-active-dot";
+          dot.setAttribute("aria-hidden", "true");
+          button.append(label, dot);
+          return button;
+        };
+
+        const header = document.createElement("div");
+        header.className = "employment-sector-menu-header";
+        const title = document.createElement("span");
+        title.className = "employment-sector-menu-title";
+        title.textContent = "Sélection du secteur d’activité";
+        header.appendChild(title);
+        if (aggregateOption) header.appendChild(createOptionButton(aggregateOption, "employment-sector-all-option"));
+        menu.appendChild(header);
+
+        const grid = document.createElement("div");
+        grid.className = "employment-sector-grid";
+        menu.appendChild(grid);
+        EMPLOYMENT_SECTOR_GROUPS.forEach((group) => {
+          const options = scope.seriesOptions
+            .filter((option) => group.codes.includes(employmentSectorCode(option)))
+            .sort((left, right) => group.codes.indexOf(employmentSectorCode(left)) - group.codes.indexOf(employmentSectorCode(right)));
+          if (!options.length) return;
+          const column = document.createElement("section");
+          column.className = `employment-sector-column employment-sector-column--${group.key}`;
+          column.setAttribute("role", "group");
+          const groupTitleId = `${controlId}-${group.key}-title`;
+          column.setAttribute("aria-labelledby", groupTitleId);
+
+          const columnHeader = document.createElement("div");
+          columnHeader.className = "employment-sector-column-header";
+          const badge = document.createElement("span");
+          badge.className = "employment-sector-badge";
+          badge.id = groupTitleId;
+          badge.textContent = group.label;
+          const count = document.createElement("span");
+          count.className = "employment-sector-count";
+          count.textContent = String(options.length);
+          columnHeader.append(badge, count);
+
+          const list = document.createElement("ul");
+          list.className = "employment-sector-list";
+          options.forEach((option) => {
+            const item = document.createElement("li");
+            item.appendChild(createOptionButton(option));
+            list.appendChild(item);
           });
-          select.dataset.bound = "true";
+          column.append(columnHeader, list);
+          grid.appendChild(column);
+        });
+
+        if (!control.dataset.bound) {
+          trigger.addEventListener("click", () => {
+            const shouldOpen = !control.classList.contains("is-open");
+            closeEmploymentSectorPickers(control);
+            setEmploymentSectorPickerOpen(control, shouldOpen);
+          });
+          trigger.addEventListener("keydown", (event) => {
+            if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+            event.preventDefault();
+            closeEmploymentSectorPickers(control);
+            setEmploymentSectorPickerOpen(control, true, event.key === "ArrowUp" ? "last" : "active");
+          });
+          menu.addEventListener("click", (event) => {
+            const option = event.target.closest(".employment-sector-option");
+            if (!option) return;
+            state[stateKey] = option.dataset.sectorKey;
+            setEmploymentSectorPickerOpen(control, false);
+            onRender();
+            requestAnimationFrame(() => control.querySelector(".employment-sector-trigger")?.focus());
+          });
+          menu.addEventListener("keydown", (event) => {
+            const options = [...menu.querySelectorAll(".employment-sector-option")];
+            const currentIndex = options.indexOf(document.activeElement);
+            let nextIndex = null;
+            if (event.key === "ArrowDown" || event.key === "ArrowRight") nextIndex = Math.min(currentIndex + 1, options.length - 1);
+            if (event.key === "ArrowUp" || event.key === "ArrowLeft") nextIndex = Math.max(currentIndex - 1, 0);
+            if (event.key === "Home") nextIndex = 0;
+            if (event.key === "End") nextIndex = options.length - 1;
+            if (nextIndex != null) {
+              event.preventDefault();
+              options[nextIndex]?.focus();
+            }
+            if (event.key === "Escape") {
+              event.preventDefault();
+              event.stopPropagation();
+              setEmploymentSectorPickerOpen(control, false);
+              trigger.focus();
+            }
+          });
+          document.addEventListener("click", (event) => {
+            if (!control.contains(event.target)) setEmploymentSectorPickerOpen(control, false);
+          });
+          control.dataset.bound = "true";
         }
       }
 
@@ -8027,7 +8500,7 @@
         const activeFocus = focuses.find((focus) => focus.key === state[config.focusStateKey]) || focuses[0];
         const lastPoint = points[points.length - 1];
 
-        renderEmploymentSeriesSelect(config.seriesSelectId, scope, config.seriesStateKey, renderSectorModule);
+        renderEmploymentSeriesPicker(config.seriesControlId, scope, config.seriesStateKey, renderSectorModule);
         renderEmploymentFocusSwitch(config.focusSwitchId, focuses, activeFocus.key, config.focusStateKey, renderSectorModule);
 
         const periodLabel = quarterLabel(lastPoint.date);
@@ -8089,9 +8562,55 @@
 
       function sectorTreemapTrimLabel(label) {
         return String(label || "")
-          .replace(/^[A-Z]{1,3}[a-z]?\s+/, "")
+          .replace(/^[A-Z]{1,3}[a-z]?(?:-[A-Z]{1,3}[a-z]?)*\s+/, "")
           .replace(/\s*\[[^\]]+\]/g, "")
           .trim();
+      }
+
+      function sectorTreemapNaceCode(label, key) {
+        const labelMatch = String(label || "").match(/^([A-Z]{1,3}[a-z]?(?:-[A-Z]{1,3}[a-z]?)*)\s+/);
+        const keyMatch = String(key || "").match(/^([a-z]{1,3}(?:-[a-z]{1,3})*)-/i);
+        const rawCode = labelMatch ? labelMatch[1] : (keyMatch ? keyMatch[1] : "");
+        return rawCode.replace(/-/g, " ").toUpperCase();
+      }
+
+      function sectorTreemapLayoutRows(rows) {
+        const total = d3.sum(rows, (row) => row.value);
+        // Reserve roughly a 50 x 50 px tile at the current viewBox size. Only
+        // the very smallest sectors are lifted, while displayed values remain exact.
+        const minimumLayoutValue = total * 0.005;
+        return rows.map((row) => ({
+          ...row,
+          naceCode: sectorTreemapNaceCode(row.label, row.key),
+          layoutValue: Math.max(row.value, minimumLayoutValue),
+        }));
+      }
+
+      function drawSectorTreemapCode(tile, code, tileWidth, tileHeight, fill) {
+        if (!code || tileWidth < 20 || tileHeight < 18) return;
+        const tokens = code.split(" ");
+        const horizontalWidth = code.length * 6.5;
+        const canUseHorizontal = horizontalWidth <= tileWidth - 14;
+        const canStack = tokens.length > 1
+          && Math.max(...tokens.map((token) => token.length)) * 6.5 <= tileWidth - 12
+          && tokens.length * 13 <= tileHeight - 10;
+        const text = tile.append("text")
+          .attr("x", Math.max(6, Math.min(10, tileWidth * 0.16)))
+          .attr("y", Math.max(14, Math.min(18, tileHeight * 0.34)))
+          .attr("fill", fill)
+          .attr("class", "employment-treemap-code");
+
+        if (!canUseHorizontal && canStack) {
+          text.attr("y", Math.max(14, (tileHeight - (tokens.length - 1) * 13) / 2));
+          tokens.forEach((token, index) => {
+            text.append("tspan")
+              .attr("x", Math.max(6, Math.min(10, tileWidth * 0.16)))
+              .attr("dy", index === 0 ? 0 : 13)
+              .text(token);
+          });
+          return;
+        }
+        text.text(code);
       }
 
       function renderSectorTreemap() {
@@ -8140,16 +8659,17 @@
         const padding = 18;
         const color = sectorTreemapColorScale(rows);
         const latestDate = rows[0].date;
+        const layoutRows = sectorTreemapLayoutRows(rows);
 
-        meta.textContent = `${scopeLabel()} / ${quarterLabel(latestDate)} / surface = ${metric.label.toLowerCase()} / couleur = glissement annuel`;
+        meta.textContent = `${scopeLabel()} / ${quarterLabel(latestDate)} / surface = ${metric.label.toLowerCase()} (plancher de lisibilite) / couleur = glissement annuel`;
         legend.innerHTML = `
           <span class="legend-chip"><i class="employment-treemap-swatch is-negative"></i>Repli annuel</span>
           <span class="legend-chip"><i class="employment-treemap-swatch is-neutral"></i>Quasi stable</span>
           <span class="legend-chip"><i class="employment-treemap-swatch is-positive"></i>Hausse annuelle</span>
         `;
 
-        const root = d3.hierarchy({ children: rows })
-          .sum((row) => row.value)
+        const root = d3.hierarchy({ children: layoutRows })
+          .sum((row) => row.layoutValue)
           .sort((left, right) => right.value - left.value);
         d3.treemap()
           .tile(d3.treemapSquarify.ratio(1.22))
@@ -8192,7 +8712,11 @@
           const tileHeight = leaf.y1 - leaf.y0;
           const area = tileWidth * tileHeight;
           const fill = sectorTreemapTextFill(leaf.data.yoy);
-          if (tileWidth < 112 || tileHeight < 58 || area < 9800) return;
+          const showFullLabel = tileWidth >= 112 && tileHeight >= 58 && area >= 9800;
+          if (!showFullLabel) {
+            drawSectorTreemapCode(tile, leaf.data.naceCode, tileWidth, tileHeight, fill);
+            return;
+          }
           const label = sectorTreemapTrimLabel(leaf.data.label);
           const maxChars = Math.max(8, Math.floor((tileWidth - 42) / 7.7));
           const displayLabel = label.length > maxChars ? `${label.slice(0, Math.max(5, maxChars - 3))}...` : label;
@@ -8433,7 +8957,7 @@
           seriesStateKey: "sectorEffectifsSeriesKey",
           focusStateKey: "sectorEffectifsFocusKey",
           chartTitleId: "employmentEffectifsChartTitle",
-          seriesSelectId: "employmentEffectifsSeriesSelect",
+          seriesControlId: "employmentEffectifsSeriesPicker",
           focusSwitchId: "employmentEffectifsFocusSwitch",
           chartSvgId: "employmentEffectifsChartSvg",
           tooltipId: "employmentEffectifsTooltip",
@@ -8451,7 +8975,7 @@
           seriesStateKey: "sectorPayrollSeriesKey",
           focusStateKey: "sectorPayrollFocusKey",
           chartTitleId: "employmentPayrollChartTitle",
-          seriesSelectId: "employmentPayrollSeriesSelect",
+          seriesControlId: "employmentPayrollSeriesPicker",
           focusSwitchId: "employmentPayrollFocusSwitch",
           chartSvgId: "employmentPayrollChartSvg",
           tooltipId: "employmentPayrollTooltip",

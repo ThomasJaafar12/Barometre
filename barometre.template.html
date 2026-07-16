@@ -1238,6 +1238,7 @@
       transform: scale(1.012);
     }
     .employment-treemap-label,
+    .employment-treemap-code,
     .employment-treemap-value,
     .employment-treemap-yoy {
       pointer-events: none;
@@ -1246,6 +1247,10 @@
     .employment-treemap-label {
       font: 800 15px "Manrope", sans-serif;
       letter-spacing: -0.01em;
+    }
+    .employment-treemap-code {
+      font: 800 11px "IBM Plex Mono", monospace;
+      letter-spacing: 0.025em;
     }
     .employment-treemap-value {
       font: 800 21px "Syne", sans-serif;
@@ -5294,6 +5299,324 @@
 
       .employment-dashboard-stats {
         grid-template-columns: 1fr;
+      }
+    }
+
+    /* Sélecteur NACE 28 : variante 1, avec une palette propre au chapitre secteur. */
+    .story .employment-grid .employment-intro {
+      z-index: 20;
+    }
+
+    .story .employment-grid .employment-main.has-open-sector-picker {
+      z-index: 50;
+    }
+
+    .employment-sector-picker {
+      --sector-picker-text: #24364A;
+      --sector-picker-muted: #60748A;
+      --sector-picker-border: #CBD5E1;
+      --sector-picker-active: #E05D32;
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 6px;
+      width: min(100%, 260px);
+      flex: 0 0 260px;
+      color: var(--sector-picker-text);
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .employment-sector-picker.is-open {
+      z-index: 60;
+    }
+
+    .employment-sector-trigger {
+      width: 100%;
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 9px 12px 9px 14px;
+      color: #13263D;
+      background: #FFFFFF;
+      border: 1px solid #BFCBDD;
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+      font: 700 0.88rem/1.2 "Inter", system-ui, sans-serif;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    }
+
+    .employment-sector-trigger:hover,
+    .employment-sector-trigger:focus-visible,
+    .employment-sector-picker.is-open .employment-sector-trigger {
+      border-color: #6F8299;
+      box-shadow: 0 0 0 3px rgba(0,109,119,0.12), 0 4px 12px rgba(15,23,42,0.08);
+      outline: none;
+    }
+
+    .employment-sector-trigger-value {
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .employment-sector-trigger svg {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 18px;
+      fill: none;
+      stroke: #60748A;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 180ms ease;
+    }
+
+    .employment-sector-picker.is-open .employment-sector-trigger svg {
+      transform: rotate(180deg);
+    }
+
+    .employment-sector-menu {
+      position: absolute;
+      z-index: 70;
+      top: calc(100% + 10px);
+      left: 0;
+      width: min(940px, calc(100vw - 80px));
+      max-height: min(590px, calc(100vh - 150px));
+      display: none;
+      padding: 28px 32px 30px;
+      overflow: auto;
+      color: var(--sector-picker-text);
+      background: #FFFFFF;
+      border: 1px solid rgba(15,23,42,0.08);
+      border-radius: 10px;
+      box-shadow: 0 18px 48px -12px rgba(15,23,42,0.28), 0 8px 18px -10px rgba(15,23,42,0.16);
+    }
+
+    .employment-sector-picker.is-open .employment-sector-menu {
+      display: block;
+      animation: employment-sector-menu-in 170ms cubic-bezier(.2,.8,.2,1) both;
+    }
+
+    @keyframes employment-sector-menu-in {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .employment-sector-menu-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 28px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--sector-picker-border);
+    }
+
+    .employment-sector-menu-title {
+      color: var(--sector-picker-muted);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.055em;
+      text-transform: uppercase;
+    }
+
+    .employment-sector-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .employment-sector-column {
+      position: relative;
+      min-width: 0;
+      padding-right: 18px;
+    }
+
+    .employment-sector-column:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      top: 38px;
+      right: -3px;
+      bottom: 8px;
+      width: 1px;
+      background: var(--sector-picker-border);
+    }
+
+    .employment-sector-column-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .employment-sector-badge {
+      max-width: 100%;
+      padding: 4px 7px;
+      overflow: hidden;
+      color: #FFFFFF;
+      border-radius: 4px;
+      font-size: 0.64rem;
+      font-weight: 900;
+      letter-spacing: 0.035em;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .employment-sector-column--industry .employment-sector-badge { background: #006D77; }
+    .employment-sector-column--trade .employment-sector-badge { background: #586A7A; }
+    .employment-sector-column--business .employment-sector-badge { background: #D46B28; }
+    .employment-sector-column--collective .employment-sector-badge { background: #6B7F2B; }
+
+    .employment-sector-count {
+      padding: 2px 6px;
+      color: var(--sector-picker-muted);
+      background: #F1F5F9;
+      border-radius: 4px;
+      font-size: 0.68rem;
+      font-weight: 700;
+    }
+
+    .employment-sector-list {
+      display: grid;
+      gap: 4px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .employment-sector-option {
+      width: 100%;
+      min-height: 34px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 6px;
+      color: var(--sector-picker-text);
+      background: transparent;
+      border: 0;
+      border-radius: 6px;
+      font: 500 0.76rem/1.42 "Inter", system-ui, sans-serif;
+      text-align: left;
+      cursor: pointer;
+      transition: color 150ms ease, background-color 150ms ease, transform 150ms ease;
+    }
+
+    .employment-sector-option:hover,
+    .employment-sector-option:focus-visible {
+      color: #081B2E;
+      background: #F4F7FA;
+      outline: none;
+      transform: translateX(2px);
+    }
+
+    .employment-sector-option.is-active {
+      color: #13263D;
+      font-weight: 800;
+    }
+
+    .employment-sector-active-dot {
+      width: 5px;
+      height: 5px;
+      flex: 0 0 5px;
+      margin-top: 0.48em;
+      border-radius: 50%;
+      background: var(--sector-picker-active);
+      opacity: 0;
+    }
+
+    .employment-sector-option.is-active .employment-sector-active-dot {
+      opacity: 1;
+    }
+
+    .employment-sector-all-option {
+      width: auto;
+      min-height: 32px;
+      align-items: center;
+      padding: 6px 10px;
+      color: #13263D;
+      background: #F1F5F9;
+      border: 1px solid #DCE4ED;
+      font-size: 0.72rem;
+      white-space: nowrap;
+    }
+
+    .employment-sector-all-option .employment-sector-active-dot {
+      margin-top: 0;
+    }
+
+    @media (max-width: 980px) {
+      .employment-sector-picker {
+        width: min(100%, 320px);
+        flex-basis: 320px;
+      }
+
+      .employment-sector-menu {
+        width: min(720px, calc(100vw - 64px));
+      }
+
+      .employment-sector-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .employment-sector-column {
+        padding: 0 0 20px;
+        border-bottom: 1px solid #E2E8F0;
+      }
+
+      .employment-sector-column:nth-last-child(-n + 2) {
+        padding-bottom: 0;
+        border-bottom: 0;
+      }
+
+      .employment-sector-column:not(:last-child)::after {
+        display: none;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .employment-sector-picker {
+        width: 100%;
+        flex-basis: auto;
+      }
+
+      .employment-sector-menu {
+        width: calc(100vw - 48px);
+        max-height: 68vh;
+        padding: 22px 20px 24px;
+      }
+
+      .employment-sector-menu-header {
+        align-items: flex-start;
+        flex-direction: column;
+        margin-bottom: 22px;
+      }
+
+      .employment-sector-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .employment-sector-column:nth-last-child(-n + 2) {
+        padding-bottom: 20px;
+        border-bottom: 1px solid #E2E8F0;
+      }
+
+      .employment-sector-column:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+      }
+
+      .employment-sector-option {
+        font-size: 0.8rem;
       }
     }
   </style>

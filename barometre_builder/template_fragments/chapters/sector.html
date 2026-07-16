@@ -19,10 +19,14 @@
                       <strong id="employmentEffectifsChartTitle">Effectifs privés : niveau et évolution</strong>
                     </div>
                     <div class="employment-controls">
-                      <label class="employment-select-wrap" for="employmentEffectifsSeriesSelect">
+                      <div class="employment-sector-picker" id="employmentEffectifsSeriesPicker">
                         <span class="mono employment-select-label">Secteur</span>
-                        <select id="employmentEffectifsSeriesSelect" aria-label="Secteur effectifs"></select>
-                      </label>
+                        <button class="employment-sector-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                          <span class="employment-sector-trigger-value">Population entière</span>
+                          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="m5 7.5 5 5 5-5"></path></svg>
+                        </button>
+                        <div class="employment-sector-menu" role="listbox" aria-label="Sélection du secteur d’activité"></div>
+                      </div>
                       <div class="employment-focus-switch" id="employmentEffectifsFocusSwitch"></div>
                     </div>
                   </div>
@@ -80,10 +84,14 @@
                       <strong id="employmentPayrollChartTitle">Masse salariale du secteur privé : niveau et évolution</strong>
                     </div>
                     <div class="employment-controls">
-                      <label class="employment-select-wrap" for="employmentPayrollSeriesSelect">
+                      <div class="employment-sector-picker" id="employmentPayrollSeriesPicker">
                         <span class="mono employment-select-label">Secteur</span>
-                        <select id="employmentPayrollSeriesSelect" aria-label="Secteur masse salariale"></select>
-                      </label>
+                        <button class="employment-sector-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                          <span class="employment-sector-trigger-value">Population entière</span>
+                          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="m5 7.5 5 5 5-5"></path></svg>
+                        </button>
+                        <div class="employment-sector-menu" role="listbox" aria-label="Sélection du secteur d’activité"></div>
+                      </div>
                       <div class="employment-focus-switch" id="employmentPayrollFocusSwitch"></div>
                     </div>
                   </div>

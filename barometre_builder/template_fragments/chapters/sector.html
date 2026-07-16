@@ -17,7 +17,6 @@
                   <div class="employment-intro">
                     <div class="viz-title employment-title">
                       <strong id="employmentEffectifsChartTitle">Effectifs privés : niveau et évolution</strong>
-                      <span id="employmentEffectifsChartMeta"></span>
                     </div>
                     <div class="employment-controls">
                       <label class="employment-select-wrap" for="employmentEffectifsSeriesSelect">
@@ -43,34 +42,32 @@
                     <span class="legend-chip"><i class="legend-line" style="color: var(--accent-secondary)"></i><span id="employmentEffectifsLegendLine">Niveau des effectifs</span></span>
                   </div>
                 </div>
-                <div class="viz-panel employment-side">
-                  <div class="employment-focus-card">
-                    <div class="eyebrow">Lecture éditoriale</div>
-                    <h3 id="employmentEffectifsFocusTitle"></h3>
-                    <p id="employmentEffectifsFocusCopy"></p>
-                    <div class="employment-stat-grid">
-                      <div class="employment-stat">
-                        <span class="employment-stat-label">Niveau actuel</span>
-                        <strong id="employmentEffectifsCurrentLevel"></strong>
-                        <small id="employmentEffectifsCurrentLevelMeta"></small>
-                      </div>
-                      <div class="employment-stat">
-                        <span class="employment-stat-label">Glissement annuel</span>
-                        <strong id="employmentEffectifsCurrentYoY"></strong>
-                        <small id="employmentEffectifsCurrentYoYMeta"></small>
-                      </div>
-                      <div class="employment-stat">
-                        <span class="employment-stat-label">Point de focus</span>
-                        <strong id="employmentEffectifsFocusPeak"></strong>
-                        <small id="employmentEffectifsFocusPeakMeta"></small>
-                      </div>
-                      <div class="employment-stat">
-                        <span class="employment-stat-label">Niveau du focus</span>
-                        <strong id="employmentEffectifsFocusLevel"></strong>
-                        <small id="employmentEffectifsFocusLevelMeta"></small>
-                      </div>
+                <div class="viz-panel employment-side employment-dashboard-panel">
+                  <div class="employment-dashboard-context" aria-label="Périmètre et période des données">
+                    <span id="employmentEffectifsScope"></span>
+                    <time id="employmentEffectifsPeriod"></time>
+                  </div>
+                  <div class="employment-dashboard-level">
+                    <span class="employment-dashboard-level-label">Niveau des effectifs privés</span>
+                    <strong class="employment-dashboard-level-value" id="employmentEffectifsCurrentLevel"></strong>
+                  </div>
+                  <div class="employment-dashboard-stats">
+                    <div class="employment-dashboard-stat">
+                      <span class="employment-dashboard-stat-label">Gliss. annuel</span>
+                      <strong class="employment-dashboard-trend" id="employmentEffectifsCurrentYoY">
+                        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0 7 7M12 3v18"></path></svg>
+                        <span></span>
+                      </strong>
+                    </div>
+                    <div class="employment-dashboard-stat">
+                      <span class="employment-dashboard-stat-label">Gliss. trimestriel</span>
+                      <strong class="employment-dashboard-trend" id="employmentEffectifsCurrentQoQ">
+                        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0 7 7M12 3v18"></path></svg>
+                        <span></span>
+                      </strong>
                     </div>
                   </div>
+                  <p class="employment-dashboard-interpretation" id="employmentEffectifsInterpretation"></p>
                 </div>
               </div>
             </article>
@@ -81,7 +78,6 @@
                   <div class="employment-intro">
                     <div class="viz-title employment-title">
                       <strong id="employmentPayrollChartTitle">Masse salariale du secteur privé : niveau et évolution</strong>
-                      <span id="employmentPayrollChartMeta"></span>
                     </div>
                     <div class="employment-controls">
                       <label class="employment-select-wrap" for="employmentPayrollSeriesSelect">
@@ -107,34 +103,32 @@
                     <span class="legend-chip"><i class="legend-line" style="color: var(--accent-secondary)"></i><span id="employmentPayrollLegendLine">Niveau de masse salariale</span></span>
                   </div>
                 </div>
-                <div class="viz-panel employment-side">
-                  <div class="employment-focus-card">
-                    <div class="eyebrow">Lecture éditoriale</div>
-                    <h3 id="employmentPayrollFocusTitle"></h3>
-                    <p id="employmentPayrollFocusCopy"></p>
-                    <div class="employment-stat-grid">
-                      <div class="employment-stat">
-                        <span class="employment-stat-label">Niveau actuel</span>
-                        <strong id="employmentPayrollCurrentLevel"></strong>
-                        <small id="employmentPayrollCurrentLevelMeta"></small>
-                      </div>
-                      <div class="employment-stat">
-                        <span class="employment-stat-label">Glissement annuel</span>
-                        <strong id="employmentPayrollCurrentYoY"></strong>
-                        <small id="employmentPayrollCurrentYoYMeta"></small>
-                      </div>
-                      <div class="employment-stat">
-                        <span class="employment-stat-label">Point de focus</span>
-                        <strong id="employmentPayrollFocusPeak"></strong>
-                        <small id="employmentPayrollFocusPeakMeta"></small>
-                      </div>
-                      <div class="employment-stat">
-                        <span class="employment-stat-label">Niveau du focus</span>
-                        <strong id="employmentPayrollFocusLevel"></strong>
-                        <small id="employmentPayrollFocusLevelMeta"></small>
-                      </div>
+                <div class="viz-panel employment-side employment-dashboard-panel">
+                  <div class="employment-dashboard-context" aria-label="Périmètre et période des données">
+                    <span id="employmentPayrollScope"></span>
+                    <time id="employmentPayrollPeriod"></time>
+                  </div>
+                  <div class="employment-dashboard-level">
+                    <span class="employment-dashboard-level-label">Niveau de la masse salariale privée</span>
+                    <strong class="employment-dashboard-level-value" id="employmentPayrollCurrentLevel"></strong>
+                  </div>
+                  <div class="employment-dashboard-stats">
+                    <div class="employment-dashboard-stat">
+                      <span class="employment-dashboard-stat-label">Gliss. annuel</span>
+                      <strong class="employment-dashboard-trend" id="employmentPayrollCurrentYoY">
+                        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0 7 7M12 3v18"></path></svg>
+                        <span></span>
+                      </strong>
+                    </div>
+                    <div class="employment-dashboard-stat">
+                      <span class="employment-dashboard-stat-label">Gliss. trimestriel</span>
+                      <strong class="employment-dashboard-trend" id="employmentPayrollCurrentQoQ">
+                        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0 7 7M12 3v18"></path></svg>
+                        <span></span>
+                      </strong>
                     </div>
                   </div>
+                  <p class="employment-dashboard-interpretation" id="employmentPayrollInterpretation"></p>
                 </div>
               </div>
             </article>

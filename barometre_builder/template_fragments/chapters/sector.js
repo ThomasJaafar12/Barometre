@@ -26,9 +26,9 @@
         return {
           key: metricKey,
           label: isHeadcount ? "Effectifs" : "Masse salariale",
-          chartTitle: isHeadcount
-            ? "Effectifs privés : niveau et évolution"
-            : "Masse salariale du secteur privé : niveau et évolution",
+          heading: isHeadcount
+            ? "Effectifs privés hors agricole"
+            : "Masse salariale du secteur privé hors agricole",
           levelKey: metricKey,
           yoyKey: isHeadcount ? "effectifs_yoy" : "masse_yoy",
           qoqKey: isHeadcount ? "effectifs_qoq" : "masse_qoq",
@@ -37,18 +37,6 @@
           tooltipLevel: (value) => isHeadcount ? `${frNumber(value / divisor, 2)} M` : `${frNumber(value / divisor, 1)} Md€`,
           summaryLevel: (value) => isHeadcount ? `${frNumber(value / divisor, 2)} M` : `${frNumber(value / divisor, 1)} Md€`,
           axisTick: (value) => frNumber(value / divisor, axisDecimals),
-          subject: (seriesLabel) => {
-            if (seriesLabel === "Population entière") {
-              return isHeadcount ? "les effectifs privés" : "la masse salariale privée";
-            }
-            return isHeadcount ? `les effectifs privés du secteur ${seriesLabel}` : `la masse salariale du secteur ${seriesLabel}`;
-          },
-          chartObject: (seriesLabel) => {
-            if (seriesLabel === "Population entière") {
-              return isHeadcount ? "les effectifs privés" : "la masse salariale privée";
-            }
-            return isHeadcount ? `les effectifs privés du secteur ${seriesLabel}` : `la masse salariale du secteur ${seriesLabel}`;
-          },
           focusPeakResolver: (points, mode) => {
             let selected = null;
             points.forEach((point) => {
@@ -224,63 +212,43 @@
         });
       }
 
-      function employmentCurrentSignal(value) {
-        if (value == null) return "reste non documenté";
-        if (value >= 4) return "accélère nettement";
-        if (value >= 1.5) return "progresse à un rythme soutenu";
-        if (value >= 0.3) return "demeure orienté à la hausse";
-        if (value > -0.3) return "évolue presque à l'étale";
-        if (value > -1.5) return "s'inscrit en léger retrait";
-        return "se replie sensiblement";
+      function employmentTrendState(value) {
+        if (value == null || Number.isNaN(value)) return "unknown";
+        if (value > 0.05) return "positive";
+        if (value < -0.05) return "negative";
+        return "neutral";
       }
 
-      function employmentFocusWindowLabel(key) {
-        if (key === "crash") return "la séquence de rupture de 2020";
-        if (key === "rebound") return "la phase de rebond 2021-2022";
-        return "la période récente 2024-2025";
+      function employmentSignedPercent(value) {
+        if (value == null || Number.isNaN(value)) return "—";
+        return `${value > 0 ? "+" : ""}${formatPercent(value)}`;
       }
 
-      function employmentEndSignal(startValue, endValue) {
-        if (startValue == null || endValue == null) return "reste peu lisible";
-        const delta = endValue - startValue;
-        if (delta >= 1) return "se raffermit en fin de fenêtre";
-        if (delta <= -1) return "se modère en fin de fenêtre";
-        return "se stabilise en fin de fenêtre";
+      function employmentInterpretation(latestPoint, metric) {
+        const annual = employmentTrendState(latestPoint ? latestPoint[metric.yoyKey] : null);
+        const quarterly = employmentTrendState(latestPoint ? latestPoint[metric.qoqKey] : null);
+        const messages = {
+          "positive-positive": "La hausse du dernier trimestre confirme la progression sur un an : la dynamique reste favorable.",
+          "negative-positive": "La hausse du dernier trimestre contraste avec le recul sur un an et signale une amélioration récente.",
+          "positive-negative": "Le repli du dernier trimestre contraste avec la progression sur un an et signale un ralentissement récent.",
+          "negative-negative": "Le repli du dernier trimestre prolonge le recul sur un an : la tendance reste défavorable.",
+          "neutral-positive": "Après une évolution quasi stable sur un an, la hausse du dernier trimestre dessine une amélioration récente.",
+          "neutral-negative": "Après une évolution quasi stable sur un an, le repli du dernier trimestre dégrade la dynamique récente.",
+          "positive-neutral": "La progression sur un an demeure, tandis que le niveau se stabilise au dernier trimestre.",
+          "negative-neutral": "Le recul sur un an demeure, tandis que le niveau se stabilise au dernier trimestre.",
+          "neutral-neutral": "L'indicateur est quasiment stable sur un an comme sur le dernier trimestre.",
+        };
+        return messages[`${annual}-${quarterly}`]
+          || "Les données disponibles ne permettent pas de comparer les dynamiques annuelle et trimestrielle.";
       }
 
-      function employmentNarrative(metric, seriesLabel, activeFocus, latestPoint) {
-        const peakPoint = activeFocus.peakPoint;
-        const focusPoints = activeFocus.points || [];
-        const focusStart = focusPoints[0] || null;
-        const focusEnd = focusPoints[focusPoints.length - 1] || latestPoint;
-        const latestYoY = latestPoint ? latestPoint[metric.yoyKey] : null;
-        const currentSignal = employmentCurrentSignal(latestYoY);
-        const endSignal = employmentEndSignal(
-          focusStart ? focusStart[metric.yoyKey] : null,
-          focusEnd ? focusEnd[metric.yoyKey] : null,
-        );
-        const peakLabel = peakPoint
-          ? `${quarterLabel(peakPoint.date)}, le glissement annuel atteint ${formatPercent(peakPoint[metric.yoyKey])}`
-          : "la fenêtre de lecture ne permet pas d'isoler de point saillant";
-        const subject = metric.subject(seriesLabel);
-        const levelLabel = latestPoint ? metric.summaryLevel(latestPoint[metric.levelKey]) : "n.d.";
-        const latestQuarter = latestPoint ? quarterLabel(latestPoint.date) : "dernier trimestre connu";
-        let title = "";
-        if (activeFocus.key === "crash") {
-          title = peakPoint && peakPoint[metric.yoyKey] != null && peakPoint[metric.yoyKey] <= -2.5
-            ? "2020 / rupture marquée."
-            : "2020 / rupture nette.";
-        } else if (activeFocus.key === "rebound") {
-          title = peakPoint && peakPoint[metric.yoyKey] != null && peakPoint[metric.yoyKey] >= 4
-            ? "2021-2022 / reprise vigoureuse."
-            : "2021-2022 / reprise visible.";
-        } else {
-          title = latestYoY != null && latestYoY <= 0.3
-            ? "2024-2025 / haut niveau, rythme contenu."
-            : "2024-2025 / haut niveau encore orienté.";
-        }
-        const copy = `${scopeLabel()} / ${seriesLabel}. Sur ${employmentFocusWindowLabel(activeFocus.key)}, ${subject} ${currentSignal}. Au point le plus marquant, ${peakLabel}. À ${latestQuarter}, le niveau s'établit à ${levelLabel} et ${endSignal}.`;
-        return { title, copy };
+      function renderEmploymentTrend(elementId, value) {
+        const element = document.getElementById(elementId);
+        const stateName = employmentTrendState(value);
+        element.classList.remove("is-positive", "is-negative", "is-neutral", "is-unknown");
+        element.classList.add(`is-${stateName}`);
+        element.querySelector("span").textContent = employmentSignedPercent(value);
+        element.setAttribute("aria-label", employmentSignedPercent(value));
       }
 
       function drawEmploymentChart(config, points, metric, focuses, activeFocus) {
@@ -584,30 +552,20 @@
         }
         const activeFocus = focuses.find((focus) => focus.key === state[config.focusStateKey]) || focuses[0];
         const lastPoint = points[points.length - 1];
-        const narrative = employmentNarrative(metric, selectedSeries.label, activeFocus, lastPoint);
 
         renderEmploymentSeriesSelect(config.seriesSelectId, scope, config.seriesStateKey, renderSectorModule);
         renderEmploymentFocusSwitch(config.focusSwitchId, focuses, activeFocus.key, config.focusStateKey, renderSectorModule);
 
-        document.getElementById(config.chartTitleId).textContent = metric.chartTitle;
-        document.getElementById(config.chartMetaId).textContent = config.metricKey === "effectifs_cvs"
-          ? `${scopeLabel()} · effectifs privés hors agricole · dernier trimestre disponible`
-          : `${scopeLabel()} · Masse salariale secteur privé hors agricole · dernier trimestre disponible`;
+        const periodLabel = quarterLabel(lastPoint.date);
+        document.getElementById(config.chartTitleId).textContent = `${metric.heading} ${periodLabel} : niveau et évolution en ${scopeLabel()}.`;
         document.getElementById(config.legendLineId).textContent = metric.legendLine;
-        document.getElementById(config.focusTitleId).textContent = narrative.title;
-        document.getElementById(config.focusCopyId).textContent = narrative.copy;
+        document.getElementById(config.scopeId).textContent = selectedSeries.label;
+        document.getElementById(config.periodId).textContent = periodLabel;
+        document.getElementById(config.periodId).dateTime = lastPoint.date;
         document.getElementById(config.currentLevelId).textContent = metric.summaryLevel(lastPoint[metric.levelKey]);
-        document.getElementById(config.currentLevelMetaId).textContent = `${quarterLabel(lastPoint.date)} / niveau observé`;
-        document.getElementById(config.currentYoYId).textContent = formatPercent(lastPoint[metric.yoyKey]);
-        document.getElementById(config.currentYoYMetaId).textContent = `${quarterLabel(lastPoint.date)} / vs il y a un an`;
-        document.getElementById(config.focusPeakId).textContent = formatPercent(activeFocus.peakPoint ? activeFocus.peakPoint[metric.yoyKey] : null);
-        document.getElementById(config.focusPeakMetaId).textContent = activeFocus.peakPoint
-          ? `${quarterLabel(activeFocus.peakPoint.date)} / point le plus marqué`
-          : "Fenêtre de focus";
-        document.getElementById(config.focusLevelId).textContent = metric.summaryLevel(activeFocus.levelPoint ? activeFocus.levelPoint[metric.levelKey] : null);
-        document.getElementById(config.focusLevelMetaId).textContent = activeFocus.levelPoint
-          ? `${quarterLabel(activeFocus.levelPoint.date)} / niveau atteint dans la fenêtre`
-          : "Fenêtre de focus";
+        renderEmploymentTrend(config.currentYoYId, lastPoint[metric.yoyKey]);
+        renderEmploymentTrend(config.currentQoQId, lastPoint[metric.qoqKey]);
+        document.getElementById(config.interpretationId).textContent = employmentInterpretation(lastPoint, metric);
 
         drawEmploymentChart(config, points, metric, focuses, activeFocus);
       }
@@ -1001,22 +959,17 @@
           seriesStateKey: "sectorEffectifsSeriesKey",
           focusStateKey: "sectorEffectifsFocusKey",
           chartTitleId: "employmentEffectifsChartTitle",
-          chartMetaId: "employmentEffectifsChartMeta",
           seriesSelectId: "employmentEffectifsSeriesSelect",
           focusSwitchId: "employmentEffectifsFocusSwitch",
           chartSvgId: "employmentEffectifsChartSvg",
           tooltipId: "employmentEffectifsTooltip",
           legendLineId: "employmentEffectifsLegendLine",
-          focusTitleId: "employmentEffectifsFocusTitle",
-          focusCopyId: "employmentEffectifsFocusCopy",
+          scopeId: "employmentEffectifsScope",
+          periodId: "employmentEffectifsPeriod",
           currentLevelId: "employmentEffectifsCurrentLevel",
-          currentLevelMetaId: "employmentEffectifsCurrentLevelMeta",
           currentYoYId: "employmentEffectifsCurrentYoY",
-          currentYoYMetaId: "employmentEffectifsCurrentYoYMeta",
-          focusPeakId: "employmentEffectifsFocusPeak",
-          focusPeakMetaId: "employmentEffectifsFocusPeakMeta",
-          focusLevelId: "employmentEffectifsFocusLevel",
-          focusLevelMetaId: "employmentEffectifsFocusLevelMeta",
+          currentQoQId: "employmentEffectifsCurrentQoQ",
+          interpretationId: "employmentEffectifsInterpretation",
         });
 
         renderRegionalEmploymentBlock({
@@ -1024,22 +977,17 @@
           seriesStateKey: "sectorPayrollSeriesKey",
           focusStateKey: "sectorPayrollFocusKey",
           chartTitleId: "employmentPayrollChartTitle",
-          chartMetaId: "employmentPayrollChartMeta",
           seriesSelectId: "employmentPayrollSeriesSelect",
           focusSwitchId: "employmentPayrollFocusSwitch",
           chartSvgId: "employmentPayrollChartSvg",
           tooltipId: "employmentPayrollTooltip",
           legendLineId: "employmentPayrollLegendLine",
-          focusTitleId: "employmentPayrollFocusTitle",
-          focusCopyId: "employmentPayrollFocusCopy",
+          scopeId: "employmentPayrollScope",
+          periodId: "employmentPayrollPeriod",
           currentLevelId: "employmentPayrollCurrentLevel",
-          currentLevelMetaId: "employmentPayrollCurrentLevelMeta",
           currentYoYId: "employmentPayrollCurrentYoY",
-          currentYoYMetaId: "employmentPayrollCurrentYoYMeta",
-          focusPeakId: "employmentPayrollFocusPeak",
-          focusPeakMetaId: "employmentPayrollFocusPeakMeta",
-          focusLevelId: "employmentPayrollFocusLevel",
-          focusLevelMetaId: "employmentPayrollFocusLevelMeta",
+          currentQoQId: "employmentPayrollCurrentQoQ",
+          interpretationId: "employmentPayrollInterpretation",
         });
 
         renderSectorTreemap();

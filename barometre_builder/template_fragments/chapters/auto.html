@@ -10,8 +10,13 @@
             </div>
           </div>
           <div class="control-row chapter-control-row">
-            <div class="select-wrap">
-              <select id="autoSectorSelect" aria-label="Secteur auto-entrepreneurs"></select>
+            <div class="employment-sector-picker auto-sector-picker" id="autoSectorPicker">
+              <span class="mono employment-select-label">Secteur</span>
+              <button class="employment-sector-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                <span class="employment-sector-trigger-value">Population entière</span>
+                <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="m5 7.5 5 5 5-5"></path></svg>
+              </button>
+              <div class="employment-sector-menu" role="listbox" aria-label="Sélection du secteur d’activité des travailleurs indépendants"></div>
             </div>
             <div class="metric-switch" id="autoMetricSwitch"></div>
           </div>

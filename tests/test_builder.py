@@ -141,6 +141,21 @@ class GeneratedPayloadTests(unittest.TestCase):
         for scope in rar["regions"].values():
             self.assertLessEqual(len(scope["points"]), RAR_WINDOW_MONTHS)
 
+    def test_auto_sector_selector_has_an_aggregate_and_no_technical_option(self) -> None:
+        auto = self.deferred["modules"]["auto"]
+        sector_labels = [sector["label"] for sector in auto["sectors"]]
+
+        self.assertEqual(auto["defaultSector"], "population-entiere")
+        self.assertEqual(auto["sectors"][0], {"key": "population-entiere", "label": "Population entière"})
+        self.assertNotIn("_calage_", sector_labels)
+        self.assertEqual(len(auto["sectors"]), 37)
+
+        aggregate_total = sum(
+            department["values"]["population-entiere"]["economically_active"]
+            for department in auto["departments"]
+        )
+        self.assertEqual(aggregate_total, self.boot["nationalHero"]["auto"]["value"])
+
     def test_generated_html_is_complete_and_within_budget(self) -> None:
         html = render_html(self.boot, self.deferred)
         for placeholder in (

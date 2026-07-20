@@ -174,11 +174,14 @@
                       <strong>Carte départementale des effectifs privés et de la masse salariale</strong>
                       <span id="employmentDeptMapMeta"></span>
                     </div>
-                    <div class="employment-map-controls">
-                      <label class="employment-select-wrap employment-select-wrap--compact" for="employmentDeptSectorSelect">
-                        <span class="mono employment-select-label">Population / grand secteur</span>
-                        <select id="employmentDeptSectorSelect"></select>
-                      </label>
+                    <div class="employment-map-controls employment-map-controls--sector">
+                      <div class="employment-sector-picker employment-grand-sector-picker" id="employmentDeptSectorPicker">
+                        <button class="employment-sector-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                          <span class="employment-sector-trigger-value">Population entière</span>
+                          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="m5 7.5 5 5 5-5"></path></svg>
+                        </button>
+                        <div class="employment-sector-menu" role="listbox" aria-label="Sélection du grand secteur"></div>
+                      </div>
                       <div class="metric-switch" id="employmentDeptMetricSwitch"></div>
                     </div>
                   </div>

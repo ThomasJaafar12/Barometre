@@ -183,6 +183,9 @@
         { key: "business", label: "Services entreprises", codes: ["JA-JB-JC", "KZ", "LZ", "MA", "MB-MC", "NZa", "NZb"] },
         { key: "collective", label: "Services collectifs", codes: ["OZ", "PZ", "QA", "QB", "RZ", "SZ"] },
       ];
+      const EMPLOYMENT_GRAND_SECTOR_GROUPS = [
+        { key: "grand", label: "Grands secteurs", codes: ["GS5", "GS3", "GS1", "GS7", "GS2", "GS4", "GS6"] },
+      ];
 
       function employmentSectorCode(option) {
         return option.label.trim().split(/\s+/, 1)[0];
@@ -191,14 +194,17 @@
       function employmentSectorDisplayLabel(option) {
         if (option.key === "population-entiere") return option.label;
         const code = employmentSectorCode(option);
-        const description = option.label.slice(code.length).trim();
+        const description = option.label
+          .slice(code.length)
+          .trim()
+          .replace(/^[-–—:]\s*/, "");
         return description ? `${code} — ${description}` : option.label;
       }
 
       function setEmploymentSectorPickerOpen(control, isOpen, focusPosition = "active") {
         const trigger = control.querySelector(".employment-sector-trigger");
         const menu = control.querySelector(".employment-sector-menu");
-        control.closest(".employment-main")?.classList.toggle("has-open-sector-picker", isOpen);
+        control.closest(".employment-main, .employment-map-panel")?.classList.toggle("has-open-sector-picker", isOpen);
         control.classList.toggle("is-open", isOpen);
         trigger.setAttribute("aria-expanded", String(isOpen));
         if (!isOpen) return;
@@ -217,16 +223,17 @@
         });
       }
 
-      function renderEmploymentSeriesPicker(controlId, scope, stateKey, onRender) {
+      function renderEmploymentSectorPicker(controlId, sectorOptions, stateKey, onRender, groups = EMPLOYMENT_SECTOR_GROUPS) {
         const control = document.getElementById(controlId);
         const trigger = control.querySelector(".employment-sector-trigger");
         const triggerValue = control.querySelector(".employment-sector-trigger-value");
         const menu = control.querySelector(".employment-sector-menu");
-        const selectedOption = scope.seriesOptions.find((option) => option.key === state[stateKey]) || scope.seriesOptions[0];
-        const aggregateOption = scope.seriesOptions.find((option) => option.key === "population-entiere");
+        const selectedOption = sectorOptions.find((option) => option.key === state[stateKey]) || sectorOptions[0];
+        const aggregateOption = sectorOptions.find((option) => option.key === "population-entiere");
 
-        triggerValue.textContent = selectedOption.label;
-        trigger.setAttribute("aria-label", `Choisir le secteur, actuellement ${selectedOption.label}`);
+        const selectedDisplayLabel = employmentSectorDisplayLabel(selectedOption);
+        triggerValue.textContent = selectedDisplayLabel;
+        trigger.setAttribute("aria-label", `Choisir le secteur, actuellement ${selectedDisplayLabel}`);
         menu.id = `${controlId}Menu`;
         trigger.setAttribute("aria-controls", menu.id);
         menu.innerHTML = "";
@@ -259,8 +266,8 @@
         const grid = document.createElement("div");
         grid.className = "employment-sector-grid";
         menu.appendChild(grid);
-        EMPLOYMENT_SECTOR_GROUPS.forEach((group) => {
-          const options = scope.seriesOptions
+        groups.forEach((group) => {
+          const options = sectorOptions
             .filter((option) => group.codes.includes(employmentSectorCode(option)))
             .sort((left, right) => group.codes.indexOf(employmentSectorCode(left)) - group.codes.indexOf(employmentSectorCode(right)));
           if (!options.length) return;
@@ -336,6 +343,10 @@
           });
           control.dataset.bound = "true";
         }
+      }
+
+      function renderEmploymentSeriesPicker(controlId, scope, stateKey, onRender) {
+        renderEmploymentSectorPicker(controlId, scope.seriesOptions, stateKey, onRender);
       }
 
       function renderEmploymentFocusSwitch(containerId, focuses, activeKey, stateKey, onRender) {
@@ -856,7 +867,7 @@
         const latestDate = rows[0].date;
         const layoutRows = sectorTreemapLayoutRows(rows);
 
-        meta.textContent = `${scopeLabel()} / ${quarterLabel(latestDate)} / surface = ${metric.label.toLowerCase()} (plancher de lisibilite) / couleur = glissement annuel`;
+        meta.textContent = `${scopeLabel()} / ${quarterLabel(latestDate)}`;
         legend.innerHTML = `
           <span class="legend-chip"><i class="employment-treemap-swatch is-negative"></i>Repli annuel</span>
           <span class="legend-chip"><i class="employment-treemap-swatch is-neutral"></i>Quasi stable</span>
@@ -1015,27 +1026,16 @@
           renderSectorModule();
         });
 
-        const sectorSelect = document.getElementById("employmentDeptSectorSelect");
-        if (!sectorSelect.dataset.bound) {
-          sectorSelect.addEventListener("change", (event) => {
-            state.sectorDepartmentSectorKey = event.target.value;
-            renderSectorModule();
-          });
-          sectorSelect.dataset.bound = "true";
-        }
-        sectorSelect.innerHTML = "";
-        departmentModule.sectorOptions.forEach((option) => {
-          const element = document.createElement("option");
-          element.value = option.key;
-          element.textContent = option.label;
-          element.selected = option.key === state.sectorDepartmentSectorKey;
-          sectorSelect.appendChild(element);
-        });
-
         if (!state.sectorDepartmentSectorKey) {
           state.sectorDepartmentSectorKey = departmentModule.defaultSectorKey;
-          sectorSelect.value = state.sectorDepartmentSectorKey;
         }
+        renderEmploymentSectorPicker(
+          "employmentDeptSectorPicker",
+          departmentModule.sectorOptions,
+          "sectorDepartmentSectorKey",
+          renderSectorModule,
+          EMPLOYMENT_GRAND_SECTOR_GROUPS,
+        );
 
         if (state.phase === "national") {
           mapMeta.textContent = "Choisir une région pour ouvrir la maille départementale";
@@ -1051,7 +1051,6 @@
         const selectedSector = departmentModule.sectorOptions.find((option) => option.key === state.sectorDepartmentSectorKey) || departmentModule.sectorOptions[0];
         if (selectedSector && selectedSector.key !== state.sectorDepartmentSectorKey) {
           state.sectorDepartmentSectorKey = selectedSector.key;
-          sectorSelect.value = selectedSector.key;
         }
         const selectedMetric = departmentModule.metrics.find((item) => item.key === state.sectorDepartmentMetric) || departmentModule.metrics[0];
         mapMeta.textContent = `${scopeLabel()} / ${selectedSector.label} / ${quarterLabel(departmentModule.latestDate)}`;

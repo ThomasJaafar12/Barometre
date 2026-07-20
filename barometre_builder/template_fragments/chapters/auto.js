@@ -1,6 +1,29 @@
       let autoDepartmentByCode = null;
       let autoDepartmentFeaturesByRegion = null;
 
+      const AUTO_SECTOR_GROUPS = [
+        {
+          key: "industry",
+          label: "Production & bâtiment",
+          codes: ["AZ", "CZ1", "CZ2", "F1", "F2", "F3"],
+        },
+        {
+          key: "trade",
+          label: "Commerce, transport & restauration",
+          codes: ["G1", "G2", "G3", "G4", "G5", "G6", "HZ1", "HZ2", "HZ3", "HZ4", "IZ1", "IZ2"],
+        },
+        {
+          key: "business",
+          label: "Services aux entreprises",
+          codes: ["JZ", "KZ", "LZ", "M1", "M2", "M3", "M4", "M5", "N1", "N2"],
+        },
+        {
+          key: "collective",
+          label: "Services aux personnes",
+          codes: ["PZ", "QZ", "R1", "R2", "S1", "S2", "S3", "UZ"],
+        },
+      ];
+
       function metricValueForDepartment(department, sectorKey, metricKey) {
         const sectorValues = department.values[sectorKey];
         return sectorValues ? sectorValues[metricKey] : null;
@@ -45,20 +68,13 @@
           renderAutoModule();
         });
 
-        const sectorSelect = document.getElementById("autoSectorSelect");
-        if (!sectorSelect.options.length) {
-          DATA.modules.auto.sectors.forEach((sector) => {
-            const option = document.createElement("option");
-            option.value = sector.key;
-            option.textContent = sector.label;
-            sectorSelect.appendChild(option);
-          });
-          sectorSelect.addEventListener("change", (event) => {
-            state.autoSector = event.target.value;
-            renderAutoModule();
-          });
-        }
-        sectorSelect.value = state.autoSector;
+        renderEmploymentSectorPicker(
+          "autoSectorPicker",
+          DATA.modules.auto.sectors,
+          "autoSector",
+          renderAutoModule,
+          AUTO_SECTOR_GROUPS,
+        );
 
         if (!departments.length) {
           subtitle.textContent = `${scopeLabel()} / aucun département exploitable.`;

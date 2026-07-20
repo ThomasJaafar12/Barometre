@@ -354,7 +354,15 @@ def build_auto_module(rows: list[dict[str, str]], region_meta: dict[str, dict[st
     ]
     latest_date = max(row["Dernier jour du trimestre"] for row in filtered_rows)
     latest_rows = [row for row in filtered_rows if row["Dernier jour du trimestre"] == latest_date]
-    sector_labels = sorted({row["Secteur d'activité"] for row in latest_rows})
+    aggregate_key = "population-entiere"
+    technical_sector_label = "_calage_"
+    sector_labels = sorted(
+        {
+            row["Secteur d'activité"]
+            for row in latest_rows
+            if row["Secteur d'activité"] != technical_sector_label
+        }
+    )
     sector_ids = build_slug_index(sector_labels)
     sector_totals: dict[str, float] = defaultdict(float)
     departments: dict[str, dict[str, Any]] = {}
@@ -365,7 +373,7 @@ def build_auto_module(rows: list[dict[str, str]], region_meta: dict[str, dict[st
     for row in latest_rows:
         region_code = normalize_code(row["Code région"])
         department_code = normalize_department_code(row["Code Département"])
-        sector_id = sector_ids[row["Secteur d'activité"]]
+        sector_label = row["Secteur d'activité"]
         turnover = float(parse_number(row["Chiffres d'affaires"]) or 0)
         economic = float(parse_number(row["Economiquement actifs"]) or 0)
         admin = float(parse_number(row["Administrativement actifs"]) or 0)
@@ -373,20 +381,37 @@ def build_auto_module(rows: list[dict[str, str]], region_meta: dict[str, dict[st
             department_code,
             {"code": department_code, "name": row["Département"], "regionCode": region_code, "values": {}},
         )
-        entry["values"][sector_id] = {
-            "turnover": compact_number(turnover),
-            "economically_active": compact_number(economic),
-            "administratively_active": compact_number(admin),
-        }
+        aggregate_values = entry["values"].setdefault(
+            aggregate_key,
+            {"turnover": 0.0, "economically_active": 0.0, "administratively_active": 0.0},
+        )
+        aggregate_values["turnover"] += turnover
+        aggregate_values["economically_active"] += economic
+        aggregate_values["administratively_active"] += admin
+
+        if sector_label != technical_sector_label:
+            sector_id = sector_ids[sector_label]
+            entry["values"][sector_id] = {
+                "turnover": compact_number(turnover),
+                "economically_active": compact_number(economic),
+                "administratively_active": compact_number(admin),
+            }
+            sector_totals[sector_id] += economic
         region_departments[region_code].add(department_code)
-        sector_totals[sector_id] += economic
         hero_regions[region_code] += economic
         hero_national += economic
 
-    ordered_sectors = [
+    for department in departments.values():
+        department["values"][aggregate_key] = {
+            metric: compact_number(value)
+            for metric, value in department["values"][aggregate_key].items()
+        }
+
+    ordered_sectors = [{"key": aggregate_key, "label": "Population entière"}]
+    ordered_sectors.extend(
         {"key": sector_id, "label": label}
         for label, sector_id in sorted(sector_ids.items(), key=lambda item: sector_totals[item[1]], reverse=True)
-    ]
+    )
     return (
         {
             "latestDate": latest_date,
@@ -396,7 +421,7 @@ def build_auto_module(rows: list[dict[str, str]], region_meta: dict[str, dict[st
                 {"key": "turnover", "label": "Chiffre d’affaires déclaré", "format": "currency"},
             ],
             "sectors": ordered_sectors,
-            "defaultSector": ordered_sectors[0]["key"] if ordered_sectors else None,
+            "defaultSector": aggregate_key,
             "departments": [departments[key] for key in sorted(departments)],
             "regions": {code: {"departmentCodes": sorted(values)} for code, values in region_departments.items()},
         },

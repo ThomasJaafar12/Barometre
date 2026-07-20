@@ -1426,6 +1426,12 @@
     .employment-map-controls .metric-switch {
       flex: 0 0 auto;
     }
+    .employment-map-controls--sector {
+      width: 100%;
+      height: 45px;
+      flex: 1 1 100%;
+      align-content: flex-start;
+    }
     .employment-map-shell {
       min-height: 320px;
       display: grid;
@@ -5194,14 +5200,10 @@
 
     .employment-dashboard-level-value {
       display: inline-block;
-      color: var(--dashboard-ink);
+      color: var(--dashboard-blue);
       font: 800 clamp(3.2rem, 4.2vw, 4rem)/1 "Inter", system-ui, sans-serif;
       letter-spacing: -0.03em;
       word-spacing: 0.08em;
-      background: linear-gradient(135deg, var(--dashboard-ink) 0%, var(--dashboard-blue) 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
     }
 
     .employment-dashboard-stats {
@@ -5311,11 +5313,17 @@
       z-index: 50;
     }
 
+    .story .employment-map-grid .employment-map-panel.has-open-sector-picker {
+      position: relative;
+      z-index: 50;
+    }
+
     .employment-sector-picker {
       --sector-picker-text: #24364A;
       --sector-picker-muted: #60748A;
       --sector-picker-border: #CBD5E1;
-      --sector-picker-active: #E05D32;
+      --sector-picker-active: #38BDF8;
+      --sector-picker-highlight: #FF007F;
       position: relative;
       z-index: 1;
       display: grid;
@@ -5545,13 +5553,69 @@
       padding: 6px 10px;
       color: #13263D;
       background: #F1F5F9;
-      border: 1px solid #DCE4ED;
+      border: 1px solid var(--sector-picker-highlight);
       font-size: 0.72rem;
       white-space: nowrap;
     }
 
     .employment-sector-all-option .employment-sector-active-dot {
       margin-top: 0;
+    }
+
+    .employment-grand-sector-picker {
+      --sector-picker-active: #7000FF;
+      --grand-sector-highlight: #7000FF;
+      width: min(100%, 300px);
+      height: 42px;
+      flex: 0 1 300px;
+    }
+
+    .employment-grand-sector-picker .employment-sector-menu {
+      right: auto;
+      left: 0;
+      width: min(420px, calc(100vw - 80px));
+      padding: 24px 26px 26px;
+    }
+
+    .employment-grand-sector-picker .employment-sector-menu-header {
+      margin-bottom: 22px;
+    }
+
+    .employment-grand-sector-picker .employment-sector-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .employment-grand-sector-picker .employment-sector-column {
+      padding-right: 0;
+    }
+
+    .employment-grand-sector-picker .employment-sector-column::after {
+      display: none;
+    }
+
+    .employment-grand-sector-picker .employment-sector-column--grand .employment-sector-badge {
+      background: var(--grand-sector-highlight);
+    }
+
+    .employment-grand-sector-picker .employment-sector-option.is-active {
+      color: #251153;
+    }
+
+    #module-auto .chapter-control-row {
+      position: relative;
+      z-index: 30;
+      justify-content: flex-start;
+    }
+
+    .auto-sector-picker {
+      width: min(100%, 320px);
+      flex: 0 1 320px;
+    }
+
+    .auto-sector-picker .employment-sector-menu {
+      right: auto;
+      left: 0;
+      width: min(940px, calc(100vw - 80px));
     }
 
     @media (max-width: 980px) {
@@ -5584,6 +5648,10 @@
     }
 
     @media (max-width: 620px) {
+      .employment-map-controls--sector {
+        height: 99px;
+      }
+
       .employment-sector-picker {
         width: 100%;
         flex-basis: auto;
@@ -5617,6 +5685,28 @@
 
       .employment-sector-option {
         font-size: 0.8rem;
+      }
+
+      .employment-grand-sector-picker .employment-sector-menu {
+        right: 50%;
+        left: auto;
+        width: calc(100vw - 48px);
+        transform: translateX(50%);
+      }
+
+      .employment-grand-sector-picker.is-open .employment-sector-menu {
+        animation: none;
+      }
+
+      .auto-sector-picker .employment-sector-menu {
+        right: 50%;
+        left: auto;
+        width: calc(100vw - 48px);
+        transform: translateX(50%);
+      }
+
+      .auto-sector-picker.is-open .employment-sector-menu {
+        animation: none;
       }
     }
   </style>
@@ -7593,9 +7683,3 @@ __CHAPTER_MODULES_SCRIPT__
   </script>
 </body>
 </html>
-
-
-
-
-
-

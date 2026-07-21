@@ -420,26 +420,14 @@
         const chartMuted = paletteToken("employment-chart-muted", "#5b6773");
         const chartGrid = paletteToken("employment-chart-grid", "rgba(22,33,44,0.07)");
         const chartGridStrong = paletteToken("employment-chart-grid-strong", "rgba(22,33,44,0.18)");
+        const chartPositive = paletteToken("employment-chart-positive", "#0EA5A8");
+        const chartNegative = paletteToken("employment-chart-negative", "#E11D48");
 
         const defs = root.append("defs");
-        const positiveFillId = `${prefix}-positive-fill`;
-        const negativeFillId = `${prefix}-negative-fill`;
         const focusFillId = `${prefix}-focus-fill`;
-        const glowId = `${prefix}-line-glow`;
-        const positiveGradient = defs.append("linearGradient").attr("id", positiveFillId).attr("x1", "0").attr("x2", "0").attr("y1", "0").attr("y2", "1");
-        positiveGradient.append("stop").attr("offset", "0%").attr("stop-color", paletteToken("employment-chart-positive-a", "rgba(38,193,160,0.95)"));
-        positiveGradient.append("stop").attr("offset", "100%").attr("stop-color", paletteToken("employment-chart-positive-b", "rgba(38,193,160,0.54)"));
-        const negativeGradient = defs.append("linearGradient").attr("id", negativeFillId).attr("x1", "0").attr("x2", "0").attr("y1", "0").attr("y2", "1");
-        negativeGradient.append("stop").attr("offset", "0%").attr("stop-color", paletteToken("employment-chart-negative-a", "rgba(228,134,118,0.95)"));
-        negativeGradient.append("stop").attr("offset", "100%").attr("stop-color", paletteToken("employment-chart-negative-b", "rgba(228,134,118,0.50)"));
         const focusGradient = defs.append("linearGradient").attr("id", focusFillId).attr("x1", "0").attr("x2", "0").attr("y1", "0").attr("y2", "1");
         focusGradient.append("stop").attr("offset", "0%").attr("stop-color", paletteToken("employment-chart-focus-a", "rgba(26,78,147,0.13)"));
         focusGradient.append("stop").attr("offset", "100%").attr("stop-color", paletteToken("employment-chart-focus-b", "rgba(26,78,147,0)"));
-        const glow = defs.append("filter").attr("id", glowId).attr("x", "-20%").attr("y", "-20%").attr("width", "140%").attr("height", "140%");
-        glow.append("feGaussianBlur").attr("stdDeviation", 3.2).attr("result", "blur");
-        const merge = glow.append("feMerge");
-        merge.append("feMergeNode").attr("in", "blur");
-        merge.append("feMergeNode").attr("in", "SourceGraphic");
 
         const chart = root.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
         const yoyValues = points.map((point) => point[metric.yoyKey]).filter((value) => value != null);
@@ -519,21 +507,12 @@
           .attr("y", (point) => point[metric.yoyKey] >= 0 ? yYoY(point[metric.yoyKey]) : zeroY)
           .attr("width", barWidth)
           .attr("height", (point) => Math.abs(yYoY(point[metric.yoyKey]) - zeroY))
-          .attr("rx", 6)
-          .attr("fill", (point) => point[metric.yoyKey] >= 0 ? `url(#${positiveFillId})` : `url(#${negativeFillId})`);
+          .attr("fill", (point) => point[metric.yoyKey] >= 0 ? chartPositive : chartNegative);
 
         const line = d3.line()
           .x((point, index) => xScale(index))
           .y((point) => yLevel(point[metric.levelKey]))
           .curve(d3.curveCatmullRom.alpha(0.6));
-
-        chart.append("path")
-          .datum(points)
-          .attr("d", line)
-          .attr("fill", "none")
-          .attr("stroke", chartInkSoft)
-          .attr("stroke-width", 10)
-          .attr("filter", `url(#${glowId})`);
 
         chart.append("path")
           .datum(points)

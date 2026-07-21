@@ -170,6 +170,42 @@ class GeneratedPayloadTests(unittest.TestCase):
         self.assertLessEqual(len(html.encode("utf-8")), 2_500_000)
         self.assertLessEqual(len(gzip_base64_json(self.deferred)), 1_900_000)
 
+    def test_chapter_headers_use_the_swiss_title_contract(self) -> None:
+        html = render_html(self.boot, self.deferred)
+
+        self.assertEqual(html.count('class="section-kicker-label">Chapitre</span>'), 3)
+        self.assertEqual(html.count('class="section-title-content">'), 3)
+        self.assertIn('sectionTitlePrefix: "Conjoncture de l\\u2019"', html)
+        self.assertIn('sectionTitleHighlight: "emploi"', html)
+        self.assertIn('className = "chapter-title-highlight"', html)
+        self.assertIn('className = "chapter-title-period"', html)
+
+    def test_employment_combo_charts_use_flat_bars_without_curve_glow(self) -> None:
+        html = render_html(self.boot, self.deferred)
+
+        self.assertIn('"employment-chart-positive":"#0EA5A8"', html)
+        self.assertIn('"employment-chart-negative":"#E11D48"', html)
+        self.assertIn('background: var(--employment-chart-positive, #0EA5A8);', html)
+        self.assertIn('background: var(--employment-chart-negative, #E11D48);', html)
+        self.assertIn('const chartPositive = paletteToken("employment-chart-positive", "#0EA5A8");', html)
+        self.assertIn('const chartNegative = paletteToken("employment-chart-negative", "#E11D48");', html)
+        self.assertIn('? chartPositive : chartNegative);', html)
+        self.assertIn(
+            ".employment-swatch {\n"
+            "      display: inline-block;\n"
+            "      width: 16px;\n"
+            "      height: 16px;\n"
+            "      border-radius: 0;",
+            html,
+        )
+        self.assertNotIn("employment-chart-positive-a", html)
+        self.assertNotIn("employment-chart-positive-b", html)
+        self.assertNotIn("employment-chart-negative-a", html)
+        self.assertNotIn("employment-chart-negative-b", html)
+        self.assertNotIn("line-glow", html)
+        self.assertNotIn('.attr("stroke-width", 10)', html)
+        self.assertNotIn('.attr("rx", 6)', html)
+
 
 if __name__ == "__main__":
     unittest.main()

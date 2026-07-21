@@ -16,7 +16,9 @@ class ChapterFragment:
     label: str
     nav_label: str
     rail_meta: str
-    section_title: str
+    section_title_prefix: str
+    section_title_highlight: str
+    section_title_suffix: str
     section_meta: str
     tone: int
     html_fragment: str
@@ -32,7 +34,9 @@ CHAPTERS: tuple[ChapterFragment, ...] = (
         label="Conjoncture de l'emploi",
         nav_label="Conjoncture",
         rail_meta="emploi, masse salariale, lecture territoriale",
-        section_title="Conjoncture de l'emploi.",
+        section_title_prefix="Conjoncture de l’",
+        section_title_highlight="emploi",
+        section_title_suffix="",
         section_meta="",
         tone=1,
         html_fragment="sector.html",
@@ -46,7 +50,9 @@ CHAPTERS: tuple[ChapterFragment, ...] = (
         label="Santé des entreprises",
         nav_label="Santé",
         rail_meta="masse salariale, assiette, signaux d'activité",
-        section_title="Santé des entreprises.",
+        section_title_prefix="Santé des ",
+        section_title_highlight="entreprises",
+        section_title_suffix="",
         section_meta="Lecture mensuelle de l'activité déclarée, de la masse salariale et des tensions conjoncturelles.",
         tone=2,
         html_fragment="payroll.html",
@@ -60,7 +66,9 @@ CHAPTERS: tuple[ChapterFragment, ...] = (
         label="Travailleurs indépendants",
         nav_label="Indépendants",
         rail_meta="auto-entrepreneurs, lecture territoriale",
-        section_title="Travailleurs indépendants.",
+        section_title_prefix="Travailleurs ",
+        section_title_highlight="indépendants",
+        section_title_suffix="",
         section_meta="Focus départemental sur les indépendants, avec lecture sectorielle et hiérarchie territoriale.",
         tone=3,
         html_fragment="auto.html",
@@ -84,8 +92,10 @@ def build_chapter_fragments() -> dict[str, str]:
             "label": chapter.label,
             "navLabel": chapter.nav_label,
             "railMeta": chapter.rail_meta,
-            "sectionKicker": f"#{chapter.number}",
-            "sectionTitle": chapter.section_title,
+            "sectionKicker": chapter.number,
+            "sectionTitlePrefix": chapter.section_title_prefix,
+            "sectionTitleHighlight": chapter.section_title_highlight,
+            "sectionTitleSuffix": chapter.section_title_suffix,
             "sectionMeta": chapter.section_meta,
             "tone": chapter.tone,
         }

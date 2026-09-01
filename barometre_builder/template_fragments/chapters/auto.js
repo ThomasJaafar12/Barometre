@@ -50,12 +50,11 @@
       }
 
       function renderAutoModule() {
-        const subtitle = document.getElementById("autoSubtitle");
         const mapMeta = document.getElementById("autoMapMeta");
         const rankingMeta = document.getElementById("autoRankingMeta");
         const autoPanel = document.getElementById("autoMapPanel");
         const autoRanking = document.getElementById("autoRanking");
-        const mapGrid = document.querySelector("#module-auto .department-map-grid");
+        const mapGrid = document.querySelector(".auto-department-card .department-map-grid");
         const departmentIndex = getAutoDepartmentIndex();
         const featuresByRegion = getAutoDepartmentFeaturesByRegion();
         const scopeDepartmentCodes = state.phase === "national"
@@ -77,7 +76,6 @@
         );
 
         if (!departments.length) {
-          subtitle.textContent = `${scopeLabel()} / aucun département exploitable.`;
           renderEmptyState(autoPanel, "Données manquantes", "Les auto-entrepreneurs ne sont pas documentés ici dans les CSV fournis.");
           autoRanking.innerHTML = "";
           syncDepartmentRankingHeight(mapGrid);
@@ -87,8 +85,7 @@
         const activeSector = DATA.modules.auto.sectors.find((sector) => sector.key === state.autoSector);
         const activeMetric = DATA.modules.auto.metrics.find((metric) => metric.key === state.autoMetric);
 
-        subtitle.textContent = `${scopeLabel()} / ${quarterLabel(DATA.modules.auto.latestDate)}`;
-        mapMeta.textContent = activeSector.label;
+        mapMeta.textContent = `${scopeLabel()} / ${quarterLabel(DATA.modules.auto.latestDate)} / ${activeSector.label}`;
         rankingMeta.textContent = activeMetric.label;
 
         const values = departments.map((department) => metricValueForDepartment(department, state.autoSector, state.autoMetric)).filter((value) => value != null);

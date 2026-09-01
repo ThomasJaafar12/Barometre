@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Treemap sectorielle — Baromètre territorial Urssaf</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --product-ink: #07172F;
+      --product-ink-2: #0B1D3A;
+      --product-line: #D9E2EC;
+      --product-line-strong: #B9C7D6;
+      --product-muted: #536273;
+      --employment-treemap-negative: #E7A1AE;
+      --employment-treemap-neutral: #F3E7D4;
+      --employment-treemap-positive: #8CCDC4;
+      --text: #0F172A;
+      --muted: #334155;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { color-scheme: light; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      padding: clamp(16px, 3vw, 40px);
+      color: var(--text);
+      font-family: "Manrope", "Inter", sans-serif;
+      background: #EEF3F8;
+    }
+
+    button { font: inherit; }
+
+    .component-stage {
+      width: min(100%, 1240px);
+      margin: 0 auto;
+    }
+
+    .section-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .employment-block {
+      display: grid;
+      gap: 18px;
+    }
+
+    .viz-panel {
+      border-radius: 28px;
+      padding: 18px;
+      border: 1px solid var(--product-line);
+      min-height: 360px;
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .viz-title {
+      display: grid;
+      gap: 5px;
+    }
+
+    .viz-title strong,
+    .employment-title strong {
+      color: var(--product-ink);
+      font-size: 1.08rem;
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+    }
+
+    .viz-title span,
+    .employment-title span {
+      color: var(--product-muted);
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    .metric-switch {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 4px;
+      background: #EDF3F8;
+      border: 1px solid var(--product-line);
+    }
+
+    .metric-button {
+      appearance: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 8px 11px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      color: var(--product-ink-2);
+      background: transparent;
+      font: 700 0.88rem "Manrope", "Inter", sans-serif;
+      cursor: pointer;
+    }
+
+    .metric-button:focus-visible {
+      outline: 3px solid rgba(14, 165, 168, 0.22);
+      outline-offset: 2px;
+    }
+
+    .metric-button.is-active {
+      color: rgb(7, 23, 47);
+      background: #FFFFFF;
+      border-color: #CBD5E1;
+      box-shadow: inset 0 1px 0 #FFFFFF;
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      align-items: center;
+      padding-top: 2px;
+    }
+
+    .legend-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--product-muted);
+      font-size: 0.84rem;
+      font-weight: 600;
+    }
+
+    .employment-treemap-grid {
+      grid-template-columns: 1fr;
+      align-items: stretch;
+    }
+
+    .employment-treemap-card .employment-treemap-panel {
+      position: relative;
+      overflow: hidden;
+      min-height: 760px;
+      gap: 18px;
+      padding: 22px;
+      background:
+        radial-gradient(circle at 14% 0%, rgba(14,165,168,0.10), transparent 34%),
+        radial-gradient(circle at 92% 18%, rgba(43,130,246,0.10), transparent 36%),
+        linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+      border: 1px solid #D4DEE9;
+      box-shadow: 0 16px 42px rgba(11,29,58,0.08);
+      color: rgb(7, 23, 47);
+    }
+
+    .employment-treemap-card .employment-treemap-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(7,23,47,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(7,23,47,0.035) 1px, transparent 1px);
+      background-size: 38px 38px;
+      mask-image: radial-gradient(circle at 50% 35%, rgba(0,0,0,0.52), transparent 74%);
+    }
+
+    .employment-treemap-head {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .employment-treemap-card .metric-switch {
+      background: #EDF3F8;
+      border-color: #CBD5E1;
+      box-shadow: inset 0 1px 0 #FFFFFF;
+    }
+
+    .employment-treemap-card .metric-button { color: #64748B; }
+
+    .employment-treemap-card .metric-button.is-active { color: rgb(7, 23, 47); }
+
+    .employment-treemap-shell {
+      position: relative;
+      z-index: 1;
+      min-height: 660px;
+      border-radius: 22px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.92)),
+        #FFFFFF;
+      border: 1px solid #E2E8F0;
+      box-shadow: inset 0 1px 0 #FFFFFF;
+    }
+
+    .employment-treemap-shell svg {
+      width: 100%;
+      height: auto;
+      min-height: 660px;
+      display: block;
+    }
+
+    .employment-treemap-shell.is-empty {
+      display: grid;
+      place-items: center;
+      padding: 18px;
+    }
+
+    .employment-treemap-tile {
+      cursor: pointer;
+      transition: filter 220ms ease;
+    }
+
+    .employment-treemap-tile rect {
+      transition: transform 260ms ease, stroke 260ms ease, stroke-width 260ms ease, filter 260ms ease;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    .employment-treemap-tile.is-hovered rect {
+      stroke: rgba(255,255,255,0.98);
+      stroke-width: 2.2px;
+      filter: url(#employmentTreemapGlow);
+      transform: scale(1.012);
+    }
+
+    .employment-treemap-label,
+    .employment-treemap-code,
+    .employment-treemap-value,
+    .employment-treemap-yoy {
+      pointer-events: none;
+      text-shadow: 0 1px 16px rgba(7,23,47,0.20);
+    }
+
+    .employment-treemap-label {
+      font: 800 15px "Manrope", "Inter", sans-serif;
+      letter-spacing: -0.01em;
+    }
+
+    .employment-treemap-code {
+      font: 800 11px "IBM Plex Mono", monospace;
+      letter-spacing: 0.025em;
+    }
+
+    .employment-treemap-value {
+      font: 800 21px "Syne", "Inter", sans-serif;
+      letter-spacing: -0.04em;
+    }
+
+    .employment-treemap-yoy {
+      font: 700 12px "IBM Plex Mono", monospace;
+      letter-spacing: 0.04em;
+      opacity: 0.86;
+    }
+
+    .employment-treemap-legend {
+      position: relative;
+      z-index: 2;
+    }
+
+    .employment-treemap-swatch {
+      display: inline-block;
+      width: 18px;
+      height: 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(7,23,47,0.14);
+      box-shadow: 0 6px 14px rgba(7,23,47,0.08);
+    }
+
+    .employment-treemap-swatch.is-negative { background: var(--employment-treemap-negative); }
+    .employment-treemap-swatch.is-neutral { background: var(--employment-treemap-neutral); }
+    .employment-treemap-swatch.is-positive { background: var(--employment-treemap-positive); }
+
+    .employment-tooltip {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 4;
+      width: max-content;
+      min-width: 176px;
+      max-width: min(232px, calc(100% - 32px));
+      padding: 10px 12px;
+      border-radius: 12px;
+      color: var(--product-ink);
+      background: rgba(255,255,255,0.98);
+      border: 1px solid var(--product-line-strong);
+      box-shadow: 0 18px 46px rgba(11,29,58,0.18);
+      backdrop-filter: blur(10px);
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .employment-tooltip.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .employment-tooltip .tooltip-overline {
+      font: 500 12px "IBM Plex Mono", monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .employment-tooltip .tooltip-body {
+      margin-top: 6px;
+      color: var(--text);
+      font-size: 0.88rem;
+      font-weight: 700;
+      line-height: 1.42;
+    }
+
+    .empty-state {
+      min-height: 180px;
+      display: grid;
+      place-content: center;
+      gap: 8px;
+      text-align: center;
+      background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+      border: 1px dashed var(--product-line-strong);
+    }
+
+    .empty-state p { margin: 0; color: var(--muted); }
+
+    @media (max-width: 860px) {
+      body { padding: 12px; }
+
+      .employment-treemap-head {
+        width: 100%;
+        justify-content: stretch;
+      }
+
+      .employment-treemap-card .employment-treemap-panel {
+        min-height: 0;
+        padding: 14px;
+      }
+
+      .employment-treemap-card .metric-switch {
+        width: 100%;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+      }
+
+      .metric-button { white-space: nowrap; }
+
+      .employment-treemap-shell,
+      .employment-treemap-shell svg {
+        min-height: 420px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="component-stage">
+    <article class="employment-block employment-treemap-card" aria-label="Composition sectorielle : niveau et glissement annuel">
+      <div class="section-grid employment-treemap-grid">
+        <div class="viz-panel employment-treemap-panel">
+          <div class="employment-treemap-head">
+            <div class="viz-title employment-title">
+              <strong>Composition sectorielle : niveau et glissement annuel</strong>
+              <span id="employmentTreemapMeta"></span>
+            </div>
+            <div class="metric-switch" id="employmentTreemapMetricSwitch" aria-label="Indicateur de la composition sectorielle"></div>
+          </div>
+          <div class="employment-treemap-shell" id="employmentTreemapShell">
+            <svg id="employmentTreemapSvg" viewBox="0 0 980 620" role="img" aria-labelledby="employmentTreemapTitleSvg employmentTreemapDescSvg">
+              <title id="employmentTreemapTitleSvg">Treemap sectorielle des effectifs et de la masse salariale</title>
+              <desc id="employmentTreemapDescSvg">La surface représente le niveau et la couleur représente le glissement annuel.</desc>
+            </svg>
+            <div id="employmentTreemapTooltip" class="employment-tooltip employment-treemap-tooltip" aria-hidden="true">
+              <div class="tooltip-overline"></div>
+              <div class="tooltip-body"></div>
+            </div>
+          </div>
+          <div class="legend-row employment-treemap-legend" id="employmentTreemapLegend"></div>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script>
+    (() => {
+      "use strict";
+
+      // Snapshot réel produit par le builder Baromètre : France entière, T4 2025.
+      // Chaque ligne conserve les niveaux et glissements annuels des deux métriques.
+      const TREEMAP_SOURCE_ROWS = [
+        { key: "gz-commerce-reparation-d-automobiles-et-de-motocycles", label: "GZ Commerce, réparation d'automobiles et de motocycles", date: "2025-12-31", effectifs_cvs: 3321230, masse_cvs: 27929758246, effectifs_yoy: -0.621544, masse_yoy: 1.065706 },
+        { key: "fz-construction", label: "FZ Construction", date: "2025-12-31", effectifs_cvs: 1592788, masse_cvs: 12184771331, effectifs_yoy: -1.204375, masse_yoy: 0.81304 },
+        { key: "hz-transports-et-entreposage", label: "HZ Transports et entreposage", date: "2025-12-31", effectifs_cvs: 1493943, masse_cvs: 13509053191, effectifs_yoy: 0.562742, masse_yoy: 1.761845 },
+        { key: "nzb-activites-de-services-administratifs-et-de-soutien-hors-interimaires", label: "NZb Activités de services administratifs et de soutien [hors intérimaires]", date: "2025-12-31", effectifs_cvs: 1486882, masse_cvs: 10304810794, effectifs_yoy: 0.221084, masse_yoy: 2.17693 },
+        { key: "qb-action-sociale-et-hebergement-medico-social", label: "QB Action sociale et hébergement médico-social", date: "2025-12-31", effectifs_cvs: 1372134, masse_cvs: 8567640583, effectifs_yoy: 0.43552, masse_yoy: 1.132341 },
+        { key: "iz-hebergement-et-restauration", label: "IZ Hébergement et restauration", date: "2025-12-31", effectifs_cvs: 1365873, masse_cvs: 8575361914, effectifs_yoy: 1.017069, masse_yoy: 2.586695 },
+        { key: "ma-activites-juridiques-de-conseil-et-d-ingenierie", label: "MA Activités juridiques, de conseil et d'ingénierie", date: "2025-12-31", effectifs_cvs: 1278547, masse_cvs: 16239127705, effectifs_yoy: 0.078823, masse_yoy: 2.037629 },
+        { key: "ja-jb-jc-edition-telecommunications-et-activites-informatiques", label: "JA-JB-JC Édition, télécommunications et activités informatiques", date: "2025-12-31", effectifs_cvs: 924194, masse_cvs: 13051676342, effectifs_yoy: -2.005808, masse_yoy: 0.103075 },
+        { key: "kz-activites-financieres-et-d-assurance", label: "KZ Activités financières et d'assurance", date: "2025-12-31", effectifs_cvs: 819279, masse_cvs: 12473927015, effectifs_yoy: 0.724007, masse_yoy: 2.614542 },
+        { key: "nza-interimaires", label: "NZa Intérimaires", date: "2025-12-31", effectifs_cvs: 706588, masse_cvs: 5438686238, effectifs_yoy: -0.729718, masse_yoy: -0.682442 },
+        { key: "qa-activites-pour-la-sante-humaine", label: "QA Activités pour la santé humaine", date: "2025-12-31", effectifs_cvs: 651330, masse_cvs: 5710172234, effectifs_yoy: 1.068361, masse_yoy: 2.699845 },
+        { key: "ca-industries-agro-alimentaires", label: "CA Industries agro-alimentaires", date: "2025-12-31", effectifs_cvs: 598072, masse_cvs: 4805675676, effectifs_yoy: 0.625722, masse_yoy: 2.689477 },
+        { key: "ck-cl-fabrication-de-machines-et-de-materiel-de-transport", label: "CK-CL Fabrication de machines et de matériel de transport", date: "2025-12-31", effectifs_cvs: 528136, masse_cvs: 6683585829, effectifs_yoy: -1.026028, masse_yoy: 1.281772 },
+        { key: "sz-autres-activites-de-services", label: "SZ Autres activités de services", date: "2025-12-31", effectifs_cvs: 508891, masse_cvs: 3315613074, effectifs_yoy: -0.349732, masse_yoy: 1.468842 },
+        { key: "pz-education", label: "PZ Éducation", date: "2025-12-31", effectifs_cvs: 392298, masse_cvs: 2744352556, effectifs_yoy: -1.410121, masse_yoy: 0.146416 },
+        { key: "ch-metallurgie-et-fabrication-de-produits-metalliques", label: "CH Métallurgie et fabrication de produits métalliques", date: "2025-12-31", effectifs_cvs: 360447, masse_cvs: 3560612720, effectifs_yoy: -1.706013, masse_yoy: 0.439377 },
+        { key: "dz-ez-production-et-distribution-d-electricite-de-gaz-et-d-eau", label: "DZ-EZ Production et distribution d'électricité, de gaz et d'eau", date: "2025-12-31", effectifs_cvs: 358044, masse_cvs: 4541194836, effectifs_yoy: 1.16695, masse_yoy: 4.343931 },
+        { key: "rz-arts-spectacles-et-activites-recreatives", label: "RZ Arts, spectacles et activités récréatives", date: "2025-12-31", effectifs_cvs: 356231, masse_cvs: 2775130561, effectifs_yoy: 0.455422, masse_yoy: 2.267327 },
+        { key: "mb-mc-recherche-developpement-et-autres-activites-scientifiques-et-techniques", label: "MB-MC Recherche, développement et autres activités scientifiques et techniques", date: "2025-12-31", effectifs_cvs: 317569, masse_cvs: 4029024191, effectifs_yoy: -1.768099, masse_yoy: 0.167932 },
+        { key: "cm-industrie-du-meuble-et-diverses-reparation-et-installation-de-machines", label: "CM Industrie du meuble et diverses ; réparation et installation de machines", date: "2025-12-31", effectifs_cvs: 298594, masse_cvs: 3054363747, effectifs_yoy: -0.14881, masse_yoy: 2.27239 },
+        { key: "lz-activites-immobilieres", label: "LZ Activités immobilières", date: "2025-12-31", effectifs_cvs: 267272, masse_cvs: 2520405997, effectifs_yoy: -0.727628, masse_yoy: 1.829522 },
+        { key: "cd-ce-cf-cokefaction-raffinage-industrie-chimique-et-pharmaceutique", label: "CD-CE-CF Cokéfaction-raffinage, industrie chimique et pharmaceutique", date: "2025-12-31", effectifs_cvs: 252998, masse_cvs: 3556176408, effectifs_yoy: 0.047454, masse_yoy: 2.53153 },
+        { key: "ci-cj-fabrication-de-produits-inform-elect-et-optiques-et-d-equipement-elect", label: "CI-CJ Fabrication de produits inform., élect. et optiques et d'équipement élect.", date: "2025-12-31", effectifs_cvs: 249001, masse_cvs: 3279334186, effectifs_yoy: 0.741601, masse_yoy: 2.544979 },
+        { key: "cg-industrie-des-plastiques-et-autres-produits-non-mineraux", label: "CG Industrie des plastiques et autres produits non minéraux", date: "2025-12-31", effectifs_cvs: 238936, masse_cvs: 2478299712, effectifs_yoy: -2.681259, masse_yoy: -0.132712 },
+        { key: "oz-administration-publique", label: "OZ Administration publique", date: "2025-12-31", effectifs_cvs: 192216, masse_cvs: 1974222993, effectifs_yoy: -0.572103, masse_yoy: 4.742866 },
+        { key: "cc-bois-et-papier", label: "CC Bois et papier", date: "2025-12-31", effectifs_cvs: 149973, masse_cvs: 1401770782, effectifs_yoy: -3.519595, masse_yoy: -1.486775 },
+        { key: "cb-habillement-textile-et-cuir", label: "CB Habillement, textile et cuir", date: "2025-12-31", effectifs_cvs: 106751, masse_cvs: 967924164, effectifs_yoy: -2.140513, masse_yoy: 1.310461 },
+        { key: "bz-industries-extractives", label: "BZ Industries extractives", date: "2025-12-31", effectifs_cvs: 19747, masse_cvs: 213945347, effectifs_yoy: -2.377892, masse_yoy: -0.90377 }
+      ];
+
+      // Reconstitue la forme de données consommée par le composant de production.
+      const nationalScope = {
+        latestDate: "2025-12-31",
+        defaultSeriesKey: "population-entiere",
+        seriesOptions: [
+          { key: "population-entiere", label: "Population entière" },
+          ...TREEMAP_SOURCE_ROWS.map(({ key, label }) => ({ key, label }))
+        ],
+        series: Object.fromEntries(
+          TREEMAP_SOURCE_ROWS.map((row) => [row.key, { label: row.label, points: [row] }])
+        )
+      };
+
+      const DATA = {
+        colorSystem: {
+          tokens: {
+            "employment-treemap-negative": "#E7A1AE",
+            "employment-treemap-neutral": "#F3E7D4",
+            "employment-treemap-positive": "#8CCDC4"
+          }
+        },
+        modules: {
+          sector: {
+            regional: {
+              metrics: [
+                { key: "effectifs_cvs", label: "Effectifs", format: "count" },
+                { key: "masse_cvs", label: "Masse salariale", format: "currency" }
+              ],
+              national: nationalScope
+            }
+          }
+        }
+      };
+
+      const state = { sectorTreemapMetric: "effectifs_cvs" };
+      const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const colorTokens = DATA.colorSystem.tokens;
+
+      function getSectorRegionalScopeData() {
+        return DATA.modules.sector.regional.national;
+      }
+
+      function scopeLabel() {
+        return "France entière";
+      }
+
+      function paletteToken(name, fallback = null) {
+        return colorTokens[name] != null ? colorTokens[name] : fallback;
+      }
+
+      function frNumber(value, digits = 1) {
+        if (value == null || Number.isNaN(value)) return "—";
+        return Number(value).toLocaleString("fr-FR", {
+          minimumFractionDigits: digits,
+          maximumFractionDigits: digits
+        });
+      }
+
+      function formatCount(value) {
+        if (value == null || Number.isNaN(value)) return "—";
+        const abs = Math.abs(value);
+        if (abs >= 1e6) return `${frNumber(value / 1e6, 2)} M`;
+        if (abs >= 1e3) return `${frNumber(value / 1e3, 1)} k`;
+        return Number(value).toLocaleString("fr-FR", { maximumFractionDigits: 0 });
+      }
+
+      function formatCurrency(value) {
+        if (value == null || Number.isNaN(value)) return "—";
+        const abs = Math.abs(value);
+        if (abs >= 1e9) return `${frNumber(value / 1e9, 1)} Md€`;
+        if (abs >= 1e6) return `${frNumber(value / 1e6, 1)} M€`;
+        return `${Number(value).toLocaleString("fr-FR", { maximumFractionDigits: 0 })} €`;
+      }
+
+      function formatPercent(value, digits = 1) {
+        if (value == null || Number.isNaN(value)) return "—";
+        return `${frNumber(value, digits)} %`;
+      }
+
+      function quarterLabel(dateValue) {
+        if (!dateValue) return "—";
+        const date = new Date(`${dateValue}T00:00:00`);
+        const quarter = Math.floor(date.getMonth() / 3) + 1;
+        return `T${quarter} ${date.getFullYear()}`;
+      }
+
+      function renderMetricSwitch(containerId, items, activeKey, onChange) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+        items.forEach((item) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = `metric-button${item.key === activeKey ? " is-active" : ""}`;
+          button.textContent = item.label;
+          button.addEventListener("click", () => onChange(item.key));
+          container.appendChild(button);
+        });
+      }
+
+      function renderEmptyState(target, title, message) {
+        target.innerHTML = `<div class="empty-state"><strong>${title}</strong><p>${message}</p></div>`;
+      }
+
+      function employmentMetricConfig(metricKey) {
+        const isHeadcount = metricKey === "effectifs_cvs";
+        return {
+          key: metricKey,
+          label: isHeadcount ? "Effectifs" : "Masse salariale",
+          levelKey: metricKey,
+          yoyKey: isHeadcount ? "effectifs_yoy" : "masse_yoy"
+        };
+      }
+
+      function sectorTreemapMetricFormatter(metricKey, value) {
+        return metricKey === "masse_cvs" ? formatCurrency(value) : formatCount(value);
+      }
+
+      function sectorTreemapLatestRows(scope, metric) {
+        if (!scope || !scope.seriesOptions || !scope.series) return [];
+        return scope.seriesOptions
+          .filter((option) => option.key !== scope.defaultSeriesKey && option.key !== "population-entiere")
+          .map((option) => {
+            const series = scope.series[option.key];
+            const point = series && series.points
+              ? [...series.points].reverse().find((item) => item && item[metric.levelKey] > 0)
+              : null;
+            if (!point) return null;
+            return {
+              key: option.key,
+              label: option.label,
+              date: point.date,
+              value: point[metric.levelKey],
+              yoy: point[metric.yoyKey]
+            };
+          })
+          .filter(Boolean)
+          .sort((left, right) => right.value - left.value);
+      }
+
+      function sectorTreemapColorScale(rows) {
+        const yoyValues = rows.map((row) => row.yoy).filter((value) => value != null);
+        const maxAbs = Math.max(1.5, d3.max(yoyValues.map((value) => Math.abs(value))) || 1.5);
+        return d3.scaleLinear()
+          .domain([-maxAbs, 0, maxAbs])
+          .range([
+            paletteToken("employment-treemap-negative", "#D94B65"),
+            paletteToken("employment-treemap-neutral", "#F3E7D4"),
+            paletteToken("employment-treemap-positive", "#0EA5A8")
+          ])
+          .clamp(true);
+      }
+
+      function sectorTreemapTextFill() {
+        return "rgb(7, 23, 47)";
+      }
+
+      function sectorTreemapTrimLabel(label) {
+        return String(label || "")
+          .replace(/^[A-Z]{1,3}[a-z]?(?:-[A-Z]{1,3}[a-z]?)*\s+/, "")
+          .replace(/\s*\[[^\]]+\]/g, "")
+          .trim();
+      }
+
+      function sectorTreemapNaceCode(label, key) {
+        const labelMatch = String(label || "").match(/^([A-Z]{1,3}[a-z]?(?:-[A-Z]{1,3}[a-z]?)*)\s+/);
+        const keyMatch = String(key || "").match(/^([a-z]{1,3}(?:-[a-z]{1,3})*)-/i);
+        const rawCode = labelMatch ? labelMatch[1] : (keyMatch ? keyMatch[1] : "");
+        return rawCode.replace(/-/g, " ").toUpperCase();
+      }
+
+      function sectorTreemapLayoutRows(rows) {
+        const total = d3.sum(rows, (row) => row.value);
+        const minimumLayoutValue = total * 0.005;
+        return rows.map((row) => ({
+          ...row,
+          naceCode: sectorTreemapNaceCode(row.label, row.key),
+          layoutValue: Math.max(row.value, minimumLayoutValue)
+        }));
+      }
+
+      function drawSectorTreemapCode(tile, code, tileWidth, tileHeight, fill) {
+        if (!code || tileWidth < 20 || tileHeight < 18) return;
+        const tokens = code.split(" ");
+        const horizontalWidth = code.length * 6.5;
+        const canUseHorizontal = horizontalWidth <= tileWidth - 14;
+        const canStack = tokens.length > 1
+          && Math.max(...tokens.map((token) => token.length)) * 6.5 <= tileWidth - 12
+          && tokens.length * 13 <= tileHeight - 10;
+        const text = tile.append("text")
+          .attr("x", Math.max(6, Math.min(10, tileWidth * 0.16)))
+          .attr("y", Math.max(14, Math.min(18, tileHeight * 0.34)))
+          .attr("fill", fill)
+          .attr("class", "employment-treemap-code");
+
+        if (!canUseHorizontal && canStack) {
+          text.attr("y", Math.max(14, (tileHeight - (tokens.length - 1) * 13) / 2));
+          tokens.forEach((token, index) => {
+            text.append("tspan")
+              .attr("x", Math.max(6, Math.min(10, tileWidth * 0.16)))
+              .attr("dy", index === 0 ? 0 : 13)
+              .text(token);
+          });
+          return;
+        }
+        text.text(code);
+      }
+
+      function renderSectorTreemap() {
+        const scope = getSectorRegionalScopeData();
+        const metricKey = state.sectorTreemapMetric || "effectifs_cvs";
+        const metric = employmentMetricConfig(metricKey);
+        const metrics = DATA.modules.sector.regional.metrics || [];
+        const shell = document.getElementById("employmentTreemapShell");
+        const meta = document.getElementById("employmentTreemapMeta");
+        const legend = document.getElementById("employmentTreemapLegend");
+        const svg = d3.select("#employmentTreemapSvg");
+        const rows = sectorTreemapLatestRows(scope, metric);
+
+        renderMetricSwitch("employmentTreemapMetricSwitch", metrics, metricKey, (key) => {
+          state.sectorTreemapMetric = key;
+          renderSectorTreemap();
+        });
+
+        svg.selectAll("*").remove();
+        if (!rows.length) {
+          meta.textContent = `${scopeLabel()} / aucun secteur exploitable`;
+          legend.innerHTML = "";
+          shell.classList.add("is-empty");
+          renderEmptyState(shell, "Composition indisponible", "Les séries sectorielles ne contiennent pas de niveau exploitable pour ce territoire.");
+          return;
+        }
+
+        shell.classList.remove("is-empty");
+        if (!shell.querySelector("#employmentTreemapSvg")) {
+          shell.innerHTML = `
+            <svg id="employmentTreemapSvg" viewBox="0 0 980 620" role="img" aria-labelledby="employmentTreemapTitleSvg employmentTreemapDescSvg">
+              <title id="employmentTreemapTitleSvg">Treemap sectorielle des effectifs et de la masse salariale</title>
+              <desc id="employmentTreemapDescSvg">La surface représente le niveau et la couleur représente le glissement annuel.</desc>
+            </svg>
+            <div id="employmentTreemapTooltip" class="employment-tooltip employment-treemap-tooltip" aria-hidden="true">
+              <div class="tooltip-overline"></div>
+              <div class="tooltip-body"></div>
+            </div>`;
+        }
+
+        const rootSvg = d3.select("#employmentTreemapSvg");
+        rootSvg.selectAll("*").remove();
+        const width = 980;
+        const height = 620;
+        const padding = 18;
+        const color = sectorTreemapColorScale(rows);
+        const latestDate = rows[0].date;
+        const layoutRows = sectorTreemapLayoutRows(rows);
+
+        meta.textContent = `${scopeLabel()} / ${quarterLabel(latestDate)}`;
+        legend.innerHTML = `
+          <span class="legend-chip"><i class="employment-treemap-swatch is-negative"></i>Repli annuel</span>
+          <span class="legend-chip"><i class="employment-treemap-swatch is-neutral"></i>Quasi stable</span>
+          <span class="legend-chip"><i class="employment-treemap-swatch is-positive"></i>Hausse annuelle</span>`;
+
+        const root = d3.hierarchy({ children: layoutRows })
+          .sum((row) => row.layoutValue)
+          .sort((left, right) => right.value - left.value);
+        d3.treemap()
+          .tile(d3.treemapSquarify.ratio(1.22))
+          .size([width - padding * 2, height - padding * 2])
+          .paddingInner(5)
+          .paddingOuter(0)
+          .round(true)(root);
+
+        const defs = rootSvg.append("defs");
+        const glow = defs.append("filter")
+          .attr("id", "employmentTreemapGlow")
+          .attr("x", "-16%")
+          .attr("y", "-16%")
+          .attr("width", "132%")
+          .attr("height", "132%");
+        glow.append("feDropShadow")
+          .attr("dx", 0)
+          .attr("dy", 16)
+          .attr("stdDeviation", 12)
+          .attr("flood-color", "rgba(11,29,58,0.24)");
+
+        const chart = rootSvg.append("g").attr("transform", `translate(${padding},${padding})`);
+        const leaves = chart.selectAll("g")
+          .data(root.leaves())
+          .join("g")
+          .attr("class", "employment-treemap-tile")
+          .attr("transform", (leaf) => `translate(${leaf.x0},${leaf.y0})`);
+
+        leaves.append("rect")
+          .attr("width", (leaf) => Math.max(0, leaf.x1 - leaf.x0))
+          .attr("height", (leaf) => Math.max(0, leaf.y1 - leaf.y0))
+          .attr("rx", 10)
+          .attr("fill", (leaf) => color(leaf.data.yoy ?? 0))
+          .attr("stroke", "rgba(255,255,255,0.82)")
+          .attr("stroke-width", 1.4);
+
+        leaves.each(function(leaf) {
+          const tile = d3.select(this);
+          const tileWidth = leaf.x1 - leaf.x0;
+          const tileHeight = leaf.y1 - leaf.y0;
+          const area = tileWidth * tileHeight;
+          const fill = sectorTreemapTextFill(leaf.data.yoy);
+          const showFullLabel = tileWidth >= 112 && tileHeight >= 58 && area >= 9800;
+          if (!showFullLabel) {
+            drawSectorTreemapCode(tile, leaf.data.naceCode, tileWidth, tileHeight, fill);
+            return;
+          }
+          const label = sectorTreemapTrimLabel(leaf.data.label);
+          const maxChars = Math.max(8, Math.floor((tileWidth - 42) / 7.7));
+          const displayLabel = label.length > maxChars ? `${label.slice(0, Math.max(5, maxChars - 3))}...` : label;
+          tile.append("text")
+            .attr("x", 14)
+            .attr("y", 24)
+            .attr("fill", fill)
+            .attr("class", "employment-treemap-label")
+            .text(displayLabel);
+          if (tileHeight >= 92 && tileWidth >= 150) {
+            tile.append("text")
+              .attr("x", 14)
+              .attr("y", 50)
+              .attr("fill", fill)
+              .attr("class", "employment-treemap-value")
+              .text(sectorTreemapMetricFormatter(metricKey, leaf.data.value));
+            tile.append("text")
+              .attr("x", 14)
+              .attr("y", 73)
+              .attr("fill", fill)
+              .attr("class", "employment-treemap-yoy")
+              .text(`GA ${formatPercent(leaf.data.yoy)}`);
+          }
+        });
+
+        const tooltipNode = document.getElementById("employmentTreemapTooltip");
+        const tooltipOverline = tooltipNode.querySelector(".tooltip-overline");
+        const tooltipBody = tooltipNode.querySelector(".tooltip-body");
+
+        function hideTreemapTooltip() {
+          tooltipNode.classList.remove("is-visible");
+          tooltipNode.setAttribute("aria-hidden", "true");
+        }
+
+        function showTreemapTooltip(event, row) {
+          const shellBounds = shell.getBoundingClientRect();
+          tooltipOverline.textContent = sectorTreemapTrimLabel(row.label);
+          tooltipBody.innerHTML = `${metric.label} : ${sectorTreemapMetricFormatter(metricKey, row.value)}<br>Glissement annuel : ${formatPercent(row.yoy)}<br>${quarterLabel(row.date)}`;
+          tooltipNode.classList.add("is-visible");
+          tooltipNode.setAttribute("aria-hidden", "false");
+
+          const gap = 16;
+          const margin = 12;
+          const bounds = tooltipNode.getBoundingClientRect();
+          let x = event.clientX - shellBounds.left + gap;
+          let y = event.clientY - shellBounds.top - bounds.height - gap;
+          if (x + bounds.width > shellBounds.width - margin) x = event.clientX - shellBounds.left - bounds.width - gap;
+          if (y < margin) y = event.clientY - shellBounds.top + gap;
+          tooltipNode.style.left = `${Math.min(Math.max(margin, x), shellBounds.width - bounds.width - margin)}px`;
+          tooltipNode.style.top = `${Math.min(Math.max(margin, y), shellBounds.height - bounds.height - margin)}px`;
+        }
+
+        leaves
+          .on("mouseenter", function(event, leaf) {
+            d3.select(this).raise().classed("is-hovered", true);
+            showTreemapTooltip(event, leaf.data);
+          })
+          .on("mousemove", (event, leaf) => showTreemapTooltip(event, leaf.data))
+          .on("mouseleave", function() {
+            d3.select(this).classed("is-hovered", false);
+            hideTreemapTooltip();
+          });
+        rootSvg.on("mouseleave", hideTreemapTooltip);
+
+        if (!REDUCED_MOTION) {
+          gsap.fromTo(
+            leaves.nodes(),
+            { opacity: 0, scale: 0.94, transformOrigin: "50% 50%" },
+            { opacity: 1, scale: 1, duration: 0.58, stagger: 0.015, ease: "power3.out" }
+          );
+        }
+      }
+
+      renderSectorTreemap();
+    })();
+  </script>
+</body>
+</html>

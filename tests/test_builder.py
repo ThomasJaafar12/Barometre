@@ -173,12 +173,24 @@ class GeneratedPayloadTests(unittest.TestCase):
     def test_chapter_headers_use_the_swiss_title_contract(self) -> None:
         html = render_html(self.boot, self.deferred)
 
-        self.assertEqual(html.count('class="section-kicker-label">Chapitre</span>'), 3)
-        self.assertEqual(html.count('class="section-title-content">'), 3)
+        self.assertEqual(html.count('class="section-kicker-label">Chapitre</span>'), 2)
+        self.assertEqual(html.count('class="section-title-content">'), 2)
         self.assertIn('sectionTitlePrefix: "Conjoncture de l\\u2019"', html)
         self.assertIn('sectionTitleHighlight: "emploi"', html)
         self.assertIn('className = "chapter-title-highlight"', html)
         self.assertIn('className = "chapter-title-period"', html)
+
+    def test_independent_workers_map_is_last_in_employment_chapter(self) -> None:
+        html = render_html(self.boot, self.deferred)
+
+        employment_map = html.index("Carte départementale des effectifs privés et de la masse salariale")
+        independent_map = html.index("Carte départementale des travailleurs indépendants")
+        employment_section_end = html.index("</section>", independent_map)
+
+        self.assertGreater(independent_map, employment_map)
+        self.assertLess(independent_map, employment_section_end)
+        self.assertNotIn('id="module-auto"', html)
+        self.assertNotIn('key: "auto", id: "module-auto"', html)
 
     def test_employment_combo_charts_use_flat_bars_without_curve_glow(self) -> None:
         html = render_html(self.boot, self.deferred)
@@ -205,6 +217,13 @@ class GeneratedPayloadTests(unittest.TestCase):
         self.assertNotIn("line-glow", html)
         self.assertNotIn('.attr("stroke-width", 10)', html)
         self.assertNotIn('.attr("rx", 6)', html)
+
+    def test_employment_level_axes_keep_enough_decimal_precision(self) -> None:
+        html = render_html(self.boot, self.deferred)
+
+        self.assertIn("const axisDecimals = isHeadcount ? 2 : 1;", html)
+        self.assertIn("minimumFractionDigits: digits,", html)
+        self.assertIn("maximumFractionDigits: digits,", html)
 
 
 if __name__ == "__main__":

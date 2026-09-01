@@ -201,5 +201,36 @@
                 </div>
               </div>
             </article>
+
+            <article class="employment-block snap-card auto-department-card" data-snap-card data-snap-label="Carte départementale des travailleurs indépendants" data-snap-nav-label="Indépendants" aria-label="Carte départementale des travailleurs indépendants">
+              <div class="control-row auto-control-row">
+                <div class="employment-sector-picker auto-sector-picker" id="autoSectorPicker">
+                  <span class="mono employment-select-label">Secteur</span>
+                  <button class="employment-sector-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="employment-sector-trigger-value">Population entière</span>
+                    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="m5 7.5 5 5 5-5"></path></svg>
+                  </button>
+                  <div class="employment-sector-menu" role="listbox" aria-label="Sélection du secteur d’activité des travailleurs indépendants"></div>
+                </div>
+                <div class="metric-switch" id="autoMetricSwitch"></div>
+              </div>
+              <div class="section-grid department-map-grid">
+                <div class="viz-panel map-card" id="autoMapPanel">
+                  <div class="viz-title">
+                    <strong>Carte départementale des travailleurs indépendants</strong>
+                    <span id="autoMapMeta"></span>
+                  </div>
+                  <svg id="autoMapSvg" viewBox="0 0 900 620"></svg>
+                  <div class="map-legend" id="autoLegend"></div>
+                </div>
+                <div class="viz-panel department-ranking-panel">
+                  <div class="viz-title">
+                    <strong>Classement des travailleurs indépendants</strong>
+                    <span id="autoRankingMeta"></span>
+                  </div>
+                  <div class="ranking-list" id="autoRanking"></div>
+                </div>
+              </div>
+            </article>
           </div>
         </section>

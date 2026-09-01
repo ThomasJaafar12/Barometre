@@ -3554,21 +3554,21 @@
     }
 
     #module-sector .employment-map-grid,
-    #module-auto .department-map-grid {
+    .auto-department-card .department-map-grid {
       align-items: start;
       grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
       min-height: 0;
     }
 
     #module-sector .employment-map-grid > .viz-panel,
-    #module-auto .department-map-grid > .viz-panel {
+    .auto-department-card .department-map-grid > .viz-panel {
       align-self: start;
       min-height: 0;
       height: auto;
     }
 
     #module-sector .employment-map-panel,
-    #module-auto .map-card {
+    .auto-department-card .map-card {
       display: grid;
       grid-template-rows: auto auto auto;
     }
@@ -3579,7 +3579,7 @@
     }
 
     #module-sector #employmentDeptMapSvg,
-    #module-auto #autoMapSvg {
+    .auto-department-card #autoMapSvg {
       width: 100%;
       height: auto;
       aspect-ratio: 900 / 620;
@@ -3588,7 +3588,7 @@
     }
 
     #module-sector .employment-ranking-panel,
-    #module-auto .department-ranking-panel {
+    .auto-department-card .department-ranking-panel {
       display: grid;
       grid-template-rows: auto minmax(0, 1fr);
       height: var(--department-map-height, auto);
@@ -3598,7 +3598,7 @@
     }
 
     #module-sector .employment-ranking-panel .ranking-list,
-    #module-auto .department-ranking-panel .ranking-list {
+    .auto-department-card .department-ranking-panel .ranking-list {
       min-height: 0;
       max-height: none;
       overflow-y: auto;
@@ -4438,19 +4438,19 @@
       }
 
       #module-sector .employment-map-grid,
-      #module-auto .department-map-grid {
+      .auto-department-card .department-map-grid {
         grid-template-columns: 1fr;
         min-height: 0;
       }
 
       #module-sector .employment-map-grid > .viz-panel,
-      #module-auto .department-map-grid > .viz-panel {
+      .auto-department-card .department-map-grid > .viz-panel {
         height: auto;
         min-height: 360px;
       }
 
       #module-sector .employment-ranking-panel .ranking-list,
-      #module-auto .department-ranking-panel .ranking-list {
+      .auto-department-card .department-ranking-panel .ranking-list {
         max-height: 460px;
       }
 
@@ -5593,7 +5593,7 @@
       color: #251153;
     }
 
-    #module-auto .chapter-control-row {
+    .auto-department-card .auto-control-row {
       position: relative;
       z-index: 30;
       justify-content: flex-start;

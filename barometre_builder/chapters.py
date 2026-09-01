@@ -59,23 +59,10 @@ CHAPTERS: tuple[ChapterFragment, ...] = (
         script_fragment="payroll.js",
         render_function="renderPayrollModule",
     ),
-    ChapterFragment(
-        key="auto",
-        section_id="module-auto",
-        number="03",
-        label="Travailleurs indépendants",
-        nav_label="Indépendants",
-        rail_meta="auto-entrepreneurs, lecture territoriale",
-        section_title_prefix="Travailleurs ",
-        section_title_highlight="indépendants",
-        section_title_suffix="",
-        section_meta="Focus départemental sur les indépendants, avec lecture sectorielle et hiérarchie territoriale.",
-        tone=3,
-        html_fragment="auto.html",
-        script_fragment="auto.js",
-        render_function="renderAutoModule",
-    ),
 )
+
+
+SUPPORTING_SCRIPTS: tuple[str, ...] = ("auto.js", "rar.js")
 
 
 def _fragment(name: str) -> str:
@@ -111,6 +98,7 @@ def build_chapter_fragments() -> dict[str, str]:
         "sections_html": "\n\n".join(_fragment(chapter.html_fragment) for chapter in CHAPTERS),
         "registry_script": "\n".join(registry_lines),
         "chapter_scripts": "\n\n".join(
-            [_fragment(chapter.script_fragment) for chapter in CHAPTERS] + [_fragment("rar.js")]
+            [_fragment(chapter.script_fragment) for chapter in CHAPTERS]
+            + [_fragment(script) for script in SUPPORTING_SCRIPTS]
         ),
     }

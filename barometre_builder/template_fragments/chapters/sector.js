@@ -22,7 +22,7 @@
       function employmentMetricConfig(metricKey) {
         const isHeadcount = metricKey === "effectifs_cvs";
         const divisor = isHeadcount ? 1e6 : 1e9;
-        const axisDecimals = isHeadcount ? 1 : 0;
+        const axisDecimals = isHeadcount ? 2 : 1;
         return {
           key: metricKey,
           label: isHeadcount ? "Effectifs" : "Masse salariale",
@@ -1163,4 +1163,5 @@
 
         renderSectorTreemap();
         renderSectorDepartmentModule();
+        renderAutoModule();
       }

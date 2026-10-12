@@ -163,10 +163,18 @@
                       <strong>Composition sectorielle : niveau et glissement annuel</strong>
                       <span id="employmentTreemapMeta"></span>
                     </div>
-                    <div class="metric-switch" id="employmentTreemapMetricSwitch" aria-label="Indicateur de la composition sectorielle"></div>
+                    <div class="employment-treemap-actions">
+                      <div class="metric-switch" id="employmentTreemapMetricSwitch" aria-label="Indicateur de la composition sectorielle"></div>
+                      <div class="employment-treemap-zoom" id="employmentTreemapZoomControls" role="group" aria-label="Zoom de la composition sectorielle">
+                        <button type="button" data-treemap-action="out" aria-label="Dézoomer" title="Dézoomer (−)">−</button>
+                        <output id="employmentTreemapZoomLevel" aria-label="Niveau de zoom">100 %</output>
+                        <button type="button" data-treemap-action="in" aria-label="Zoomer" title="Zoomer (+)">+</button>
+                        <button type="button" class="employment-treemap-reset" data-treemap-action="reset" aria-label="Réinitialiser la vue" title="Réinitialiser la vue (0)">Recentrer</button>
+                      </div>
+                    </div>
                   </div>
                   <div class="employment-treemap-shell" id="employmentTreemapShell">
-                    <svg id="employmentTreemapSvg" viewBox="0 0 980 620" role="img" aria-labelledby="employmentTreemapTitleSvg employmentTreemapDescSvg">
+                    <svg id="employmentTreemapSvg" viewBox="0 0 980 620" role="group" tabindex="0" aria-labelledby="employmentTreemapTitleSvg employmentTreemapDescSvg" aria-describedby="employmentTreemapHint">
                       <title id="employmentTreemapTitleSvg">Carte proportionnelle des secteurs des effectifs et de la masse salariale</title>
                       <desc id="employmentTreemapDescSvg">La surface représente le niveau et la couleur représente le glissement annuel.</desc>
                     </svg>
@@ -175,7 +183,11 @@
                       <div class="tooltip-body"></div>
                     </div>
                   </div>
-                  <div class="legend-row employment-legend employment-treemap-legend" id="employmentTreemapLegend"></div>
+                  <div class="employment-treemap-footer">
+                    <div class="legend-row employment-legend employment-treemap-legend" id="employmentTreemapLegend"></div>
+                    <p class="employment-treemap-hint" id="employmentTreemapHint">Molette ou pincement pour zoomer · Glisser pour déplacer</p>
+                  </div>
+                  <p class="employment-treemap-note" id="employmentTreemapNote">Surface : niveau · Couleur : glissement annuel (GA). Les plus petits secteurs sont agrandis pour garder leurs libellés lisibles.</p>
                 </div>
               </div>
             </article>

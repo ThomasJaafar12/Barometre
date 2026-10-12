@@ -1,4 +1,6 @@
       let sectorDepartmentFeaturesByRegion = null;
+      let sectorTreemapResizeObserver = null;
+      let sectorTreemapResizeFrame = null;
 
       function getSectorRegionalScopeData() {
         return state.phase === "national"
@@ -522,6 +524,28 @@
         return metricKey === "masse_cvs" ? formatCurrency(value) : formatCount(value);
       }
 
+      function sectorTreemapAnnualFormatter(value) {
+        return employmentSignedPercent(Number.isFinite(value) && Math.abs(value) < 0.05 ? 0 : value);
+      }
+
+      function sectorTreemapDimensions(shell) {
+        const width = Math.max(320, Math.round(shell.clientWidth || 980));
+        const height = width < 640 ? Math.round(width * 2.6) : Math.max(480, Math.min(800, window.innerHeight - 340));
+        return { width, height };
+      }
+
+      function scheduleSectorTreemapResize() {
+        if (sectorTreemapResizeFrame != null) return;
+        sectorTreemapResizeFrame = requestAnimationFrame(() => {
+          sectorTreemapResizeFrame = null;
+          const shell = document.getElementById("employmentTreemapShell");
+          if (shell.classList.contains("is-empty")) return;
+          const viewBox = document.getElementById("employmentTreemapSvg").viewBox.baseVal;
+          const { width, height } = sectorTreemapDimensions(shell);
+          if (viewBox.width !== width || viewBox.height !== height) renderSectorTreemap();
+        });
+      }
+
       function employmentLatestSectorRows(scope, metric) {
         if (!scope || !scope.seriesOptions || !scope.series) return [];
         return scope.seriesOptions
@@ -543,26 +567,21 @@
       }
 
       function sectorTreemapColorScale(rows) {
-        const yoyValues = rows.map((row) => row.yoy).filter((value) => value != null);
-        const maxAbs = Math.max(1.5, d3.max(yoyValues.map((value) => Math.abs(value))) || 1.5);
-        return d3.scaleLinear()
-          .domain([-maxAbs, 0, maxAbs])
-          .range([
-            paletteToken("employment-treemap-negative", "#D94B65"),
-            paletteToken("employment-treemap-neutral", "#F3E7D4"),
-            paletteToken("employment-treemap-positive", "#0EA5A8"),
-          ])
-          .clamp(true);
-      }
-
-      function sectorTreemapTextFill(yoy) {
-        return "rgb(7, 23, 47)";
+        const maxAbs = Math.max(1.5, d3.max(rows, (row) => Number.isFinite(row.yoy) ? Math.abs(row.yoy) : 0) || 0);
+        const negative = d3.interpolateRgb("#FF967D", paletteToken("employment-treemap-negative", "#ED4766"));
+        const positive = d3.interpolateRgb("#62DDB1", paletteToken("employment-treemap-positive", "#10AD8D"));
+        const neutral = paletteToken("employment-treemap-neutral", "#F6C65B");
+        return (value) => {
+          if (!Number.isFinite(value)) return "#E2E8F0";
+          if (Math.abs(value) <= 0.05) return neutral;
+          const intensity = Math.sqrt(Math.min(1, Math.abs(value) / maxAbs));
+          return value < 0 ? negative(intensity) : positive(intensity);
+        };
       }
 
       function sectorTreemapTrimLabel(label) {
         return String(label || "")
           .replace(/^[A-Z]{1,3}[a-z]?(?:-[A-Z]{1,3}[a-z]?)*\s+/, "")
-          .replace(/\s*\[[^\]]+\]/g, "")
           .trim();
       }
 
@@ -573,11 +592,11 @@
         return rawCode.replace(/-/g, " ").toUpperCase();
       }
 
-      function sectorTreemapLayoutRows(rows) {
+      function sectorTreemapLayoutRows(rows, width, height) {
         const total = d3.sum(rows, (row) => row.value);
-        // Reserve roughly a 50 x 50 px tile at the current viewBox size. Only
-        // the very smallest sectors are lifted, while displayed values remain exact.
-        const minimumLayoutValue = total * 0.005;
+        // A small, disclosed area floor keeps a name, level and GA in every tile.
+        // Only the layout uses this floor; all displayed figures stay unchanged.
+        const minimumLayoutValue = total * Math.max(0.012, 7600 / (width * height));
         return rows.map((row) => ({
           ...row,
           naceCode: sectorTreemapNaceCode(row.label, row.key),
@@ -585,31 +604,92 @@
         }));
       }
 
-      function drawSectorTreemapCode(tile, code, tileWidth, tileHeight, fill) {
-        if (!code || tileWidth < 20 || tileHeight < 18) return;
-        const tokens = code.split(" ");
-        const horizontalWidth = code.length * 6.5;
-        const canUseHorizontal = horizontalWidth <= tileWidth - 14;
-        const canStack = tokens.length > 1
-          && Math.max(...tokens.map((token) => token.length)) * 6.5 <= tileWidth - 12
-          && tokens.length * 13 <= tileHeight - 10;
-        const text = tile.append("text")
-          .attr("x", Math.max(6, Math.min(10, tileWidth * 0.16)))
-          .attr("y", Math.max(14, Math.min(18, tileHeight * 0.34)))
-          .attr("fill", fill)
-          .attr("class", "employment-treemap-code");
+      const SECTOR_TREEMAP_LABELS = {
+        GZ: "Commerce et réparation automobile",
+        FZ: "Construction",
+        QB: "Action sociale et médico-social",
+        IZ: "Hébergement et restauration",
+        HZ: "Transports et entreposage",
+        NZB: "Services administratifs et de soutien",
+        MA: "Conseil, droit et ingénierie",
+        KZ: "Finance et assurance",
+        NZA: "Intérimaires",
+        CA: "Industries agroalimentaires",
+        QA: "Santé humaine",
+        "JA JB JC": "Édition, télécoms et informatique",
+        "CK CL": "Machines et matériel de transport",
+        SZ: "Autres services",
+        PZ: "Éducation",
+        RZ: "Arts, spectacles et loisirs",
+        "DZ EZ": "Électricité, gaz et eau",
+        CM: "Meuble, réparation et industries diverses",
+        CH: "Métallurgie et produits métalliques",
+        CC: "Bois et papier",
+        LZ: "Immobilier",
+        "CI CJ": "Électronique et matériel électrique",
+        "MB MC": "Recherche et sciences",
+        OZ: "Administration publique",
+        CG: "Plastiques et produits divers",
+        "CD CE CF": "Raffinage, chimie et pharmacie",
+        CB: "Textile, habillement et cuir",
+        BZ: "Industries extractives",
+      };
 
-        if (!canUseHorizontal && canStack) {
-          text.attr("y", Math.max(14, (tileHeight - (tokens.length - 1) * 13) / 2));
-          tokens.forEach((token, index) => {
-            text.append("tspan")
-              .attr("x", Math.max(6, Math.min(10, tileWidth * 0.16)))
-              .attr("dy", index === 0 ? 0 : 13)
-              .text(token);
+      function drawSectorTreemapLabel(tile, leaf, metricKey) {
+        const width = leaf.x1 - leaf.x0;
+        const height = leaf.y1 - leaf.y0;
+        const inset = Math.min(14, Math.max(6, Math.min(width, height) * 0.09));
+        const compact = width < 120 || height < 100;
+        const label = SECTOR_TREEMAP_LABELS[leaf.data.naceCode] || sectorTreemapTrimLabel(leaf.data.label);
+        const content = tile.append("foreignObject")
+          .attr("x", inset).attr("y", inset)
+          .attr("width", Math.max(1, width - inset * 2))
+          .attr("height", Math.max(1, height - inset * 2))
+          .attr("aria-hidden", "true")
+          .append("xhtml:div")
+          .attr("class", `employment-treemap-content${compact ? " is-compact" : ""}`)
+          .style("--treemap-label-size", `${compact ? 11 : Math.min(18, width / 12)}px`)
+          .style("--treemap-value-size", `${compact ? 18 : Math.min(30, width / 7)}px`)
+          .style("--treemap-yoy-size", `${compact ? 9.5 : 11}px`);
+        content.append("span").attr("class", "employment-treemap-label").text(label);
+        content.append("span").attr("class", "employment-treemap-value").text(sectorTreemapMetricFormatter(metricKey, leaf.data.value));
+        content.append("span").attr("class", "employment-treemap-yoy").text(`GA ${sectorTreemapAnnualFormatter(leaf.data.yoy)}`);
+      }
+
+      function fitSectorTreemapLabels(svgNode) {
+        // Fit once after layout, never on pan/zoom. All three lines stay present.
+        svgNode.querySelectorAll(".employment-treemap-content").forEach((content) => {
+          if (!content.clientHeight) return;
+          content.style.setProperty("--treemap-type-scale", "1");
+          const [label, value, annual] = content.children;
+          // A long currency value must not shrink the name or GA with it.
+          [[value, "--treemap-value-size"], [annual, "--treemap-yoy-size"]].forEach(([line, variable]) => {
+            if (line.scrollWidth > content.clientWidth) {
+              const size = parseFloat(getComputedStyle(line).fontSize);
+              content.style.setProperty(variable, `${size * content.clientWidth / line.scrollWidth * 0.98}px`);
+            }
           });
-          return;
-        }
-        text.text(code);
+          let labelSize = parseFloat(getComputedStyle(label).fontSize);
+          while (labelSize > 8.5 && content.scrollHeight > content.clientHeight) {
+            labelSize -= 0.25;
+            content.style.setProperty("--treemap-label-size", `${labelSize}px`);
+          }
+          if (content.scrollHeight > content.clientHeight) {
+            value.style.marginTop = "2px";
+            annual.style.marginTop = "2px";
+          }
+          let valueSize = parseFloat(getComputedStyle(value).fontSize);
+          while (valueSize > 12 && content.scrollHeight > content.clientHeight) {
+            valueSize -= 0.5;
+            content.style.setProperty("--treemap-value-size", `${valueSize}px`);
+          }
+          let scale = 1;
+          while (scale > 0.6 && (content.scrollHeight > content.clientHeight
+            || [...content.children].some((line) => line.scrollWidth > content.clientWidth + 1))) {
+            scale -= 0.025;
+            content.style.setProperty("--treemap-type-scale", scale.toFixed(3));
+          }
+        });
       }
 
       function renderSectorTreemap() {
@@ -620,8 +700,11 @@
         const shell = document.getElementById("employmentTreemapShell");
         const meta = document.getElementById("employmentTreemapMeta");
         const legend = document.getElementById("employmentTreemapLegend");
-        const tooltip = document.getElementById("employmentTreemapTooltip");
-        const svg = d3.select("#employmentTreemapSvg");
+        const tooltipNode = document.getElementById("employmentTreemapTooltip");
+        const rootSvg = d3.select("#employmentTreemapSvg");
+        const zoomControls = document.getElementById("employmentTreemapZoomControls");
+        const zoomLevel = document.getElementById("employmentTreemapZoomLevel");
+        const note = document.getElementById("employmentTreemapNote");
         const rows = employmentLatestSectorRows(scope, metric);
 
         renderMetricSwitch("employmentTreemapMetricSwitch", metrics, metricKey, (key) => {
@@ -629,36 +712,34 @@
           renderSectorTreemap();
         });
 
-        svg.selectAll("*").remove();
+        gsap.killTweensOf(rootSvg.selectAll(".employment-treemap-tile").nodes());
+        rootSvg.interrupt().selectAll("*").remove();
+        rootSvg.on(".zoom", null).on(".treemap", null);
+        tooltipNode.classList.remove("is-visible");
+        tooltipNode.setAttribute("aria-hidden", "true");
+        zoomControls.querySelectorAll("button").forEach((button) => { button.disabled = !rows.length; });
+        note.hidden = !rows.length;
+        shell.querySelector(".employment-treemap-empty")?.remove();
         if (!rows.length) {
           meta.textContent = `${scopeLabel()} / aucun secteur exploitable`;
           legend.innerHTML = "";
           shell.classList.add("is-empty");
-          renderEmptyState(shell, "Composition indisponible", "Les séries sectorielles ne contiennent pas de niveau exploitable pour ce territoire.");
+          rootSvg.style("display", "none");
+          zoomLevel.textContent = "—";
+          const empty = document.createElement("div");
+          empty.className = "employment-treemap-empty";
+          shell.appendChild(empty);
+          renderEmptyState(empty, "Composition indisponible", "Les séries sectorielles ne contiennent pas de niveau exploitable pour ce territoire.");
           return;
         }
         shell.classList.remove("is-empty");
-        if (!shell.querySelector("#employmentTreemapSvg")) {
-          shell.innerHTML = `
-            <svg id="employmentTreemapSvg" viewBox="0 0 980 620" role="img" aria-labelledby="employmentTreemapTitleSvg employmentTreemapDescSvg">
-              <title id="employmentTreemapTitleSvg">Carte proportionnelle des secteurs des effectifs et de la masse salariale</title>
-              <desc id="employmentTreemapDescSvg">La surface représente le niveau et la couleur représente le glissement annuel.</desc>
-            </svg>
-            <div id="employmentTreemapTooltip" class="employment-tooltip employment-treemap-tooltip" aria-hidden="true">
-              <div class="tooltip-overline"></div>
-              <div class="tooltip-body"></div>
-            </div>
-          `;
-        }
-
-        const rootSvg = d3.select("#employmentTreemapSvg");
-        rootSvg.selectAll("*").remove();
-        const width = 980;
-        const height = 620;
-        const padding = 18;
+        rootSvg.style("display", null);
+        const previousViewBox = rootSvg.attr("viewBox");
+        const { width, height } = sectorTreemapDimensions(shell);
+        const padding = width < 640 ? 10 : 14;
         const color = sectorTreemapColorScale(rows);
         const latestDate = rows[0].date;
-        const layoutRows = sectorTreemapLayoutRows(rows);
+        const layoutRows = sectorTreemapLayoutRows(rows, width - padding * 2, height - padding * 2);
 
         meta.textContent = `${scopeLabel()} / ${quarterLabel(latestDate)}`;
         legend.innerHTML = `
@@ -666,125 +747,180 @@
           <span class="legend-chip"><i class="employment-treemap-swatch is-neutral"></i>Quasi stable</span>
           <span class="legend-chip"><i class="employment-treemap-swatch is-positive"></i>Hausse annuelle</span>
         `;
+        if (rows.some((row) => !Number.isFinite(row.yoy))) {
+          legend.insertAdjacentHTML("beforeend", '<span class="legend-chip"><i class="employment-treemap-swatch is-unknown"></i>GA indisponible</span>');
+        }
+        rootSvg.attr("viewBox", `0 0 ${width} ${height}`);
+        rootSvg.append("title").attr("id", "employmentTreemapTitleSvg")
+          .text(`Composition sectorielle des ${metric.label.toLowerCase()} en ${scopeLabel()}`);
+        rootSvg.append("desc").attr("id", "employmentTreemapDescSvg")
+          .text("Chaque secteur affiche son nom, son niveau et son glissement annuel. La surface représente le niveau, avec un minimum pour les petits secteurs, et la couleur représente le glissement annuel. Utilisez + et − pour zoomer, les flèches pour déplacer et 0 pour recentrer.");
 
         const root = d3.hierarchy({ children: layoutRows })
           .sum((row) => row.layoutValue)
           .sort((left, right) => right.value - left.value);
         d3.treemap()
-          .tile(d3.treemapSquarify.ratio(1.22))
+          .tile(d3.treemapSquarify.ratio(1))
           .size([width - padding * 2, height - padding * 2])
           .paddingInner(5)
           .paddingOuter(0)
           .round(true)(root);
 
-        const defs = rootSvg.append("defs");
-        const glow = defs.append("filter")
-          .attr("id", "employmentTreemapGlow")
-          .attr("x", "-16%")
-          .attr("y", "-16%")
-          .attr("width", "132%")
-          .attr("height", "132%");
-        glow.append("feDropShadow")
-          .attr("dx", 0)
-          .attr("dy", 16)
-          .attr("stdDeviation", 12)
-          .attr("flood-color", "rgba(11,29,58,0.24)");
-
-        const chart = rootSvg.append("g").attr("transform", `translate(${padding},${padding})`);
+        const previousTransform = previousViewBox === `0 0 ${width} ${height}` ? d3.zoomTransform(rootSvg.node()) : d3.zoomIdentity;
+        const viewport = rootSvg.append("g").attr("class", "employment-treemap-viewport");
+        const chart = viewport.append("g").attr("transform", `translate(${padding},${padding})`);
         const leaves = chart.selectAll("g")
           .data(root.leaves())
           .join("g")
           .attr("class", "employment-treemap-tile")
-          .attr("transform", (leaf) => `translate(${leaf.x0},${leaf.y0})`);
+          .attr("transform", (leaf) => `translate(${leaf.x0},${leaf.y0})`)
+          .attr("tabindex", 0).attr("role", "img")
+          .attr("aria-label", (leaf) => `${sectorTreemapTrimLabel(leaf.data.label)}. ${metric.label} : ${sectorTreemapMetricFormatter(metricKey, leaf.data.value)}. Glissement annuel : ${sectorTreemapAnnualFormatter(leaf.data.yoy)}. ${quarterLabel(leaf.data.date)}.`);
 
         leaves.append("rect")
           .attr("width", (leaf) => Math.max(0, leaf.x1 - leaf.x0))
           .attr("height", (leaf) => Math.max(0, leaf.y1 - leaf.y0))
-          .attr("rx", 10)
-          .attr("fill", (leaf) => color(leaf.data.yoy ?? 0))
-          .attr("stroke", "rgba(255,255,255,0.82)")
-          .attr("stroke-width", 1.4);
+          .attr("rx", 8)
+          .attr("fill", (leaf) => color(leaf.data.yoy))
+          .attr("stroke", "rgba(255,255,255,0.9)")
+          .attr("stroke-width", 1)
+          .attr("vector-effect", "non-scaling-stroke");
 
         leaves.each(function(leaf) {
-          const tile = d3.select(this);
-          const tileWidth = leaf.x1 - leaf.x0;
-          const tileHeight = leaf.y1 - leaf.y0;
-          const area = tileWidth * tileHeight;
-          const fill = sectorTreemapTextFill(leaf.data.yoy);
-          const showFullLabel = tileWidth >= 112 && tileHeight >= 58 && area >= 9800;
-          if (!showFullLabel) {
-            drawSectorTreemapCode(tile, leaf.data.naceCode, tileWidth, tileHeight, fill);
-            return;
-          }
-          const label = sectorTreemapTrimLabel(leaf.data.label);
-          const maxChars = Math.max(8, Math.floor((tileWidth - 42) / 7.7));
-          const displayLabel = label.length > maxChars ? `${label.slice(0, Math.max(5, maxChars - 3))}...` : label;
-          tile.append("text")
-            .attr("x", 14)
-            .attr("y", 24)
-            .attr("fill", fill)
-            .attr("class", "employment-treemap-label")
-            .text(displayLabel);
-          if (tileHeight >= 92 && tileWidth >= 150) {
-            tile.append("text")
-              .attr("x", 14)
-              .attr("y", 50)
-              .attr("fill", fill)
-              .attr("class", "employment-treemap-value")
-              .text(sectorTreemapMetricFormatter(metricKey, leaf.data.value));
-            tile.append("text")
-              .attr("x", 14)
-              .attr("y", 73)
-              .attr("fill", fill)
-              .attr("class", "employment-treemap-yoy")
-              .text(`GA ${formatPercent(leaf.data.yoy)}`);
-          }
+          drawSectorTreemapLabel(d3.select(this), leaf, metricKey);
         });
 
-        const tooltipNode = document.getElementById("employmentTreemapTooltip");
         const tooltipOverline = tooltipNode.querySelector(".tooltip-overline");
         const tooltipBody = tooltipNode.querySelector(".tooltip-body");
+        const tooltipTitle = textElement("div", "", "employment-treemap-tooltip-title");
+        const tooltipMetrics = document.createElement("div");
+        tooltipMetrics.className = "employment-treemap-tooltip-metrics";
+        const tooltipLevel = document.createElement("div");
+        const tooltipAnnual = document.createElement("div");
+        const tooltipLevelValue = textElement("strong", "", "employment-treemap-tooltip-value");
+        const tooltipAnnualValue = textElement("strong", "", "employment-treemap-tooltip-value");
+        tooltipLevel.append(textElement("span", metric.label), tooltipLevelValue);
+        tooltipAnnual.append(textElement("span", "Glissement annuel"), tooltipAnnualValue);
+        tooltipMetrics.append(tooltipLevel, tooltipAnnual);
+        tooltipBody.replaceChildren(tooltipTitle, tooltipMetrics);
+        let tooltipKey = null;
+        let tooltipWidth = 0;
+        let tooltipHeight = 0;
+        let interacting = false;
 
         function hideTreemapTooltip() {
           tooltipNode.classList.remove("is-visible");
           tooltipNode.setAttribute("aria-hidden", "true");
+          leaves.classed("is-hovered", false);
         }
 
         function showTreemapTooltip(event, row) {
+          if (interacting) return;
           const shellBounds = shell.getBoundingClientRect();
-          tooltipOverline.textContent = sectorTreemapTrimLabel(row.label);
-          textLines(tooltipBody, [`${metric.label} : ${sectorTreemapMetricFormatter(metricKey, row.value)}`, `Glissement annuel : ${formatPercent(row.yoy)}`, quarterLabel(row.date)]);
+          if (tooltipKey !== row.key) {
+            tooltipKey = row.key;
+            tooltipOverline.textContent = `${row.naceCode} · ${quarterLabel(row.date)}`;
+            tooltipTitle.textContent = sectorTreemapTrimLabel(row.label);
+            tooltipLevelValue.textContent = sectorTreemapMetricFormatter(metricKey, row.value);
+            tooltipAnnualValue.textContent = sectorTreemapAnnualFormatter(row.yoy);
+            tooltipWidth = tooltipNode.offsetWidth;
+            tooltipHeight = tooltipNode.offsetHeight;
+          }
           tooltipNode.classList.add("is-visible");
           tooltipNode.setAttribute("aria-hidden", "false");
 
-          const gap = 16;
+          const gap = 14;
           const margin = 12;
-          const bounds = tooltipNode.getBoundingClientRect();
+          const left = Math.max(margin, margin - shellBounds.left);
+          const right = Math.min(shellBounds.width - margin, window.innerWidth - shellBounds.left - margin);
+          const top = Math.max(margin, margin - shellBounds.top);
+          const bottom = Math.min(shellBounds.height - margin, window.innerHeight - shellBounds.top - margin);
           let x = event.clientX - shellBounds.left + gap;
-          let y = event.clientY - shellBounds.top - bounds.height - gap;
-          if (x + bounds.width > shellBounds.width - margin) x = event.clientX - shellBounds.left - bounds.width - gap;
-          if (y < margin) y = event.clientY - shellBounds.top + gap;
-          tooltipNode.style.left = `${Math.min(Math.max(margin, x), shellBounds.width - bounds.width - margin)}px`;
-          tooltipNode.style.top = `${Math.min(Math.max(margin, y), shellBounds.height - bounds.height - margin)}px`;
+          let y = event.clientY - shellBounds.top - tooltipHeight - gap;
+          if (x + tooltipWidth > right) x -= tooltipWidth + gap * 2;
+          if (y < top) y = event.clientY - shellBounds.top + gap;
+          tooltipNode.style.left = `${Math.max(left, Math.min(x, right - tooltipWidth))}px`;
+          tooltipNode.style.top = `${Math.max(top, Math.min(y, bottom - tooltipHeight))}px`;
         }
 
         leaves
           .on("mouseenter", function(event, leaf) {
-            d3.select(this).raise().classed("is-hovered", true);
+            if (interacting) return;
+            leaves.classed("is-hovered", false);
+            d3.select(this).classed("is-hovered", true);
             showTreemapTooltip(event, leaf.data);
           })
           .on("mousemove", (event, leaf) => showTreemapTooltip(event, leaf.data))
           .on("mouseleave", function() {
-            d3.select(this).classed("is-hovered", false);
             hideTreemapTooltip();
+          })
+          .on("focus", function(event, leaf) {
+            d3.select(this).classed("is-hovered", true);
+            const bounds = this.getBoundingClientRect();
+            showTreemapTooltip({ clientX: bounds.left + bounds.width / 2, clientY: bounds.top + bounds.height / 2 }, leaf.data);
+          })
+          .on("blur", hideTreemapTooltip)
+          .on("click", (event, leaf) => showTreemapTooltip(event, leaf.data));
+        rootSvg.on("mouseleave.treemap", hideTreemapTooltip);
+
+        const zoom = d3.zoom()
+          .extent([[0, 0], [width, height]])
+          .scaleExtent([1, 6])
+          .translateExtent([[-width / 2, -height / 2], [width * 1.5, height * 1.5]])
+          .clickDistance(4)
+          .duration(REDUCED_MOTION ? 0 : 200)
+          .on("start", () => {
+            interacting = true;
+            shell.classList.add("is-interacting");
+            hideTreemapTooltip();
+          })
+          .on("zoom", (event) => {
+            viewport.attr("transform", event.transform);
+            zoomLevel.textContent = `${Math.round(event.transform.k * 100)} %`;
+            zoomControls.querySelector('[data-treemap-action="out"]').disabled = event.transform.k <= 1.001;
+            zoomControls.querySelector('[data-treemap-action="in"]').disabled = event.transform.k >= 5.999;
+          })
+          .on("end", () => {
+            interacting = false;
+            shell.classList.remove("is-interacting");
           });
-        rootSvg.on("mouseleave", hideTreemapTooltip);
+        rootSvg.call(zoom).call(zoom.transform, previousTransform);
+        if (!sectorTreemapResizeObserver) {
+          sectorTreemapResizeObserver = new ResizeObserver(scheduleSectorTreemapResize);
+          sectorTreemapResizeObserver.observe(shell);
+          window.addEventListener("resize", scheduleSectorTreemapResize);
+        }
+        zoomControls.onclick = (event) => {
+          const action = event.target.closest("[data-treemap-action]")?.dataset.treemapAction;
+          if (!action) return;
+          const target = REDUCED_MOTION ? rootSvg.interrupt() : rootSvg.interrupt().transition().duration(180);
+          if (action === "reset") target.call(zoom.transform, d3.zoomIdentity);
+          else target.call(zoom.scaleBy, action === "in" ? 1.5 : 1 / 1.5);
+        };
+        rootSvg.on("keydown.treemap", (event) => {
+          if (event.ctrlKey || event.metaKey || event.altKey) return;
+          const pan = { ArrowLeft: [48, 0], ArrowRight: [-48, 0], ArrowUp: [0, 48], ArrowDown: [0, -48] }[event.key];
+          if (pan) {
+            event.preventDefault();
+            rootSvg.interrupt().call(zoom.translateBy, pan[0] / d3.zoomTransform(rootSvg.node()).k, pan[1] / d3.zoomTransform(rootSvg.node()).k);
+          } else if (["+", "=", "-", "−", "0", "Home", "Escape"].includes(event.key)) {
+            event.preventDefault();
+            rootSvg.interrupt();
+            if (event.key === "Escape") hideTreemapTooltip();
+            else if (event.key === "0" || event.key === "Home") rootSvg.call(zoom.transform, d3.zoomIdentity);
+            else rootSvg.call(zoom.scaleBy, event.key === "+" || event.key === "=" ? 1.5 : 1 / 1.5);
+          }
+        });
+        requestAnimationFrame(() => fitSectorTreemapLabels(rootSvg.node()));
+        document.fonts.ready.then(() => {
+          if (viewport.node().isConnected) fitSectorTreemapLabels(rootSvg.node());
+        });
 
         if (!REDUCED_MOTION) {
           gsap.fromTo(
             leaves.nodes(),
-            { opacity: 0, scale: 0.94, transformOrigin: "50% 50%" },
-            { opacity: 1, scale: 1, duration: 0.58, stagger: 0.015, ease: "power3.out" },
+            { opacity: 0 },
+            { opacity: 1, duration: 0.35, stagger: 0.006, ease: "power2.out" },
           );
         }
       }

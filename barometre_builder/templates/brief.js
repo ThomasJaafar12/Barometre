@@ -7,6 +7,7 @@
   const monthFormat = new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" });
   const axisDateFormat = new Intl.DateTimeFormat("fr-FR", { month: "short", year: "numeric" });
   const chartViewport = window.matchMedia("(max-width: 760px)");
+  let chartViews = [];
   const number = (value, digits = 0) => numberFormats[digits].format(Number(value));
   const element = (tag, text = "", className = "") => {
     const node = document.createElement(tag);
@@ -15,6 +16,22 @@
     return node;
   };
   const isValue = value => typeof value === "number" && Number.isFinite(value);
+  const iconPaths = {
+    clock: ["M12 8v4l3 2", "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0"],
+    info: ["M12 11v5M12 8h.01", "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0"],
+    up: ["M12 18V6m-5 5 5-5 5 5"],
+    down: ["M12 6v12m-5-5 5 5 5-5"],
+  };
+  const icon = name => {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    Object.entries({ viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "1.8", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true", focusable: "false", class: "indicator-icon" }).forEach(([key, value]) => svg.setAttribute(key, value));
+    iconPaths[name].forEach(d => {
+      const path = document.createElementNS(svg.namespaceURI, "path");
+      path.setAttribute("d", d);
+      svg.append(path);
+    });
+    return svg;
+  };
   const period = (date, frequency) => {
     if (!date) return "Période indisponible";
     const value = new Date(date + "T00:00:00");
@@ -35,20 +52,17 @@
     : value === 0 ? "Stable sur un an" : `${value > 0 ? "Hausse" : "Baisse"} de ${number(Math.abs(value), 1)} % sur un an`;
 
   function chart(card, indicator, points) {
+    if (!hasCharts || !points.some(point => isValue(point.value))) {
+      card.append(element("p", hasCharts ? "Aucune donnée disponible pour ce territoire." : "Graphique indisponible ; les valeurs restent consultables ci-dessous.", "chart-empty"));
+      return;
+    }
     const svgNode = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     const width = chartViewport.matches ? 380 : 560;
-    svgNode.setAttribute("viewBox", `0 0 ${width} 235`);
+    svgNode.setAttribute("viewBox", `0 -12 ${width} 247`);
     svgNode.setAttribute("role", "img");
     svgNode.setAttribute("aria-label", `Évolution de ${indicator.label.toLowerCase()} sur les trois dernières années disponibles`);
     svgNode.classList.add("chart");
     card.append(svgNode);
-    if (!hasCharts || !points.some(point => isValue(point.value))) {
-      const label = document.createElementNS(svgNode.namespaceURI, "text");
-      label.setAttribute("x", "20"); label.setAttribute("y", "110");
-      label.textContent = hasCharts ? "Aucune donnée disponible pour ce territoire." : "Graphique indisponible ; les valeurs restent consultables ci-dessous.";
-      svgNode.append(label);
-      return;
-    }
     const maximum = Math.max(...points.filter(point => isValue(point.value)).map(point => point.value));
     const divisor = indicator.unit === "euros" ? 1e9 : maximum >= 1e6 ? 1e6 : maximum >= 1e3 ? 1e3 : 1;
     const noun = indicator.unit === "salaries" ? "salariés" : indicator.unit === "declarations" ? "déclarations" : "procédures";
@@ -62,13 +76,19 @@
     const bounds = d3.extent(levels);
     const padding = Math.max((bounds[1] - bounds[0]) * .2, bounds[1] * .015, divisor > 1 ? .001 : 1);
     const y = d3.scaleLinear().domain([Math.max(0, bounds[0] - padding), bounds[1] + padding]).nice().range([194, 16]);
-    svg.append("g").attr("transform", "translate(64,0)").call(d3.axisLeft(y).ticks(4).tickSize(-(width - 74)).tickFormat(value => number(value, divisor > 1 ? 2 : 0)));
+    svg.append("g").attr("class", "chart-y-axis").attr("transform", "translate(64,0)").call(d3.axisLeft(y).ticks(4).tickSize(-(width - 74)).tickFormat(value => number(value, divisor > 1 ? 2 : 0)));
     const tickDates = data.length > 1 ? [data[0].time, data[Math.floor((data.length - 1) / 2)].time, data[data.length - 1].time] : [data[0].time];
-    const axis = svg.append("g").attr("transform", "translate(0,194)").call(d3.axisBottom(x).tickValues(tickDates).tickFormat(date => axisDateFormat.format(date)).tickPadding(10));
+    const axis = svg.append("g").attr("class", "chart-x-axis").attr("transform", "translate(0,194)").call(d3.axisBottom(x).tickValues(tickDates).tickFormat(date => axisDateFormat.format(date)).tickPadding(10));
     axis.selectAll("text").attr("text-anchor", (_, index) => index === 0 ? "start" : index === tickDates.length - 1 ? "end" : "middle");
-    const line = d3.line().defined(point => isValue(point.level)).x(point => x(point.time)).y(point => y(point.level));
-    svg.append("path").datum(data).attr("fill", "none").attr("stroke", indicator.key === "headcount" || indicator.key === "pcol" ? "#2B82F6" : "#0A8C90").attr("stroke-width", 3).attr("d", line);
-    svg.selectAll("circle").data(data.filter(point => isValue(point.level))).join("circle").attr("cx", point => x(point.time)).attr("cy", point => y(point.level)).attr("r", 2.5).attr("fill", "#0B1D3A")
+    const gradientId = "brief-gradient-" + indicator.key;
+    const gradient = svg.append("defs").append("linearGradient").attr("id", gradientId).attr("x1", "0%").attr("y1", "0%").attr("x2", "0%").attr("y2", "100%");
+    gradient.append("stop").attr("offset", "0%").attr("stop-color", "var(--indicator-color)").attr("stop-opacity", .18);
+    gradient.append("stop").attr("offset", "100%").attr("stop-color", "var(--indicator-color)").attr("stop-opacity", 0);
+    const line = d3.line().defined(point => isValue(point.level)).curve(d3.curveMonotoneX).x(point => x(point.time)).y(point => y(point.level));
+    const area = d3.area().defined(point => isValue(point.level)).curve(d3.curveMonotoneX).x(point => x(point.time)).y0(194).y1(point => y(point.level));
+    svg.append("path").datum(data).attr("class", "chart-area").attr("fill", `url(#${gradientId})`).attr("d", area);
+    svg.append("path").datum(data).attr("class", "chart-line").attr("d", line);
+    svg.selectAll("circle").data(data.filter(point => isValue(point.level))).join("circle").attr("class", "chart-point").attr("cx", point => x(point.time)).attr("cy", point => y(point.level)).attr("r", 4.5)
       .append("title").text(point => `${period(point.date, indicator.frequency)} : ${valueLabel(point.value, indicator.unit)}`);
     card.append(element("p", `Niveau · ${unit}. L’axe vertical est ajusté pour rendre les variations lisibles.`, "chart-note"));
   }
@@ -99,28 +119,85 @@
     card.append(details);
   }
 
+  function resizeChartLabels() {
+    const sizes = chartViews.map(({ plot }) => plot.clientWidth);
+    chartViews.forEach(({ plot }, index) => {
+      const svg = plot.querySelector("svg");
+      if (!svg || !sizes[index]) return;
+      const width = svg.viewBox.baseVal.width;
+      const scale = width / sizes[index];
+      const dateSize = scale * 10;
+      svg.style.setProperty("--chart-label-size", `${scale * 11}px`);
+      svg.style.setProperty("--chart-date-size", `${dateSize}px`);
+      const labels = [...svg.querySelectorAll(".chart-x-axis .tick text")];
+      labels.forEach(label => label.setAttribute("dy", ".71em"));
+      const boxes = labels.map(label => label.getBoundingClientRect());
+      const crowded = boxes.some((box, index) => index > 0 && boxes[index - 1].right + 4 > box.left);
+      if (crowded && labels.length === 3) labels[1].setAttribute("dy", "2.2em");
+      svg.setAttribute("viewBox", `0 -12 ${width} ${247 + (crowded && labels.length === 3 ? dateSize * 1.8 : 0)}`);
+    });
+  }
+
   function render() {
     const code = Object.hasOwn(DATA.scopes, selector.value) ? selector.value : "national";
     const scope = DATA.scopes[code];
     document.getElementById("scopeLabel").textContent = code === "national" ? "France entière" : DATA.regions.find(region => region.code === code).name;
     const fragment = document.createDocumentFragment();
+    const nextChartViews = [];
     DATA.indicators.forEach((indicator, index) => {
       const series = scope[indicator.key];
       const points = series.points;
       const latest = points[points.length - 1];
       const card = element("article", "", "indicator");
       card.id = "indicateur-" + indicator.key;
+      card.dataset.indicator = indicator.key;
+      const title = element("h3", indicator.label);
+      title.id = card.id + "-titre";
+      card.setAttribute("aria-labelledby", title.id);
       const heading = element("div", "", "indicator-heading");
-      heading.append(element("span", String(index + 1).padStart(2, "0"), "indicator-number"), element("h3", indicator.label));
-      card.append(heading, element("p", indicator.definition, "definition"), element("strong", valueLabel(latest?.value, indicator.unit), "indicator-value"), element("p", latest ? period(latest.date, indicator.frequency) : "Ce territoire n’est pas documenté dans la source fournie.", "indicator-period"), element("span", changeLabel(latest?.yearlyChange), "indicator-change"));
-      chart(card, indicator, points);
-      card.append(element("p", indicator.explanation, "explanation"), element("p", indicator.source, "source-note"));
-      if (series.coverageNote) card.append(element("p", series.coverageNote, "coverage-note"));
-      valuesTable(card, indicator, points);
+      const indexBadge = element("span", String(index + 1).padStart(2, "0"), "indicator-number");
+      indexBadge.setAttribute("aria-hidden", "true");
+      heading.append(title, indexBadge);
+      const metric = element("div", "", "indicator-metric");
+      const subline = element("div", "", "indicator-subline");
+      const date = element("p", "", "indicator-period");
+      date.append(icon("clock"), element("span", latest ? period(latest.date, indicator.frequency) : "Ce territoire n’est pas documenté dans la source fournie."));
+      const trend = isValue(latest?.yearlyChange) && latest.yearlyChange !== 0 ? latest.yearlyChange > 0 ? "up" : "down" : "neutral";
+      const change = element("span", "", "indicator-change trend-" + trend);
+      if (trend !== "neutral") change.append(icon(trend));
+      change.append(element("span", changeLabel(latest?.yearlyChange)));
+      subline.append(date, change);
+      metric.append(element("strong", valueLabel(latest?.value, indicator.unit), "indicator-value"), subline);
+      card.append(heading, element("p", indicator.definition, "definition"), metric);
+      const plot = element("div", "", "indicator-plot");
+      chart(plot, indicator, points);
+      nextChartViews.push({ plot, indicator, points });
+      const explanation = element("div", "", "explanation");
+      explanation.append(icon("info"), element("p", indicator.explanation));
+      const footer = element("div", "", "indicator-footer");
+      footer.append(element("p", indicator.source, "source-note"));
+      if (series.coverageNote) footer.append(element("p", series.coverageNote, "coverage-note"));
+      valuesTable(footer, indicator, points);
+      card.append(plot, explanation, footer);
       fragment.append(card);
     });
     container.replaceChildren(fragment);
+    chartViews = nextChartViews;
+    resizeChartLabels();
   }
   selector.addEventListener("change", render);
+  chartViewport.addEventListener("change", () => {
+    chartViews.forEach(({ plot, indicator, points }) => {
+      plot.replaceChildren();
+      chart(plot, indicator, points);
+    });
+    resizeChartLabels();
+  });
+  let chartGridWidth = 0;
+  new ResizeObserver(([entry]) => {
+    if (entry.contentRect.width === chartGridWidth) return;
+    chartGridWidth = entry.contentRect.width;
+    resizeChartLabels();
+  }).observe(container);
   render();
 })();

@@ -1121,27 +1121,16 @@
     .employment-treemap-card .employment-treemap-panel {
       position: relative;
       overflow: hidden;
-      min-height: 760px;
+      min-height: 0;
       gap: 18px;
       padding: 22px;
-      background:
-        radial-gradient(circle at 14% 0%, rgba(14,165,168,0.10), transparent 34%),
-        radial-gradient(circle at 92% 18%, rgba(43,130,246,0.10), transparent 36%),
-        linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+      background: #FFFFFF;
       border: 1px solid #D4DEE9;
       box-shadow: 0 16px 42px rgba(11,29,58,0.08);
       color: rgb(7, 23, 47);
     }
     .employment-treemap-card .employment-treemap-panel::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background-image:
-        linear-gradient(rgba(7,23,47,0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(7,23,47,0.035) 1px, transparent 1px);
-      background-size: 38px 38px;
-      mask-image: radial-gradient(circle at 50% 35%, rgba(0,0,0,0.52), transparent 74%);
+      content: none;
     }
     .employment-treemap-head {
       position: relative;
@@ -1151,6 +1140,53 @@
       justify-content: space-between;
       gap: 18px;
       flex-wrap: wrap;
+    }
+    .employment-treemap-actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .employment-treemap-zoom {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding: 4px;
+      border: 1px solid #DCE3EC;
+      border-radius: 10px;
+      background: #FFFFFF;
+      color: #17243A;
+    }
+    .employment-treemap-zoom button {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: inherit;
+      font: 500 21px "Manrope", sans-serif;
+      cursor: pointer;
+      transition: background 140ms ease;
+    }
+    .employment-treemap-zoom button:hover:not(:disabled) { background: #F1F4F8; }
+    .employment-treemap-zoom button:disabled { opacity: 0.3; cursor: default; }
+    .employment-treemap-zoom button:focus-visible { outline: 2px solid #17243A; outline-offset: 2px; }
+    .employment-treemap-zoom output {
+      min-width: 58px;
+      text-align: center;
+      font: 500 11px "IBM Plex Mono", monospace;
+      font-variant-numeric: tabular-nums;
+    }
+    .employment-treemap-zoom .employment-treemap-reset {
+      width: auto;
+      padding: 0 10px;
+      margin-left: 5px;
+      border-left: 1px solid #E2E8F0;
+      border-radius: 0 6px 6px 0;
+      font: 600 11px "Manrope", sans-serif;
     }
     .employment-treemap-card .employment-title strong,
     .employment-treemap-card .employment-title span {
@@ -1175,7 +1211,7 @@
     .employment-treemap-shell {
       position: relative;
       z-index: 1;
-      min-height: 660px;
+      min-height: 0;
       border-radius: 22px;
       overflow: hidden;
       background:
@@ -1187,8 +1223,20 @@
     .employment-treemap-shell svg {
       width: 100%;
       height: auto;
-      min-height: 660px;
+      min-height: 0;
       display: block;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .employment-treemap-shell svg:focus-visible {
+      outline: 2px solid #17243A;
+      outline-offset: -3px;
+    }
+    .employment-treemap-shell.is-interacting svg,
+    .employment-treemap-shell.is-interacting .employment-treemap-tile {
+      cursor: grabbing;
     }
     .employment-treemap-shell.is-empty {
       display: grid;
@@ -1196,44 +1244,57 @@
       padding: 18px;
     }
     .employment-treemap-tile {
-      cursor: pointer;
-      transition: filter 220ms ease;
+      cursor: grab;
+      outline: none;
     }
     .employment-treemap-tile rect {
-      transition: transform 260ms ease, stroke 260ms ease, stroke-width 260ms ease, filter 260ms ease;
-      transform-box: fill-box;
-      transform-origin: center;
+      transition: stroke 150ms ease, stroke-width 150ms ease;
     }
-    .employment-treemap-tile.is-hovered rect {
-      stroke: rgba(255,255,255,0.98);
-      stroke-width: 2.2px;
-      filter: url(#employmentTreemapGlow);
-      transform: scale(1.012);
+    .employment-treemap-tile.is-hovered rect,
+    .employment-treemap-tile:focus-visible rect {
+      stroke: #17243A;
+      stroke-width: 1.8px;
     }
-    .employment-treemap-label,
-    .employment-treemap-code,
-    .employment-treemap-value,
-    .employment-treemap-yoy {
+    .employment-treemap-content {
+      --treemap-type-scale: 1;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      color: #122139;
       pointer-events: none;
-      text-shadow: 0 1px 16px rgba(7,23,47,0.20);
+      text-shadow: none;
+      text-size-adjust: none;
+      -webkit-text-size-adjust: none;
     }
-    .employment-treemap-label {
-      font: 800 15px "Manrope", sans-serif;
-      letter-spacing: -0.01em;
+    .employment-treemap-content,
+    .employment-treemap-content > span { transition-property: none !important; }
+    .employment-treemap-content > span { flex: 0 0 auto; display: block; }
+    .employment-treemap-content .employment-treemap-label {
+      font: 750 calc(var(--treemap-label-size) * var(--treemap-type-scale)) / 1.16 "Manrope", sans-serif;
+      letter-spacing: -0.025em;
+      overflow-wrap: anywhere;
     }
-    .employment-treemap-code {
-      font: 800 11px "IBM Plex Mono", monospace;
-      letter-spacing: 0.025em;
-    }
-    .employment-treemap-value {
-      font: 800 21px "Syne", sans-serif;
+    .employment-treemap-content .employment-treemap-value {
+      margin-top: calc(7px * var(--treemap-type-scale));
+      font: 800 calc(var(--treemap-value-size) * var(--treemap-type-scale)) / 1.08 "Manrope", sans-serif;
       letter-spacing: -0.04em;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
     }
-    .employment-treemap-yoy {
-      font: 700 12px "IBM Plex Mono", monospace;
-      letter-spacing: 0.04em;
-      opacity: 0.86;
+    .employment-treemap-content .employment-treemap-yoy {
+      margin-top: calc(5px * var(--treemap-type-scale));
+      font: 500 calc(var(--treemap-yoy-size) * var(--treemap-type-scale)) / 1.2 "IBM Plex Mono", monospace;
+      letter-spacing: -0.045em;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
     }
+    .employment-treemap-content.is-compact .employment-treemap-value { margin-top: calc(4px * var(--treemap-type-scale)); }
+    .employment-treemap-content.is-compact .employment-treemap-yoy { margin-top: calc(3px * var(--treemap-type-scale)); }
+    .employment-treemap-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .employment-treemap-hint { margin: 0; color: #64748B; font: 400 11px / 1.5 "Manrope", sans-serif; }
+    .employment-treemap-note { margin: -8px 0 0; color: #718096; font: 400 10px / 1.5 "Manrope", sans-serif; }
     .employment-treemap-legend {
       position: relative;
       z-index: 2;
@@ -1244,14 +1305,40 @@
     .employment-treemap-swatch {
       display: inline-block;
       width: 18px;
-      height: 12px;
+      height: 9px;
       border-radius: 999px;
-      border: 1px solid rgba(7,23,47,0.14);
-      box-shadow: 0 6px 14px rgba(7,23,47,0.08);
+      border: none;
     }
-    .employment-treemap-swatch.is-negative { background: var(--employment-treemap-negative, #D94B65); }
-    .employment-treemap-swatch.is-neutral { background: var(--employment-treemap-neutral, #F3E7D4); }
-    .employment-treemap-swatch.is-positive { background: var(--employment-treemap-positive, #0EA5A8); }
+    .employment-treemap-swatch.is-negative { background: var(--employment-treemap-negative, #ED4766); }
+    .employment-treemap-swatch.is-neutral { background: var(--employment-treemap-neutral, #F6C65B); }
+    .employment-treemap-swatch.is-positive { background: var(--employment-treemap-positive, #10AD8D); }
+    .employment-treemap-swatch.is-unknown { background: #E2E8F0; }
+    .employment-treemap-shell .employment-treemap-tooltip {
+      width: 300px;
+      min-width: 0;
+      max-width: calc(100% - 24px);
+      padding: 16px;
+      border: 1px solid #DCE3EC;
+      border-radius: 12px;
+      background: #FFFFFF;
+      color: #17243A;
+      box-shadow: 0 10px 28px rgba(15,23,42,0.10);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      transform: none;
+      transition: opacity 140ms ease;
+    }
+    .employment-treemap-tooltip .tooltip-overline {
+      color: #728096;
+      font: 500 10px / 1.4 "IBM Plex Mono", monospace;
+      letter-spacing: 0.04em;
+      text-transform: none;
+    }
+    .employment-treemap-tooltip .tooltip-body { margin-top: 8px; }
+    .employment-treemap-tooltip-title { color: #17243A; font: 700 13px / 1.4 "Manrope", sans-serif; }
+    .employment-treemap-tooltip-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #E9EDF2; }
+    .employment-treemap-tooltip-metrics span { display: block; color: #728096; font: 400 10px / 1.4 "Manrope", sans-serif; }
+    .employment-treemap-tooltip-metrics .employment-treemap-tooltip-value { display: block; margin-top: 4px; color: #17243A; font: 750 19px / 1.2 "Manrope", sans-serif; letter-spacing: -0.025em; }
     .employment-legend,
     .employment-note-card {
       position: relative;
@@ -4919,12 +5006,9 @@
     }
     .story .employment-treemap-card .employment-treemap-panel,
     .story .viz-panel.employment-treemap-panel:not(.employment-side) {
-      min-height: 760px;
+      min-height: 0;
       color: rgb(7, 23, 47);
-      background:
-        radial-gradient(circle at 14% 0%, rgba(14,165,168,0.10), transparent 34%),
-        radial-gradient(circle at 92% 18%, rgba(43,130,246,0.10), transparent 36%),
-        linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+      background: #FFFFFF;
       border-color: #D4DEE9;
       box-shadow: 0 16px 42px rgba(11,29,58,0.08);
     }
@@ -4960,7 +5044,7 @@
     }
     .story .employment-treemap-card .employment-treemap-shell,
     .story .employment-treemap-card .employment-treemap-shell svg {
-      min-height: 660px;
+      min-height: 0;
     }
     @media (max-width: 860px) {
       .story .employment-treemap-card .employment-treemap-panel {
@@ -4968,7 +5052,25 @@
       }
       .story .employment-treemap-card .employment-treemap-shell,
       .story .employment-treemap-card .employment-treemap-shell svg {
-        min-height: 460px;
+        min-height: 0;
+      }
+      .story .employment-treemap-card .employment-treemap-actions { width: 100%; }
+      .story .employment-treemap-card .employment-treemap-actions .metric-switch {
+        width: auto;
+        flex: 1 1 190px;
+      }
+      .employment-treemap-zoom button { min-width: 36px; height: 36px; }
+      .employment-treemap-footer { align-items: flex-start; }
+      .employment-treemap-hint { flex-basis: 100%; }
+      .employment-treemap-note { margin-top: -6px; }
+      .employment-treemap-shell .employment-treemap-tooltip { padding: 13px; }
+      .employment-treemap-tooltip-metrics .employment-treemap-tooltip-value { font-size: 17px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .employment-treemap-tile rect,
+      .employment-treemap-shell .employment-treemap-tooltip,
+      .employment-treemap-zoom button {
+        transition: none;
       }
     }
 

@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src &#x27;none&#x27;; script-src &#x27;sha256-Pz1E3fgcxiHmntCC7ffacvIHnix9Xtw4V+IjzowRHCQ=&#x27; &#x27;sha256-bNADj1tq2rRhOr1SOnG2jCd5bhQxKtH5p3Y8xB7up2A=&#x27; &#x27;sha256-qCq0ogmUupnGp/63/AZqqItuPoKVaOZSvn4WftUfKgw=&#x27; &#x27;sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i&#x27;; script-src-attr &#x27;none&#x27;; style-src &#x27;unsafe-inline&#x27; https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src &#x27;self&#x27; data:; media-src &#x27;self&#x27;; connect-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;; frame-src &#x27;none&#x27;">
+  <meta http-equiv="Content-Security-Policy" content="default-src &#x27;none&#x27;; script-src &#x27;sha256-Pz1E3fgcxiHmntCC7ffacvIHnix9Xtw4V+IjzowRHCQ=&#x27; &#x27;sha256-bNADj1tq2rRhOr1SOnG2jCd5bhQxKtH5p3Y8xB7up2A=&#x27; &#x27;sha256-k0iJOWc28qakQhN/O52a8z5Sa8NlnxSbhbC6JQ/obfo=&#x27; &#x27;sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i&#x27;; script-src-attr &#x27;none&#x27;; style-src &#x27;unsafe-inline&#x27; https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src &#x27;self&#x27; data:; media-src &#x27;self&#x27;; connect-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;; frame-src &#x27;none&#x27;">
   <meta name="referrer" content="no-referrer">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Quatre indicateurs du baromètre économique Urssaf, expliqués simplement pour la France et ses régions.">
@@ -62,33 +62,58 @@ main { padding: 48px 36px; }
 .brief-toolbar .scope-note { color: var(--muted); font-size: 12px; margin-top: 4px; }
 .region-control { display: flex; flex-direction: column; gap: 5px; font-size: 12px; font-weight: 600; }
 .region-control select { max-width: 310px; padding: 10px 36px 10px 12px; border: 1px solid #9CAEC3; border-radius: 5px; color: var(--text); background: white; font-size: 14px; }
-.indicator-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
-.indicator { padding: 27px; border: 1px solid var(--line); border-top: 4px solid var(--accent); border-radius: 8px; min-width: 0; }
-.indicator:nth-child(even) { border-top-color: var(--blue); }
-.indicator-heading { display: flex; align-items: start; gap: 14px; }
-.indicator-number { font-size: 12px; color: var(--muted); padding-top: 4px; }
-.indicator h3 { font: 700 22px/1.25 'Plus Jakarta Sans', sans-serif; letter-spacing: -.025em; margin: 0 0 14px; }
-.definition { color: var(--muted); font-size: 13px; min-height: 63px; margin: 0 0 18px; }
-.indicator-value { display: block; font-size: clamp(25px, 2.3vw, 34px); font-weight: 800; line-height: 1.25; letter-spacing: -.03em; }
-.indicator-period { color: var(--muted); font-size: 12px; margin: 8px 0; }
-.indicator-change { display: inline-block; border-radius: 4px; padding: 5px 9px; background: #EDF3F9; font-size: 12px; font-weight: 600; margin-bottom: 6px; }
-.chart { display: block; width: 100%; height: auto; margin: 12px 0; }
-.chart text { font-family: Inter, sans-serif; fill: #475569; font-size: 12px; }
-.chart .domain { stroke: #94A3B8; }
-.chart .tick line { stroke: #E2E8F0; }
-.chart-note { font-size: 11px; color: var(--muted); margin: 0 0 16px; }
-.explanation { background: var(--bg); padding: 14px 16px; border-left: 3px solid #BACFE3; font-size: 13px; margin: 16px 0; }
-.source-note, .coverage-note { color: var(--muted); font-size: 11px; margin: 10px 0; }
-.coverage-note { color: #644914; }
-.indicator details { font-size: 12px; margin-top: 16px; }
-.indicator summary { cursor: pointer; font-weight: 600; text-underline-offset: 4px; }
-.table-scroll { overflow-x: auto; max-height: 310px; margin-top: 12px; }
-table { border-collapse: collapse; width: 100%; font-size: 11px; }
-th, td { text-align: right; padding: 8px; border-bottom: 1px solid var(--line); }
-th:first-child, td:first-child { text-align: left; }
-thead { position: sticky; top: 0; background: white; }
-.brief-end { margin-top: 34px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 24px; background: var(--bg); border-radius: 8px; }
-.brief-end p { margin: 0; font-size: 14px; color: var(--muted); }
+.brief-section .indicator-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+.brief-section .indicator { --indicator-color: #E11D48; --indicator-label: white; display: flex; flex-direction: column; padding: clamp(20px, 2.4vw, 32px); border: 1px solid var(--line); border-radius: 8px; background: white; box-shadow: 0 4px 20px -4px #0F172A0D, 0 2px 6px -1px #0F172A05; min-width: 0; transition: box-shadow .2s ease, border-color .2s ease; }
+.brief-section .indicator[data-indicator="headcount"] { --indicator-color: #0284C7; }
+.brief-section .indicator[data-indicator="dpae"] { --indicator-color: #F59E0B; --indicator-label: #78350F; }
+.brief-section .indicator[data-indicator="pcol"] { --indicator-color: #7C3AED; }
+.brief-section .indicator:hover { border-color: #CBD5E1; box-shadow: 0 14px 32px -12px #0F172A1A, 0 2px 6px -1px #0F172A08; }
+.brief-section .indicator-heading { display: flex; align-items: start; justify-content: space-between; gap: 14px; }
+.brief-section .indicator h3 { width: fit-content; min-width: 0; padding: 5px 10px; font: 800 13px/1.4 'Plus Jakarta Sans', sans-serif; letter-spacing: -.015em; margin: 0; border-radius: 5px; color: var(--indicator-label); background: var(--indicator-color); }
+.brief-section .indicator-number { flex-shrink: 0; font: 600 10px/1.5 ui-monospace, monospace; color: #64748B; background: #F1F5F9; border: 1px solid #E2E8F0; border-radius: 999px; padding: 3px 7px; margin-top: 1px; }
+.brief-section .definition { color: #64748B; font-size: 13px; line-height: 1.55; min-height: 41px; margin: 10px 0 22px; }
+.brief-section .indicator-value { display: block; font: 800 clamp(28px, 2.6vw, 38px)/1.15 'Plus Jakarta Sans', sans-serif; letter-spacing: -.03em; overflow-wrap: anywhere; }
+.brief-section .indicator-subline { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-top: 10px; }
+.brief-section .indicator-period { display: inline-flex; align-items: start; gap: 6px; color: #64748B; font-size: 12px; line-height: 1.5; margin: 0; }
+.brief-section .indicator-icon { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; }
+.brief-section .indicator-change { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; border: 1px solid #E2E8F0; border-radius: 999px; padding: 4px 9px; background: #F1F5F9; color: #475569; font-size: 11px; line-height: 1.4; font-weight: 600; }
+.brief-section .indicator-change .indicator-icon { width: 13px; height: 13px; margin: 0; }
+.brief-section .trend-up { background: #ECFDF5; color: #065F46; border-color: #A7F3D0; }
+.brief-section .trend-down { background: #FFF1F2; color: #9F1239; border-color: #FECDD3; }
+.brief-section .indicator-plot { margin: 28px 0 20px; }
+.brief-section .chart { display: block; width: 100%; height: auto; }
+.brief-section .chart text { font-family: Inter, sans-serif; fill: #64748B; font-size: var(--chart-label-size, 13px); }
+.brief-section .chart-x-axis text { font-size: var(--chart-date-size, 13px); }
+.brief-section .chart .domain, .brief-section .chart-x-axis .tick line { stroke: #E2E8F0; }
+.brief-section .chart-y-axis .domain { display: none; }
+.brief-section .chart-y-axis .tick line { stroke: #EDF2F7; stroke-dasharray: 2 4; }
+.brief-section .chart-line { fill: none; stroke: var(--indicator-color); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.brief-section .chart-point { fill: var(--indicator-color); stroke: white; stroke-width: 2; opacity: 0; transition: opacity .15s ease; }
+.brief-section .chart-point:hover { opacity: 1; }
+.brief-section .chart-note { font-size: 11px; line-height: 1.55; color: #64748B; margin: 12px 0 0; }
+.brief-section .chart-empty { display: flex; align-items: center; min-height: 180px; padding: 18px; border: 1px dashed #E2E8F0; border-radius: 10px; color: #64748B; font-size: 13px; margin: 0; }
+.brief-section .explanation { display: flex; align-items: start; gap: 10px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px 16px; color: #475569; font-size: 13px; line-height: 1.55; margin: 0 0 20px; }
+.brief-section .explanation .indicator-icon { color: #0284C7; }
+.brief-section .explanation p { min-width: 0; margin: 0; }
+.brief-section .indicator-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid #E2E8F0; }
+.brief-section .source-note, .brief-section .coverage-note { color: #64748B; font-size: 11px; line-height: 1.6; margin: 0; }
+.brief-section .coverage-note { color: #644914; margin-top: 8px; }
+.brief-section .indicator details { font-size: 12px; margin-top: 14px; }
+.brief-section .indicator summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: fit-content; max-width: 100%; margin-left: auto; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px; color: #475569; background: white; font-size: 11px; font-weight: 600; line-height: 1.45; list-style: none; cursor: pointer; transition: background .2s ease, border-color .2s ease; }
+.brief-section .indicator summary::-webkit-details-marker { display: none; }
+.brief-section .indicator summary::after { content: ""; width: 6px; height: 6px; flex-shrink: 0; border: solid currentColor; border-width: 0 1px 1px 0; transform: rotate(45deg); margin-top: -3px; }
+.brief-section .indicator details[open] summary::after { transform: rotate(225deg); margin-top: 3px; }
+.brief-section .indicator summary:hover { background: #F8FAFC; border-color: #94A3B8; }
+.brief-section .table-scroll { overflow: auto; max-height: 310px; margin-top: 14px; border: 1px solid #E2E8F0; border-radius: 8px; }
+.brief-section table { border-collapse: collapse; width: 100%; font-size: 11px; }
+.brief-section caption { padding: 10px; text-align: left; color: #475569; }
+.brief-section th, .brief-section td { text-align: right; padding: 8px; border-bottom: 1px solid #E2E8F0; }
+.brief-section th:first-child, .brief-section td:first-child { text-align: left; }
+.brief-section thead { position: sticky; top: 0; background: #F8FAFC; }
+.brief-section .brief-end { margin-top: 28px; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 28px; background: white; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 20px -4px #0F172A0D; }
+.brief-section .brief-end p { margin: 0; font-size: 14px; color: #475569; }
+.brief-section .brief-end .button-link { flex-shrink: 0; margin-top: 0; padding: 14px 22px; border-radius: 10px; background: #0B192C; box-shadow: 0 4px 14px #0B192C26; transition: box-shadow .2s ease; }
+.brief-section .brief-end .button-link:hover { box-shadow: 0 6px 18px #0B192C40; }
 #dependencyError { border: 1px solid #B32340; color: #8C1630; background: #FFF1F3; padding: 14px; margin: 18px 0; border-radius: 5px; }
 @media (max-width: 760px) {
   .site-shell { width: calc(100% - 20px); margin: 10px; padding: 10px; }
@@ -99,21 +124,22 @@ thead { position: sticky; top: 0; background: white; }
   main { padding: 30px 12px; }
   .intro h2 { font-size: 35px; }
   .intro p:not(.eyebrow) { font-size: 14px; }
-  .choice-grid, .indicator-grid { grid-template-columns: 1fr; gap: 18px; }
+  .choice-grid { grid-template-columns: 1fr; gap: 18px; }
   .choice-grid { margin-top: 30px; }
   .choice { padding: 24px; }
   .choice h3 { font-size: 26px; }
   .choice p { font-size: 14px; }
   .choice-number { margin-bottom: 16px; }
   .choice-tags { display: none; }
-  .chart text { font-size: 16px; }
   .site-footer { margin: 0 12px; flex-wrap: wrap; }
   .site-footer a { margin-left: 0; }
   .brief-toolbar { flex-direction: column; align-items: stretch; padding: 18px; }
   .region-control select { max-width: 100%; width: 100%; }
-  .indicator { padding: 20px; }
-  .definition { min-height: auto; }
-  .brief-end { flex-direction: column; align-items: start; padding: 20px; }
+  .brief-section .indicator-grid { grid-template-columns: 1fr; gap: 18px; }
+  .brief-section .indicator { padding: 20px; }
+  .brief-section .definition { min-height: auto; }
+  .brief-section .brief-end { flex-direction: column; align-items: start; padding: 20px; }
+  .brief-section .brief-end .button-link { max-width: 100%; gap: 12px; padding: 12px 14px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }
 </style>
@@ -157,8 +183,10 @@ thead { position: sticky; top: 0; background: white; }
       </div>
       <p id="dependencyError" role="alert" hidden>Les graphiques ne peuvent pas être chargés. Vérifiez votre connexion puis rechargez la page.</p>
       <noscript><p>Activez JavaScript pour consulter les indicateurs et choisir votre région.</p></noscript>
-      <div class="indicator-grid" id="indicators"></div>
-      <div class="brief-end"><p>Pour comparer les secteurs et explorer les cartes, poursuivez votre lecture.</p><a class="button-link" href="barometre_details.html">Voir le baromètre détaillé <span aria-hidden="true">→</span></a></div>
+      <div class="brief-section">
+        <div class="indicator-grid" id="indicators"></div>
+        <div class="brief-end"><p>Pour comparer les secteurs et explorer les cartes, poursuivez votre lecture.</p><a class="button-link" href="barometre_details.html">Voir le baromètre détaillé <span aria-hidden="true">→</span></a></div>
+      </div>
     </main>
     <footer class="site-footer"><span class="logo-badge"><img src="Assets/logo/Urssaf_blanc.png" alt="Urssaf"></span><span>Les évolutions sont comparées à la même période un an auparavant.</span><a href="index.html">Accueil</a></footer>
   </div>
@@ -182,6 +210,7 @@ thead { position: sticky; top: 0; background: white; }
   const monthFormat = new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" });
   const axisDateFormat = new Intl.DateTimeFormat("fr-FR", { month: "short", year: "numeric" });
   const chartViewport = window.matchMedia("(max-width: 760px)");
+  let chartViews = [];
   const number = (value, digits = 0) => numberFormats[digits].format(Number(value));
   const element = (tag, text = "", className = "") => {
     const node = document.createElement(tag);
@@ -190,6 +219,22 @@ thead { position: sticky; top: 0; background: white; }
     return node;
   };
   const isValue = value => typeof value === "number" && Number.isFinite(value);
+  const iconPaths = {
+    clock: ["M12 8v4l3 2", "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0"],
+    info: ["M12 11v5M12 8h.01", "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0"],
+    up: ["M12 18V6m-5 5 5-5 5 5"],
+    down: ["M12 6v12m-5-5 5 5 5-5"],
+  };
+  const icon = name => {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    Object.entries({ viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "1.8", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true", focusable: "false", class: "indicator-icon" }).forEach(([key, value]) => svg.setAttribute(key, value));
+    iconPaths[name].forEach(d => {
+      const path = document.createElementNS(svg.namespaceURI, "path");
+      path.setAttribute("d", d);
+      svg.append(path);
+    });
+    return svg;
+  };
   const period = (date, frequency) => {
     if (!date) return "Période indisponible";
     const value = new Date(date + "T00:00:00");
@@ -210,20 +255,17 @@ thead { position: sticky; top: 0; background: white; }
     : value === 0 ? "Stable sur un an" : `${value > 0 ? "Hausse" : "Baisse"} de ${number(Math.abs(value), 1)} % sur un an`;
 
   function chart(card, indicator, points) {
+    if (!hasCharts || !points.some(point => isValue(point.value))) {
+      card.append(element("p", hasCharts ? "Aucune donnée disponible pour ce territoire." : "Graphique indisponible ; les valeurs restent consultables ci-dessous.", "chart-empty"));
+      return;
+    }
     const svgNode = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     const width = chartViewport.matches ? 380 : 560;
-    svgNode.setAttribute("viewBox", `0 0 ${width} 235`);
+    svgNode.setAttribute("viewBox", `0 -12 ${width} 247`);
     svgNode.setAttribute("role", "img");
     svgNode.setAttribute("aria-label", `Évolution de ${indicator.label.toLowerCase()} sur les trois dernières années disponibles`);
     svgNode.classList.add("chart");
     card.append(svgNode);
-    if (!hasCharts || !points.some(point => isValue(point.value))) {
-      const label = document.createElementNS(svgNode.namespaceURI, "text");
-      label.setAttribute("x", "20"); label.setAttribute("y", "110");
-      label.textContent = hasCharts ? "Aucune donnée disponible pour ce territoire." : "Graphique indisponible ; les valeurs restent consultables ci-dessous.";
-      svgNode.append(label);
-      return;
-    }
     const maximum = Math.max(...points.filter(point => isValue(point.value)).map(point => point.value));
     const divisor = indicator.unit === "euros" ? 1e9 : maximum >= 1e6 ? 1e6 : maximum >= 1e3 ? 1e3 : 1;
     const noun = indicator.unit === "salaries" ? "salariés" : indicator.unit === "declarations" ? "déclarations" : "procédures";
@@ -237,13 +279,19 @@ thead { position: sticky; top: 0; background: white; }
     const bounds = d3.extent(levels);
     const padding = Math.max((bounds[1] - bounds[0]) * .2, bounds[1] * .015, divisor > 1 ? .001 : 1);
     const y = d3.scaleLinear().domain([Math.max(0, bounds[0] - padding), bounds[1] + padding]).nice().range([194, 16]);
-    svg.append("g").attr("transform", "translate(64,0)").call(d3.axisLeft(y).ticks(4).tickSize(-(width - 74)).tickFormat(value => number(value, divisor > 1 ? 2 : 0)));
+    svg.append("g").attr("class", "chart-y-axis").attr("transform", "translate(64,0)").call(d3.axisLeft(y).ticks(4).tickSize(-(width - 74)).tickFormat(value => number(value, divisor > 1 ? 2 : 0)));
     const tickDates = data.length > 1 ? [data[0].time, data[Math.floor((data.length - 1) / 2)].time, data[data.length - 1].time] : [data[0].time];
-    const axis = svg.append("g").attr("transform", "translate(0,194)").call(d3.axisBottom(x).tickValues(tickDates).tickFormat(date => axisDateFormat.format(date)).tickPadding(10));
+    const axis = svg.append("g").attr("class", "chart-x-axis").attr("transform", "translate(0,194)").call(d3.axisBottom(x).tickValues(tickDates).tickFormat(date => axisDateFormat.format(date)).tickPadding(10));
     axis.selectAll("text").attr("text-anchor", (_, index) => index === 0 ? "start" : index === tickDates.length - 1 ? "end" : "middle");
-    const line = d3.line().defined(point => isValue(point.level)).x(point => x(point.time)).y(point => y(point.level));
-    svg.append("path").datum(data).attr("fill", "none").attr("stroke", indicator.key === "headcount" || indicator.key === "pcol" ? "#2B82F6" : "#0A8C90").attr("stroke-width", 3).attr("d", line);
-    svg.selectAll("circle").data(data.filter(point => isValue(point.level))).join("circle").attr("cx", point => x(point.time)).attr("cy", point => y(point.level)).attr("r", 2.5).attr("fill", "#0B1D3A")
+    const gradientId = "brief-gradient-" + indicator.key;
+    const gradient = svg.append("defs").append("linearGradient").attr("id", gradientId).attr("x1", "0%").attr("y1", "0%").attr("x2", "0%").attr("y2", "100%");
+    gradient.append("stop").attr("offset", "0%").attr("stop-color", "var(--indicator-color)").attr("stop-opacity", .18);
+    gradient.append("stop").attr("offset", "100%").attr("stop-color", "var(--indicator-color)").attr("stop-opacity", 0);
+    const line = d3.line().defined(point => isValue(point.level)).curve(d3.curveMonotoneX).x(point => x(point.time)).y(point => y(point.level));
+    const area = d3.area().defined(point => isValue(point.level)).curve(d3.curveMonotoneX).x(point => x(point.time)).y0(194).y1(point => y(point.level));
+    svg.append("path").datum(data).attr("class", "chart-area").attr("fill", `url(#${gradientId})`).attr("d", area);
+    svg.append("path").datum(data).attr("class", "chart-line").attr("d", line);
+    svg.selectAll("circle").data(data.filter(point => isValue(point.level))).join("circle").attr("class", "chart-point").attr("cx", point => x(point.time)).attr("cy", point => y(point.level)).attr("r", 4.5)
       .append("title").text(point => `${period(point.date, indicator.frequency)} : ${valueLabel(point.value, indicator.unit)}`);
     card.append(element("p", `Niveau · ${unit}. L’axe vertical est ajusté pour rendre les variations lisibles.`, "chart-note"));
   }
@@ -274,29 +322,86 @@ thead { position: sticky; top: 0; background: white; }
     card.append(details);
   }
 
+  function resizeChartLabels() {
+    const sizes = chartViews.map(({ plot }) => plot.clientWidth);
+    chartViews.forEach(({ plot }, index) => {
+      const svg = plot.querySelector("svg");
+      if (!svg || !sizes[index]) return;
+      const width = svg.viewBox.baseVal.width;
+      const scale = width / sizes[index];
+      const dateSize = scale * 10;
+      svg.style.setProperty("--chart-label-size", `${scale * 11}px`);
+      svg.style.setProperty("--chart-date-size", `${dateSize}px`);
+      const labels = [...svg.querySelectorAll(".chart-x-axis .tick text")];
+      labels.forEach(label => label.setAttribute("dy", ".71em"));
+      const boxes = labels.map(label => label.getBoundingClientRect());
+      const crowded = boxes.some((box, index) => index > 0 && boxes[index - 1].right + 4 > box.left);
+      if (crowded && labels.length === 3) labels[1].setAttribute("dy", "2.2em");
+      svg.setAttribute("viewBox", `0 -12 ${width} ${247 + (crowded && labels.length === 3 ? dateSize * 1.8 : 0)}`);
+    });
+  }
+
   function render() {
     const code = Object.hasOwn(DATA.scopes, selector.value) ? selector.value : "national";
     const scope = DATA.scopes[code];
     document.getElementById("scopeLabel").textContent = code === "national" ? "France entière" : DATA.regions.find(region => region.code === code).name;
     const fragment = document.createDocumentFragment();
+    const nextChartViews = [];
     DATA.indicators.forEach((indicator, index) => {
       const series = scope[indicator.key];
       const points = series.points;
       const latest = points[points.length - 1];
       const card = element("article", "", "indicator");
       card.id = "indicateur-" + indicator.key;
+      card.dataset.indicator = indicator.key;
+      const title = element("h3", indicator.label);
+      title.id = card.id + "-titre";
+      card.setAttribute("aria-labelledby", title.id);
       const heading = element("div", "", "indicator-heading");
-      heading.append(element("span", String(index + 1).padStart(2, "0"), "indicator-number"), element("h3", indicator.label));
-      card.append(heading, element("p", indicator.definition, "definition"), element("strong", valueLabel(latest?.value, indicator.unit), "indicator-value"), element("p", latest ? period(latest.date, indicator.frequency) : "Ce territoire n’est pas documenté dans la source fournie.", "indicator-period"), element("span", changeLabel(latest?.yearlyChange), "indicator-change"));
-      chart(card, indicator, points);
-      card.append(element("p", indicator.explanation, "explanation"), element("p", indicator.source, "source-note"));
-      if (series.coverageNote) card.append(element("p", series.coverageNote, "coverage-note"));
-      valuesTable(card, indicator, points);
+      const indexBadge = element("span", String(index + 1).padStart(2, "0"), "indicator-number");
+      indexBadge.setAttribute("aria-hidden", "true");
+      heading.append(title, indexBadge);
+      const metric = element("div", "", "indicator-metric");
+      const subline = element("div", "", "indicator-subline");
+      const date = element("p", "", "indicator-period");
+      date.append(icon("clock"), element("span", latest ? period(latest.date, indicator.frequency) : "Ce territoire n’est pas documenté dans la source fournie."));
+      const trend = isValue(latest?.yearlyChange) && latest.yearlyChange !== 0 ? latest.yearlyChange > 0 ? "up" : "down" : "neutral";
+      const change = element("span", "", "indicator-change trend-" + trend);
+      if (trend !== "neutral") change.append(icon(trend));
+      change.append(element("span", changeLabel(latest?.yearlyChange)));
+      subline.append(date, change);
+      metric.append(element("strong", valueLabel(latest?.value, indicator.unit), "indicator-value"), subline);
+      card.append(heading, element("p", indicator.definition, "definition"), metric);
+      const plot = element("div", "", "indicator-plot");
+      chart(plot, indicator, points);
+      nextChartViews.push({ plot, indicator, points });
+      const explanation = element("div", "", "explanation");
+      explanation.append(icon("info"), element("p", indicator.explanation));
+      const footer = element("div", "", "indicator-footer");
+      footer.append(element("p", indicator.source, "source-note"));
+      if (series.coverageNote) footer.append(element("p", series.coverageNote, "coverage-note"));
+      valuesTable(footer, indicator, points);
+      card.append(plot, explanation, footer);
       fragment.append(card);
     });
     container.replaceChildren(fragment);
+    chartViews = nextChartViews;
+    resizeChartLabels();
   }
   selector.addEventListener("change", render);
+  chartViewport.addEventListener("change", () => {
+    chartViews.forEach(({ plot, indicator, points }) => {
+      plot.replaceChildren();
+      chart(plot, indicator, points);
+    });
+    resizeChartLabels();
+  });
+  let chartGridWidth = 0;
+  new ResizeObserver(([entry]) => {
+    if (entry.contentRect.width === chartGridWidth) return;
+    chartGridWidth = entry.contentRect.width;
+    resizeChartLabels();
+  }).observe(container);
   render();
 })();
 </script>

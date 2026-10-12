@@ -61,8 +61,6 @@ PRODUCTION_TOKENS = {
     "employment-chart-grid-strong": "rgba(100,116,139,0.26)",
     "employment-chart-positive": "#0EA5A8",
     "employment-chart-negative": "#E11D48",
-    "employment-chart-focus-a": "rgba(43,130,246,0.12)",
-    "employment-chart-focus-b": "rgba(43,130,246,0)",
     "employment-treemap-negative": "#E7A1AE",
     "employment-treemap-neutral": "#F3E7D4",
     "employment-treemap-positive": "#8CCDC4",

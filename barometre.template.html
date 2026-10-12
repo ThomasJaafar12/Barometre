@@ -1100,33 +1100,6 @@
     .employment-select-wrap--compact {
       width: min(100%, 340px);
     }
-    .employment-focus-switch {
-      display: flex;
-      flex-wrap: nowrap;
-      gap: 8px;
-      justify-content: flex-end;
-      align-items: center;
-      min-width: 0;
-    }
-    .employment-focus-button {
-      appearance: none;
-      border: 1px solid var(--chip-border, rgba(255,255,255,0.1));
-      background: var(--chip-bg, rgba(255,255,255,0.06));
-      color: var(--text);
-      border-radius: 999px;
-      padding: 8px 12px;
-      font: 700 0.8rem "Manrope", sans-serif;
-      white-space: nowrap;
-      cursor: pointer;
-      transition: background 180ms ease, color 180ms ease, transform 180ms ease, border-color 180ms ease;
-    }
-    .employment-focus-button:hover,
-    .employment-focus-button.is-active {
-      background: linear-gradient(135deg, var(--chip-active-a), var(--chip-active-b));
-      color: #ffffff;
-      border-color: transparent;
-      transform: translateY(-1px);
-    }
     .employment-chart-shell {
       position: relative;
       z-index: 1;
@@ -1280,7 +1253,6 @@
     .employment-treemap-swatch.is-neutral { background: var(--employment-treemap-neutral, #F3E7D4); }
     .employment-treemap-swatch.is-positive { background: var(--employment-treemap-positive, #0EA5A8); }
     .employment-legend,
-    .employment-focus-card,
     .employment-note-card {
       position: relative;
       z-index: 1;
@@ -1314,26 +1286,11 @@
         linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04)),
         rgba(21, 67, 137, 0.24);
     }
-    .employment-focus-card {
-      display: grid;
-      gap: 14px;
-      padding: 22px;
-      border-radius: 28px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)), var(--editorial-panel-inner, transparent);
-      border: 1px solid var(--line);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
-    }
-    .employment-focus-card h3,
     .employment-note-card h4 {
       margin: 0;
       font-family: "Syne", sans-serif;
       letter-spacing: -0.04em;
     }
-    .employment-focus-card h3 {
-      font-size: clamp(1.7rem, 2.8vw, 2.35rem);
-      line-height: 0.96;
-    }
-    .employment-focus-card p,
     .employment-note-card p {
       margin: 0;
       color: var(--muted);
@@ -1808,10 +1765,6 @@
       .employment-treemap-card .metric-switch {
         width: 100%;
       }
-      .employment-focus-switch {
-        flex-wrap: wrap;
-        justify-content: flex-start;
-      }
       .hero-panel {
         justify-self: stretch;
         max-width: none;
@@ -2093,7 +2046,6 @@
     .hero-action,
     .metric-button,
     .liquid-button,
-    .employment-focus-button,
     .dev-palette-tab,
     .dev-palette-inline-toggle,
     .dev-palette-option,
@@ -2174,7 +2126,6 @@
 
     .hero-panel h1,
     .section-title h2,
-    .employment-focus-card h3,
     .employment-note-card h4,
     .kpi-card strong,
     .employment-stat strong,
@@ -2201,7 +2152,6 @@
     .map-legend span,
     .map-empty,
     .employment-title span,
-    .employment-focus-card p,
     .employment-note-card p {
       color: var(--muted);
     }
@@ -2265,7 +2215,6 @@
 
     .liquid-button,
     .metric-button,
-    .employment-focus-button,
     .dev-palette-tab,
     .dev-palette-inline-toggle {
       color: var(--urssaf-primary);
@@ -2277,7 +2226,6 @@
     .liquid-button.is-active,
     .metric-button.is-active,
     .chip-pill.is-active,
-    .employment-focus-button.is-active,
     .dev-palette-tab.is-active,
     .dev-palette-inline-toggle.is-active,
     .dev-palette-option.is-active {
@@ -2460,7 +2408,6 @@
     .employment-main,
     .employment-side,
     .employment-chart-shell,
-    .employment-focus-card,
     .employment-note-card,
     .map-empty,
     .empty-state,
@@ -2496,16 +2443,9 @@
     .employment-side {
       background: var(--neutral-50);
     }
-
-    .employment-focus-card,
     .employment-note-card,
     .employment-stat {
       background: #FFFFFF;
-    }
-
-    .employment-focus-card h3 {
-      font-size: clamp(1.5rem, 2.2vw, 2rem);
-      line-height: 1.15;
     }
 
     .employment-stat strong,
@@ -2861,8 +2801,7 @@
     .deck-nav-button,
     .deck-dropdown-trigger,
     .liquid-button,
-    .metric-button,
-    .employment-focus-button {
+    .metric-button {
       min-height: 42px;
       border-radius: 8px;
       font-weight: 700;
@@ -2882,8 +2821,7 @@
     .deck-dropdown-trigger:focus-visible,
     .liquid-button:hover,
     .liquid-button:focus-visible,
-    .metric-button:focus-visible,
-    .employment-focus-button:focus-visible {
+    .metric-button:focus-visible {
       outline: none;
       box-shadow: var(--product-focus);
       transform: translateY(-1px);
@@ -3010,8 +2948,7 @@
     }
 
     .liquid-button.is-active,
-    .metric-button.is-active,
-    .employment-focus-button.is-active {
+    .metric-button.is-active {
       color: #FFFFFF;
       background:
         linear-gradient(180deg, var(--product-ink-2) 0%, var(--product-ink) 100%);
@@ -3074,14 +3011,6 @@
       background: #FFFFFF;
       border-color: var(--product-line);
       box-shadow: 0 18px 46px rgba(11,29,58,0.08);
-    }
-
-    .payroll-rar-block {
-      margin-top: 32px;
-    }
-
-    .payroll-rar-block .snap-card.is-snap-active {
-      margin-top: 6px;
     }
 
     .snap-track {
@@ -3353,14 +3282,10 @@
       border-color: rgba(255,255,255,0.14);
       box-shadow: 0 18px 42px rgba(11,29,58,0.16);
     }
-
-    .employment-focus-card,
     .employment-note-card {
       background: rgba(255,255,255,0.08);
       border-color: rgba(255,255,255,0.16);
     }
-
-    .employment-focus-card h3,
     .employment-note-card h4 {
       color: #FFFFFF;
     }
@@ -4398,15 +4323,13 @@
         justify-content: stretch;
       }
 
-      .metric-switch,
-      .employment-focus-switch {
+      .metric-switch {
         width: 100%;
         overflow-x: auto;
         flex-wrap: nowrap;
       }
 
-      .metric-button,
-      .employment-focus-button {
+      .metric-button {
         white-space: nowrap;
       }
 
@@ -4452,14 +4375,6 @@
       #module-sector .employment-ranking-panel .ranking-list,
       .auto-department-card .department-ranking-panel .ranking-list {
         max-height: 460px;
-      }
-
-      .payroll-rar-block {
-        margin-top: 24px;
-      }
-
-      .payroll-rar-block .snap-card.is-snap-active {
-        margin-top: 4px;
       }
 
       .deck-control-bar,
@@ -5272,6 +5187,60 @@
     .payroll-delai-block .snap-card.is-snap-active {
       margin-top: 6px;
     }
+
+    .payroll-pcol-block .snap-card.is-snap-active {
+      margin-top: 6px;
+    }
+
+    .pcol-data-note {
+      margin: 12px 0 0;
+      color: #64748B;
+      font: 400 0.75rem/1.5 "Inter", system-ui, sans-serif;
+    }
+
+    .sector-ranking-link {
+      display: block;
+      width: 100%;
+      padding: 0;
+      overflow: hidden;
+      color: #16212C;
+      background: none;
+      border: 0;
+      font: 600 0.8rem/1.4 "Inter", system-ui, sans-serif;
+      text-align: left;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .sector-ranking-link:focus-visible {
+      outline: 2px solid #004B9B;
+      outline-offset: 3px;
+    }
+
+    .sector-ranking-table {
+      table-layout: fixed;
+    }
+
+    .delai-top-table.sector-ranking-table th,
+    .delai-top-table.sector-ranking-table td {
+      padding: 8px 4px;
+    }
+
+    .sector-ranking-table .delai-th-rank { width: 18px; }
+    .sector-ranking-table .delai-th-mt { width: var(--ranking-value-width, 50px); }
+    .sector-ranking-table .delai-th-yoy { width: 62px; }
+
+    .employment-sector-ranking { --ranking-value-width: 64px; }
+    .employment-payroll-ranking { --ranking-value-width: 76px; }
+    .employment-sector-ranking .delai-top-sectors-head { gap: 10px; }
+    .employment-sector-ranking .delai-top-sectors-meta { flex-shrink: 0; white-space: nowrap; }
+
+    .pcol-dashboard-panel .employment-dashboard-trend.is-positive,
+    .pcol-top-table .delai-td-yoy.trend-up { color: var(--dashboard-red); }
+
+    .pcol-dashboard-panel .employment-dashboard-trend.is-negative,
+    .pcol-top-table .delai-td-yoy.trend-down { color: var(--dashboard-green); }
 
     .delai-kpis-wrapper {
       display: grid;
@@ -6101,15 +6070,14 @@ __CHAPTER_SECTIONS_HTML__
         selectedRegion: "11",
         mapHoverLocked: false,
         sectorEffectifsSeriesKey: null,
-        sectorEffectifsFocusKey: "rebound",
         sectorPayrollSeriesKey: null,
-        sectorPayrollFocusKey: "rebound",
         sectorTreemapMetric: "effectifs_cvs",
         sectorDepartmentMetric: "effectifs_cvs",
         sectorDepartmentSectorKey: null,
         autoMetric: "economically_active",
         autoSector: null,
-        rarMetric: "rar_90",
+        pcolSectorKey: "population-entiere",
+        pcolMode: "all",
         delaiSectorKey: "ensemble",
         delaiMode: "all",
       };

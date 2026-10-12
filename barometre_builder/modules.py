@@ -23,6 +23,7 @@ from .utils import (
     relative_asset,
     slugify,
 )
+from .pcol import build_pcol_module
 
 
 def build_video_manifest(region_meta: dict[str, dict[str, Any]]) -> dict[str, Any]:
@@ -805,12 +806,14 @@ def build_modules(region_meta: dict[str, dict[str, Any]]) -> tuple[dict[str, Any
         DELAI_EXCEL_PATH,
         region_meta,
     )
+    pcol_module = build_pcol_module(region_meta)
     modules = {
         "sector": sector_module,
         "payroll": payroll_module,
         "auto": auto_module,
         "rar": rar_module,
         "delai": delai_module,
+        "pcol": pcol_module,
     }
     hero = {
         "regions": build_region_records(

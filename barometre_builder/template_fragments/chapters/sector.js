@@ -37,88 +37,7 @@
           tooltipLevel: (value) => isHeadcount ? `${frNumber(value / divisor, 2)} M` : `${frNumber(value / divisor, 1)} Md€`,
           summaryLevel: (value) => isHeadcount ? `${frNumber(value / divisor, 2)} M` : `${frNumber(value / divisor, 1)} Md€`,
           axisTick: (value) => frNumber(value / divisor, axisDecimals),
-          focusPeakResolver: (points, mode) => {
-            let selected = null;
-            points.forEach((point) => {
-              const value = point ? point[isHeadcount ? "effectifs_yoy" : "masse_yoy"] : null;
-              if (value == null) return;
-              if (!selected) {
-                selected = point;
-                return;
-              }
-              const selectedValue = selected[isHeadcount ? "effectifs_yoy" : "masse_yoy"];
-              if ((mode === "min" && value < selectedValue) || (mode !== "min" && value > selectedValue)) {
-                selected = point;
-              }
-            });
-            return selected;
-          },
         };
-      }
-
-      function employmentFocusBlueprint() {
-        return [
-          {
-            key: "crash",
-            button: "2020 / rupture",
-            startDate: "2020-01-01",
-            endDate: "2020-12-31",
-          },
-          {
-            key: "rebound",
-            button: "2021-2022 / rebond",
-            startDate: "2021-01-01",
-            endDate: "2022-12-31",
-          },
-          {
-            key: "plateau",
-            button: "2024-2025 / plateau",
-            startDate: "2024-01-01",
-            endDate: "2025-12-31",
-          },
-        ];
-      }
-
-      function findDateIndex(points, predicate) {
-        for (let index = 0; index < points.length; index += 1) {
-          if (predicate(points[index], index)) return index;
-        }
-        return -1;
-      }
-
-      function findLastDateIndex(points, predicate) {
-        for (let index = points.length - 1; index >= 0; index -= 1) {
-          if (predicate(points[index], index)) return index;
-        }
-        return -1;
-      }
-
-      function buildEmploymentFocuses(points, metric) {
-        return employmentFocusBlueprint().map((item) => {
-          let startIndex = findDateIndex(points, (point) => point.date >= item.startDate);
-          let endIndex = findLastDateIndex(points, (point) => point.date <= item.endDate);
-          if (startIndex === -1 || endIndex === -1 || endIndex < startIndex) {
-            endIndex = points.length - 1;
-            startIndex = Math.max(0, endIndex - 7);
-          }
-          const focusPoints = points.slice(startIndex, endIndex + 1);
-          const peakMode = item.key === "crash" ? "min" : "max";
-          let levelPoint = focusPoints[focusPoints.length - 1] || null;
-          focusPoints.forEach((point) => {
-            if (!levelPoint || (point[metric.levelKey] || 0) > (levelPoint[metric.levelKey] || 0)) {
-              levelPoint = point;
-            }
-          });
-          return {
-            ...item,
-            peakMode,
-            startIndex,
-            endIndex,
-            points: focusPoints,
-            peakPoint: metric.focusPeakResolver(focusPoints, peakMode),
-            levelPoint,
-          };
-        });
       }
 
       function employmentTickIndices(length) {
@@ -131,50 +50,6 @@
           indices.push(length - 1);
         }
         return indices;
-      }
-
-      function drawEmploymentAnnotation(group, x, y, label, detail, options = {}) {
-        const dx = options.dx ?? 24;
-        const dy = options.dy ?? -54;
-        const boxWidth = options.width ?? 166;
-        const textAnchor = options.anchor ?? "start";
-        const ink = paletteToken("employment-chart-text", "#16212c");
-        const muted = paletteToken("employment-chart-muted", "#5b6773");
-        const gridStrong = paletteToken("employment-chart-grid-strong", "rgba(22,33,44,0.24)");
-        const originX = x + dx;
-        const originY = y + dy;
-
-        group.append("line")
-          .attr("x1", x)
-          .attr("y1", y)
-          .attr("x2", originX)
-          .attr("y2", originY + 16)
-          .attr("stroke", gridStrong)
-          .attr("stroke-width", 1.2);
-
-        const boxX = textAnchor === "end" ? originX - boxWidth : originX;
-        const box = group.append("g").attr("transform", `translate(${boxX},${originY})`);
-        box.append("rect")
-          .attr("width", boxWidth)
-          .attr("height", 54)
-          .attr("rx", 14)
-          .attr("fill", "rgba(255,255,255,0.94)")
-          .attr("stroke", "rgba(22,33,44,0.08)");
-        box.append("text")
-          .attr("x", 12)
-          .attr("y", 18)
-          .attr("fill", ink)
-          .style("font-family", "IBM Plex Mono, monospace")
-          .style("font-size", "11px")
-          .style("letter-spacing", "0.08em")
-          .text(label);
-        box.append("text")
-          .attr("x", 12)
-          .attr("y", 36)
-          .attr("fill", muted)
-          .style("font-family", "Manrope, sans-serif")
-          .style("font-size", "12px")
-          .text(detail);
       }
 
       const EMPLOYMENT_SECTOR_GROUPS = [
@@ -349,22 +224,6 @@
         renderEmploymentSectorPicker(controlId, scope.seriesOptions, stateKey, onRender);
       }
 
-      function renderEmploymentFocusSwitch(containerId, focuses, activeKey, stateKey, onRender) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = "";
-        focuses.forEach((focus) => {
-          const button = document.createElement("button");
-          button.type = "button";
-          button.className = `employment-focus-button${focus.key === activeKey ? " is-active" : ""}`;
-          button.textContent = focus.button;
-          button.addEventListener("click", () => {
-            state[stateKey] = focus.key;
-            onRender();
-          });
-          container.appendChild(button);
-        });
-      }
-
       function employmentTrendState(value) {
         if (value == null || Number.isNaN(value)) return "unknown";
         if (value > 0.05) return "positive";
@@ -404,7 +263,7 @@
         element.setAttribute("aria-label", employmentSignedPercent(value));
       }
 
-      function drawEmploymentChart(config, points, metric, focuses, activeFocus) {
+      function drawEmploymentChart(config, points, metric) {
         const svg = d3.select(`#${config.chartSvgId}`);
         svg.selectAll("*").remove();
         const width = 980;
@@ -413,7 +272,6 @@
         const innerWidth = width - margin.left - margin.right;
         const innerHeight = height - margin.top - margin.bottom;
         const root = svg.attr("viewBox", `0 0 ${width} ${height}`);
-        const prefix = config.chartSvgId;
         const chartInk = paletteToken("employment-chart-ink", "#1a4e93");
         const chartInkSoft = paletteToken("employment-chart-ink-soft", "rgba(26,78,147,0.16)");
         const chartText = paletteToken("employment-chart-text", "#16212c");
@@ -422,12 +280,6 @@
         const chartGridStrong = paletteToken("employment-chart-grid-strong", "rgba(22,33,44,0.18)");
         const chartPositive = paletteToken("employment-chart-positive", "#0EA5A8");
         const chartNegative = paletteToken("employment-chart-negative", "#E11D48");
-
-        const defs = root.append("defs");
-        const focusFillId = `${prefix}-focus-fill`;
-        const focusGradient = defs.append("linearGradient").attr("id", focusFillId).attr("x1", "0").attr("x2", "0").attr("y1", "0").attr("y2", "1");
-        focusGradient.append("stop").attr("offset", "0%").attr("stop-color", paletteToken("employment-chart-focus-a", "rgba(26,78,147,0.13)"));
-        focusGradient.append("stop").attr("offset", "100%").attr("stop-color", paletteToken("employment-chart-focus-b", "rgba(26,78,147,0)"));
 
         const chart = root.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
         const yoyValues = points.map((point) => point[metric.yoyKey]).filter((value) => value != null);
@@ -448,16 +300,6 @@
         const yLevel = d3.scaleLinear().domain([levelMin, levelMax]).nice().range([innerHeight, 0]);
         const barStep = points.length > 1 ? xScale(1) - xScale(0) : innerWidth;
         const barWidth = Math.max(8, Math.min(18, barStep * 0.72));
-
-        const focusStartX = xScale(activeFocus.startIndex) - barWidth;
-        const focusEndX = xScale(activeFocus.endIndex) + barWidth;
-        chart.append("rect")
-          .attr("x", focusStartX)
-          .attr("y", 0)
-          .attr("width", Math.max(88, focusEndX - focusStartX))
-          .attr("height", innerHeight)
-          .attr("rx", 20)
-          .attr("fill", `url(#${focusFillId})`);
 
         chart.append("g")
           .selectAll("line")
@@ -571,44 +413,6 @@
           .style("font-size", "12px")
           .text("Trimestre");
 
-        const crashFocus = focuses.find((focus) => focus.key === "crash");
-        const reboundFocus = focuses.find((focus) => focus.key === "rebound");
-        const plateauFocus = focuses.find((focus) => focus.key === "plateau");
-        const annotationLayer = chart.append("g");
-        if (crashFocus && crashFocus.peakPoint) {
-          const pointIndex = points.findIndex((point) => point.date === crashFocus.peakPoint.date);
-          drawEmploymentAnnotation(
-            annotationLayer,
-            xScale(pointIndex),
-            yYoY(crashFocus.peakPoint[metric.yoyKey]),
-            "RUPTURE",
-            `${quarterLabel(crashFocus.peakPoint.date)} / ${formatPercent(crashFocus.peakPoint[metric.yoyKey])}`,
-            { dx: -192, dy: 12, width: 180, anchor: "end" },
-          );
-        }
-        if (reboundFocus && reboundFocus.peakPoint) {
-          const pointIndex = points.findIndex((point) => point.date === reboundFocus.peakPoint.date);
-          drawEmploymentAnnotation(
-            annotationLayer,
-            xScale(pointIndex),
-            yYoY(reboundFocus.peakPoint[metric.yoyKey]),
-            "REBOND",
-            `${quarterLabel(reboundFocus.peakPoint.date)} / ${formatPercent(reboundFocus.peakPoint[metric.yoyKey])}`,
-            { dx: 22, dy: -70, width: 176 },
-          );
-        }
-        if (plateauFocus && plateauFocus.levelPoint) {
-          const pointIndex = points.findIndex((point) => point.date === plateauFocus.levelPoint.date);
-          drawEmploymentAnnotation(
-            annotationLayer,
-            xScale(pointIndex),
-            yLevel(plateauFocus.levelPoint[metric.levelKey]),
-            "PLATEAU",
-            `${quarterLabel(plateauFocus.levelPoint.date)} / ${metric.summaryLevel(plateauFocus.levelPoint[metric.levelKey])}`,
-            { dx: -196, dy: -74, width: 184, anchor: "end" },
-          );
-        }
-
         const tooltip = document.getElementById(config.tooltipId);
         const tooltipOverline = tooltip.querySelector(".tooltip-overline");
         const tooltipBody = tooltip.querySelector(".tooltip-body");
@@ -669,6 +473,7 @@
         const scope = getSectorRegionalScopeData();
         const metric = employmentMetricConfig(config.metricKey);
         const regionalData = DATA.modules.sector.regional;
+        renderEmploymentSectorRanking(config, scope, metric);
         if (!scope || !scope.seriesOptions || !scope.seriesOptions.length) return;
         if (!state[config.seriesStateKey] || !scope.series[state[config.seriesStateKey]]) {
           state[config.seriesStateKey] = scope.defaultSeriesKey;
@@ -677,16 +482,9 @@
         if (!selectedSeries || !selectedSeries.points || !selectedSeries.points.length) return;
 
         const points = selectedSeries.points.filter((point) => point.date >= (regionalData.displayStartDate || "2014-01-01"));
-        const focuses = buildEmploymentFocuses(points, metric);
-        const availableFocusKeys = new Set(focuses.map((focus) => focus.key));
-        if (!availableFocusKeys.has(state[config.focusStateKey])) {
-          state[config.focusStateKey] = "rebound";
-        }
-        const activeFocus = focuses.find((focus) => focus.key === state[config.focusStateKey]) || focuses[0];
         const lastPoint = points[points.length - 1];
 
         renderEmploymentSeriesPicker(config.seriesControlId, scope, config.seriesStateKey, renderSectorModule);
-        renderEmploymentFocusSwitch(config.focusSwitchId, focuses, activeFocus.key, config.focusStateKey, renderSectorModule);
 
         const periodLabel = quarterLabel(lastPoint.date);
         document.getElementById(config.chartTitleId).textContent = `${metric.heading} ${periodLabel} : niveau et évolution en ${scopeLabel()}.`;
@@ -699,23 +497,39 @@
         renderEmploymentTrend(config.currentQoQId, lastPoint[metric.qoqKey]);
         document.getElementById(config.interpretationId).textContent = employmentInterpretation(lastPoint, metric);
 
-        drawEmploymentChart(config, points, metric, focuses, activeFocus);
+        drawEmploymentChart(config, points, metric);
+      }
+
+      function renderEmploymentSectorRanking(config, scope, metric) {
+        const rankingPeriod = document.getElementById(config.rankingMetaId);
+        rankingPeriod.textContent = scope?.latestDate ? quarterLabel(scope.latestDate) : "—";
+        rankingPeriod.dateTime = scope?.latestDate || "";
+        renderSectorRanking({
+          containerId: config.rankingTableId,
+          rows: employmentLatestSectorRows(scope, metric).slice(0, 5),
+          valueLabel: metric.key === "effectifs_cvs" ? "Effectifs" : "Masse",
+          formatValue: (value) => sectorTreemapMetricFormatter(metric.key, value),
+          emptyMessage: "Aucune donnée sectorielle sur ce trimestre.",
+          onSelect: (key) => {
+            state[config.seriesStateKey] = key;
+            renderSectorModule();
+            document.getElementById(config.seriesControlId).querySelector(".employment-sector-trigger").focus({ preventScroll: true });
+          },
+        });
       }
 
       function sectorTreemapMetricFormatter(metricKey, value) {
         return metricKey === "masse_cvs" ? formatCurrency(value) : formatCount(value);
       }
 
-      function sectorTreemapLatestRows(scope, metric) {
+      function employmentLatestSectorRows(scope, metric) {
         if (!scope || !scope.seriesOptions || !scope.series) return [];
         return scope.seriesOptions
           .filter((option) => option.key !== scope.defaultSeriesKey && option.key !== "population-entiere")
           .map((option) => {
             const series = scope.series[option.key];
-            const point = series && series.points
-              ? [...series.points].reverse().find((item) => item && item[metric.levelKey] > 0)
-              : null;
-            if (!point) return null;
+            const point = series?.points?.at(-1);
+            if (!point || point.date !== scope.latestDate || !Number.isFinite(point[metric.levelKey]) || point[metric.levelKey] <= 0) return null;
             return {
               key: option.key,
               label: option.label,
@@ -725,7 +539,7 @@
             };
           })
           .filter(Boolean)
-          .sort((left, right) => right.value - left.value);
+          .sort((left, right) => right.value - left.value || left.label.localeCompare(right.label, "fr"));
       }
 
       function sectorTreemapColorScale(rows) {
@@ -808,7 +622,7 @@
         const legend = document.getElementById("employmentTreemapLegend");
         const tooltip = document.getElementById("employmentTreemapTooltip");
         const svg = d3.select("#employmentTreemapSvg");
-        const rows = sectorTreemapLatestRows(scope, metric);
+        const rows = employmentLatestSectorRows(scope, metric);
 
         renderMetricSwitch("employmentTreemapMetricSwitch", metrics, metricKey, (key) => {
           state.sectorTreemapMetric = key;
@@ -1128,10 +942,8 @@
         renderRegionalEmploymentBlock({
           metricKey: "effectifs_cvs",
           seriesStateKey: "sectorEffectifsSeriesKey",
-          focusStateKey: "sectorEffectifsFocusKey",
           chartTitleId: "employmentEffectifsChartTitle",
           seriesControlId: "employmentEffectifsSeriesPicker",
-          focusSwitchId: "employmentEffectifsFocusSwitch",
           chartSvgId: "employmentEffectifsChartSvg",
           tooltipId: "employmentEffectifsTooltip",
           legendLineId: "employmentEffectifsLegendLine",
@@ -1141,15 +953,15 @@
           currentYoYId: "employmentEffectifsCurrentYoY",
           currentQoQId: "employmentEffectifsCurrentQoQ",
           interpretationId: "employmentEffectifsInterpretation",
+          rankingMetaId: "employmentEffectifsTopSectorsMeta",
+          rankingTableId: "employmentEffectifsTopSectorsTable",
         });
 
         renderRegionalEmploymentBlock({
           metricKey: "masse_cvs",
           seriesStateKey: "sectorPayrollSeriesKey",
-          focusStateKey: "sectorPayrollFocusKey",
           chartTitleId: "employmentPayrollChartTitle",
           seriesControlId: "employmentPayrollSeriesPicker",
-          focusSwitchId: "employmentPayrollFocusSwitch",
           chartSvgId: "employmentPayrollChartSvg",
           tooltipId: "employmentPayrollTooltip",
           legendLineId: "employmentPayrollLegendLine",
@@ -1159,6 +971,8 @@
           currentYoYId: "employmentPayrollCurrentYoY",
           currentQoQId: "employmentPayrollCurrentQoQ",
           interpretationId: "employmentPayrollInterpretation",
+          rankingMetaId: "employmentPayrollTopSectorsMeta",
+          rankingTableId: "employmentPayrollTopSectorsTable",
         });
 
         renderSectorTreemap();

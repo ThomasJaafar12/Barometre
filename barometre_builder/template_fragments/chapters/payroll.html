@@ -11,43 +11,105 @@
               </div>
             </div>
           </div>
-          <div class="section-grid snap-card" data-snap-card data-snap-label="Evolution recente et dernier point" data-snap-nav-label="Chômage partiel" aria-label="Evolution recente et dernier point">
-            <div class="viz-panel">
-              <div class="viz-title">
-                <strong>Chômage partiel</strong>
-                <span id="payrollChartMeta"></span>
-              </div>
-              <svg id="payrollSvg" viewBox="0 0 760 420"></svg>
-              <div class="legend-row">
-                <span class="legend-chip"><i class="legend-dot" style="background: var(--accent)"></i>Masse salariale</span>
-                <span class="legend-chip"><i class="legend-line" style="color: var(--warning)"></i>Part chomage partiel</span>
-              </div>
-            </div>
-            <div class="viz-panel">
-              <div class="viz-title">
-                <strong>Dernier point de masse salariale</strong>
-                <span id="payrollStatsMeta"></span>
-              </div>
-              <div class="mini-grid" id="payrollStats"></div>
-            </div>
-          </div>
-          <div class="payroll-rar-block" id="module-rar">
-            <div class="section-grid snap-card" id="rarGrid" data-snap-card data-snap-label="RAR mensuel et dernier point" data-snap-nav-label="RAR mensuel" aria-label="RAR mensuel et dernier point">
-              <div class="viz-panel" id="rarPrimaryPanel">
-                <div class="viz-title">
-                  <strong id="rarPrimaryTitle">Courbes mensuelles RAR</strong>
-                  <span id="rarPrimaryMeta"></span>
+          <div class="payroll-pcol-block" id="module-pcol">
+            <article class="employment-block snap-card pcol-card" data-snap-card data-snap-label="Procédures collectives" data-snap-nav-label="Pcol" aria-label="Procédures collectives">
+              <div class="section-grid employment-grid delai-grid">
+                <div class="viz-panel employment-main pcol-main">
+                  <div class="employment-intro delai-intro">
+                    <div class="viz-title employment-title">
+                      <strong id="pcolChartTitle">Procédures collectives</strong>
+                    </div>
+                    <div class="employment-controls delai-controls">
+                      <div class="employment-sector-picker delai-sector-picker" id="pcolSectorPicker">
+                        <span class="mono employment-select-label">Secteur NACE 17</span>
+                        <button class="employment-sector-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                          <span class="employment-sector-trigger-value" id="pcolSectorTriggerValue">Ensemble des secteurs</span>
+                          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="m5 7.5 5 5 5-5"></path></svg>
+                        </button>
+                        <div class="employment-sector-menu" role="listbox" aria-label="Sélection du secteur d'activité pour les procédures collectives" id="pcolSectorMenu"></div>
+                      </div>
+                      <div class="metric-switch delai-mode-switch" id="pcolModeSwitch" aria-label="Nature de procédure"></div>
+                    </div>
+                  </div>
+                  <div class="employment-chart-shell pcol-chart-shell">
+                    <svg id="pcolChartSvg" viewBox="0 0 980 560" role="img" aria-labelledby="pcolChartTitleSvg pcolChartDescSvg">
+                      <title id="pcolChartTitleSvg">Évolution trimestrielle des procédures collectives et des emplois menacés ou détruits</title>
+                      <desc id="pcolChartDescSvg">Courbe du nombre de procédures et courbe des emplois menacés ou détruits.</desc>
+                    </svg>
+                    <div id="pcolTooltip" class="employment-tooltip pcol-tooltip" aria-hidden="true">
+                      <div class="tooltip-overline"></div>
+                      <div class="tooltip-body"></div>
+                    </div>
+                  </div>
+                  <div class="legend-row employment-legend delai-legend">
+                    <span class="legend-chip"><i class="legend-line" style="color: var(--accent); height: 3px;"></i><span id="pcolLegendNb">Nombre de procédures (axe gauche)</span></span>
+                    <span class="legend-chip"><i class="legend-line" style="color: var(--accent-secondary); height: 3px;"></i><span id="pcolLegendJobs">Emplois menacés ou détruits (axe droit)</span></span>
+                  </div>
+                  <p class="pcol-data-note" id="pcolDataNote"></p>
                 </div>
-                <svg id="rarPrimarySvg" viewBox="0 0 760 420"></svg>
-              </div>
-              <div class="viz-panel" id="rarSecondaryPanel">
-                <div class="viz-title">
-                  <strong id="rarSecondaryTitle">Dernier point RAR</strong>
-                  <span id="rarSecondaryMeta"></span>
+                <div class="viz-panel employment-side employment-dashboard-panel pcol-dashboard-panel">
+                  <div class="employment-dashboard-context" aria-label="Périmètre et période des données">
+                    <span id="pcolScope"></span>
+                    <time id="pcolPeriod"></time>
+                  </div>
+                  <div class="delai-kpis-wrapper">
+                    <div class="delai-kpi-block">
+                      <div class="employment-dashboard-level">
+                        <span class="employment-dashboard-level-label">Nombre de procédures collectives</span>
+                        <strong class="employment-dashboard-level-value delai-level-value" id="pcolCurrentNb"></strong>
+                      </div>
+                      <div class="employment-dashboard-stats">
+                        <div class="employment-dashboard-stat">
+                          <span class="employment-dashboard-stat-label">Gliss. annuel</span>
+                          <strong class="employment-dashboard-trend" id="pcolCurrentNbYoY">
+                            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0 7 7M12 3v18"></path></svg>
+                            <span></span>
+                          </strong>
+                        </div>
+                        <div class="employment-dashboard-stat">
+                          <span class="employment-dashboard-stat-label">Gliss. trimestriel</span>
+                          <strong class="employment-dashboard-trend" id="pcolCurrentNbQoQ">
+                            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0 7 7M12 3v18"></path></svg>
+                            <span></span>
+                          </strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="delai-kpi-block">
+                      <div class="employment-dashboard-level">
+                        <span class="employment-dashboard-level-label">Emplois menacés ou détruits</span>
+                        <strong class="employment-dashboard-level-value delai-level-value" id="pcolCurrentJobs"></strong>
+                      </div>
+                      <div class="employment-dashboard-stats">
+                        <div class="employment-dashboard-stat">
+                          <span class="employment-dashboard-stat-label">Gliss. annuel</span>
+                          <strong class="employment-dashboard-trend" id="pcolCurrentJobsYoY">
+                            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0 7 7M12 3v18"></path></svg>
+                            <span></span>
+                          </strong>
+                        </div>
+                        <div class="employment-dashboard-stat">
+                          <span class="employment-dashboard-stat-label">Gliss. trimestriel</span>
+                          <strong class="employment-dashboard-trend" id="pcolCurrentJobsQoQ">
+                            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0 7 7M12 3v18"></path></svg>
+                            <span></span>
+                          </strong>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="delai-top-sectors-block">
+                    <div class="delai-top-sectors-head">
+                      <strong class="delai-top-sectors-title">Top 5 secteurs (procédures)</strong>
+                      <span class="mono delai-top-sectors-meta" id="pcolTopSectorsMeta">Dernier trimestre</span>
+                    </div>
+                    <div class="delai-top-table-wrapper" id="pcolTopSectorsTable"></div>
+                  </div>
                 </div>
-                <div id="rarSecondaryBody"></div>
               </div>
-            </div>
+            </article>
           </div>
 
           <div class="payroll-delai-block" id="module-delai">

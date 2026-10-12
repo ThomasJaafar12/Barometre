@@ -52,7 +52,6 @@
       function renderAutoModule() {
         const mapMeta = document.getElementById("autoMapMeta");
         const rankingMeta = document.getElementById("autoRankingMeta");
-        const autoPanel = document.getElementById("autoMapPanel");
         const autoRanking = document.getElementById("autoRanking");
         const mapGrid = document.querySelector(".auto-department-card .department-map-grid");
         const departmentIndex = getAutoDepartmentIndex();
@@ -76,7 +75,16 @@
         );
 
         if (!departments.length) {
-          renderEmptyState(autoPanel, "Données manquantes", "Les auto-entrepreneurs ne sont pas documentés ici dans les CSV fournis.");
+          mapMeta.textContent = `${scopeLabel()} / données indisponibles`;
+          rankingMeta.textContent = "Données indisponibles";
+          document.getElementById("autoLegend").replaceChildren();
+          const emptySvg = d3.select("#autoMapSvg");
+          emptySvg.selectAll("*").remove();
+          emptySvg.append("text")
+            .attr("x", 450).attr("y", 310).attr("text-anchor", "middle")
+            .attr("fill", paletteToken("employment-chart-muted", "#64748B"))
+            .style("font-size", "18px")
+            .text("Aucune donnée disponible pour ce territoire.");
           autoRanking.innerHTML = "";
           syncDepartmentRankingHeight(mapGrid);
           return;

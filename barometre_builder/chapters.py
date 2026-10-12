@@ -49,11 +49,11 @@ CHAPTERS: tuple[ChapterFragment, ...] = (
         number="02",
         label="Santé des entreprises",
         nav_label="Santé",
-        rail_meta="masse salariale, assiette, signaux d'activité",
+        rail_meta="procédures collectives, délais de paiement",
         section_title_prefix="Santé des ",
         section_title_highlight="entreprises",
         section_title_suffix="",
-        section_meta="Lecture mensuelle de l'activité déclarée, de la masse salariale et des tensions conjoncturelles.",
+        section_meta="Suivez les procédures collectives et les accords de délais de paiement.",
         tone=2,
         html_fragment="payroll.html",
         script_fragment="payroll.js",
@@ -62,7 +62,7 @@ CHAPTERS: tuple[ChapterFragment, ...] = (
 )
 
 
-SUPPORTING_SCRIPTS: tuple[str, ...] = ("auto.js", "rar.js", "delai.js")
+SUPPORTING_SCRIPTS: tuple[str, ...] = ("auto.js", "quarterly.js", "ranking.js", "delai.js", "pcol.js")
 
 
 def _fragment(name: str) -> str:

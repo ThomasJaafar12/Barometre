@@ -14,6 +14,7 @@
           renderEmptyState(panel, "Flux indisponible", "Le couple masse salariale / chômage partiel manque pour ce territoire.");
           stats.innerHTML = "";
           renderRarModule();
+          renderDelaiModule();
           return;
         }
 
@@ -76,4 +77,6 @@
           stats.appendChild(article);
         });
         renderRarModule();
+        renderDelaiModule();
       }
+

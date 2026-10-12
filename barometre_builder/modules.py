@@ -1,10 +1,12 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from collections import defaultdict
 from typing import Any
 
 from .config import (
     DATA_DIR,
+    DELAI_DISPLAY_START_DATE,
+    DELAI_EXCEL_PATH,
     EXPERIENCE_REGION_CODES,
     MP4_DIR,
     PAYROLL_WINDOW_MONTHS,
@@ -508,6 +510,92 @@ def build_rar_module(rows: list[dict[str, str]], region_meta: dict[str, dict[str
             "national": {"latestByMetric": latest_by_metric},
         },
         {
+            "departments": [departments[key] for key in sorted(departments)],
+            "regions": {code: {"departmentCodes": sorted(values)} for code, values in region_departments.items()},
+        },
+        {
+            "regions": {
+                code: {"date": latest_date, "value": compact_number(hero_regions.get(code)) if hero_regions.get(code) is not None else None}
+                for code in EXPERIENCE_REGION_CODES
+            },
+            "national": {"date": latest_date, "value": compact_number(hero_national)},
+        },
+    )
+
+
+def build_rar_module(rows: list[dict[str, str]], region_meta: dict[str, dict[str, Any]]) -> tuple[dict[str, Any], dict[str, Any]]:
+    filtered_rows = [row for row in rows if normalize_code(row["Code région"]) in region_meta]
+    latest_date = max(row["Dernier jour du mois"] for row in filtered_rows)
+    column_map = {
+        "rar_fin_mois": "Taux d'impayés fin de mois (%)",
+        "rar_mois_suivant": "Taux d'impayés fin de mois suivant (%)",
+        "rar_90": "Taux d'impayés à échéance + 90 jours (%)",
+        "quarterly_fin_mois": "Glissement trimestriel - Tx imp. fin de mois",
+        "quarterly_mois_suivant": "Glissement trimestriel - Tx imp. fin de mois suivant",
+        "quarterly_90": "Glissement trimestriel - Tx imp. à 90 jours",
+        "yearly_fin_mois": "Glissement annuel - Tx imp. fin de mois",
+        "yearly_mois_suivant": "Glissement annuel - Tx imp. fin de mois suivant",
+        "yearly_90": "Glissement annuel - Tx imp. à 90 jours",
+    }
+    series: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    latest_valid_by_region: dict[str, dict[str, dict[str, Any]]] = defaultdict(dict)
+    for row in filtered_rows:
+        code = normalize_code(row["Code région"])
+        point = {"date": row["Dernier jour du mois"]}
+        for key, column in column_map.items():
+            point[key] = compact_number(parse_number(row[column]))
+        series[code].append(point)
+
+    for points in series.values():
+        points.sort(key=lambda point: point["date"])
+
+    metric_to_yearly = {
+        "rar_fin_mois": "yearly_fin_mois",
+        "rar_mois_suivant": "yearly_mois_suivant",
+        "rar_90": "yearly_90",
+    }
+    for code, points in series.items():
+        for metric in ["rar_fin_mois", "rar_mois_suivant", "rar_90"]:
+            latest_valid = next((point for point in reversed(points) if point[metric] is not None), None)
+            if latest_valid:
+                latest_valid_by_region[code][metric] = {
+                    "date": latest_valid["date"],
+                    "value": latest_valid[metric],
+                    "yearlyChange": latest_valid[metric_to_yearly[metric]],
+                }
+
+    latest_by_metric = {}
+    for metric in ["rar_fin_mois", "rar_mois_suivant", "rar_90"]:
+        entries = []
+        for code, data in latest_valid_by_region.items():
+            latest_valid = data.get(metric)
+            if not latest_valid:
+                continue
+            entries.append(
+                {
+                    "code": code,
+                    "name": region_meta[code]["name"],
+                    "value": latest_valid["value"],
+                    "yearlyChange": latest_valid["yearlyChange"],
+                    "date": latest_valid["date"],
+                }
+            )
+        entries.sort(key=lambda entry: entry["value"] if entry["value"] is not None else -1, reverse=True)
+        latest_by_metric[metric] = entries
+
+    highest_risk = latest_by_metric["rar_90"][0] if latest_by_metric["rar_90"] else None
+    return (
+        {
+            "latestDate": latest_date,
+            "metrics": [
+                {"key": "rar_fin_mois", "label": "Fin de mois", "format": "percent"},
+                {"key": "rar_mois_suivant", "label": "Mois suivant", "format": "percent"},
+                {"key": "rar_90", "label": "+90 jours", "format": "percent"},
+            ],
+            "regions": {code: {"points": points[-RAR_WINDOW_MONTHS:]} for code, points in series.items()},
+            "national": {"latestByMetric": latest_by_metric},
+        },
+        {
             "regions": {
                 code: {
                     "date": data["rar_90"]["date"] if data.get("rar_90") else None,
@@ -525,6 +613,141 @@ def build_rar_module(rows: list[dict[str, str]], region_meta: dict[str, dict[str
     )
 
 
+def build_delai_module(
+    excel_path: Path,
+    region_meta: dict[str, dict[str, Any]],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    import pandas as pd
+
+    slug_to_code = {slugify(r["name"]): code for code, r in region_meta.items()}
+    df = pd.read_excel(excel_path)
+    df["region_code"] = df["Grdreggest_compte"].apply(lambda x: slug_to_code.get(slugify(str(x))))
+    df["date_str"] = pd.to_datetime(df["Date_accord"]).dt.strftime("%Y-%m-%d")
+    df["Delai_proactif"] = df["Delai_proactif"].fillna(0).astype(int)
+    df["Secteur_nace_17_baro"] = df["Secteur_nace_17_baro"].fillna("Inconnu").astype(str)
+    df["Nb_accord"] = pd.to_numeric(df["Nb_accord"], errors="coerce").fillna(0)
+    df["Mt_accord"] = pd.to_numeric(df["Mt_accord"], errors="coerce").fillna(0.0)
+    df["duree_mois"] = pd.to_numeric(df["duree_mois"], errors="coerce").fillna(0.0)
+
+    all_dates = sorted(df["date_str"].unique())
+    latest_date = all_dates[-1] if all_dates else ""
+    sector_names = sorted(df["Secteur_nace_17_baro"].unique())
+    sector_slug_map = {s: slugify(s) for s in sector_names}
+    sector_options = [{"id": "ensemble", "label": "Ensemble des secteurs"}] + [
+        {"id": sector_slug_map[s], "label": s} for s in sector_names
+    ]
+    mode_options = [
+        {"id": "all", "label": "Tous les délais"},
+        {"id": "proactif", "label": "Délais proactifs"},
+        {"id": "classique", "label": "Délais sur demande"},
+    ]
+
+    records = df.to_dict("records")
+    acc = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {"nb": 0, "mt": 0.0, "duree": 0.0}))))
+
+    for r in records:
+        reg = r["region_code"]
+        if not reg:
+            continue
+        pro = r["Delai_proactif"]
+        mode = "proactif" if pro == 1 else "classique"
+        sec = sector_slug_map[r["Secteur_nace_17_baro"]]
+        d = r["date_str"]
+        nb = int(r["Nb_accord"])
+        mt = float(r["Mt_accord"])
+        dur = float(r["duree_mois"])
+
+        for target_reg in (reg, "national"):
+            for target_mode in ("all", mode):
+                for target_sec in ("ensemble", sec):
+                    cell = acc[target_reg][target_mode][target_sec][d]
+                    cell["nb"] += nb
+                    cell["mt"] += mt
+                    cell["duree"] += dur
+
+    def build_timeseries(raw_dates_dict: dict[str, dict[str, float]]) -> list[list[Any]]:
+        points = []
+        prev_q = None
+        for d in all_dates:
+            curr = raw_dates_dict.get(d, {"nb": 0, "mt": 0.0, "duree": 0.0})
+            d_prev_year = f"{int(d[:4])-1}{d[4:]}"
+            prev_y = raw_dates_dict.get(d_prev_year)
+
+            nb = curr["nb"]
+            mt = int(round(curr["mt"]))
+            dur = curr["duree"]
+            dur_avg = round(dur / nb, 1) if nb > 0 else None
+
+            nb_yoy = round(((nb / prev_y["nb"]) - 1) * 100, 1) if (prev_y and prev_y["nb"] > 0 and nb > 0) else None
+            mt_yoy = round(((mt / prev_y["mt"]) - 1) * 100, 1) if (prev_y and prev_y["mt"] > 0 and mt > 0) else None
+
+            nb_qoq = round(((nb / prev_q["nb"]) - 1) * 100, 1) if (prev_q and prev_q["nb"] > 0 and nb > 0) else None
+            mt_qoq = round(((mt / prev_q["mt"]) - 1) * 100, 1) if (prev_q and prev_q["mt"] > 0 and mt > 0) else None
+
+            if d >= DELAI_DISPLAY_START_DATE:
+                points.append([d, nb, mt, dur_avg, nb_yoy, mt_yoy, nb_qoq, mt_qoq])
+            prev_q = curr
+        return points
+
+    module_payload = {
+        "latestDate": latest_date,
+        "sectors": sector_options,
+        "modes": mode_options,
+        "regions": {},
+        "national": {},
+    }
+
+    hero_regions = {}
+
+    for reg in list(EXPERIENCE_REGION_CODES) + ["national"]:
+        target = module_payload["national"] if reg == "national" else module_payload["regions"].setdefault(reg, {})
+        target["modes"] = {}
+        target["topSectors"] = {}
+        for mode in ("all", "proactif", "classique"):
+            target["modes"][mode] = {}
+            for sec_opt in sector_options:
+                sec_id = sec_opt["id"]
+                target["modes"][mode][sec_id] = build_timeseries(acc[reg][mode][sec_id])
+
+            sec_ranks = []
+            for sec_name, sec_slug in sector_slug_map.items():
+                pts = target["modes"][mode][sec_slug]
+                latest_pt = pts[-1] if pts else None
+                if latest_pt:
+                    sec_ranks.append(
+                        {
+                            "id": sec_slug,
+                            "label": sec_name,
+                            "mt": latest_pt[2],
+                            "nb": latest_pt[1],
+                            "mt_yoy": latest_pt[5],
+                            "nb_yoy": latest_pt[4],
+                        }
+                    )
+            sec_ranks.sort(key=lambda x: x["mt"] if x["mt"] is not None else -1, reverse=True)
+            target["topSectors"][mode] = sec_ranks[:5]
+
+        latest_ensemble_all = target["modes"]["all"]["ensemble"][-1] if target["modes"]["all"]["ensemble"] else None
+        if reg != "national":
+            hero_regions[reg] = {
+                "date": latest_date,
+                "nb": latest_ensemble_all[1] if latest_ensemble_all else 0,
+                "mt": latest_ensemble_all[2] if latest_ensemble_all else 0.0,
+            }
+
+    hero_national_pts = module_payload["national"]["modes"]["all"]["ensemble"][-1] if module_payload["national"]["modes"]["all"]["ensemble"] else None
+    hero_payload = {
+        "regions": hero_regions,
+        "national": {
+            "date": latest_date,
+            "nb": hero_national_pts[1] if hero_national_pts else 0,
+            "mt": hero_national_pts[2] if hero_national_pts else 0.0,
+        },
+    }
+
+    return module_payload, hero_payload
+
+
 def build_region_records(
     region_meta: dict[str, dict[str, Any]],
     video_manifest: dict[str, Any],
@@ -532,6 +755,7 @@ def build_region_records(
     hero_headcount: dict[str, Any],
     hero_auto: dict[str, Any],
     hero_rar: dict[str, Any],
+    hero_delai: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     records = []
     for code in EXPERIENCE_REGION_CODES:
@@ -551,6 +775,7 @@ def build_region_records(
                     "headcount": hero_headcount["regions"].get(code),
                     "auto": hero_auto["regions"].get(code),
                     "rar90": hero_rar["regions"].get(code),
+                    "delai": hero_delai["regions"].get(code) if hero_delai else None,
                 },
             }
         )
@@ -576,14 +801,33 @@ def build_modules(region_meta: dict[str, dict[str, Any]]) -> tuple[dict[str, Any
         load_csv(DATA_DIR / "taux-rar-horsto-mensuels-entreprises-de-10-salaries-ou-plus-par-region.csv"),
         region_meta,
     )
-    modules = {"sector": sector_module, "payroll": payroll_module, "auto": auto_module, "rar": rar_module}
+    delai_module, hero_delai = build_delai_module(
+        DELAI_EXCEL_PATH,
+        region_meta,
+    )
+    modules = {
+        "sector": sector_module,
+        "payroll": payroll_module,
+        "auto": auto_module,
+        "rar": rar_module,
+        "delai": delai_module,
+    }
     hero = {
-        "regions": build_region_records(region_meta, video_manifest, hero_payroll, hero_headcount, hero_auto, hero_rar),
+        "regions": build_region_records(
+            region_meta,
+            video_manifest,
+            hero_payroll,
+            hero_headcount,
+            hero_auto,
+            hero_rar,
+            hero_delai,
+        ),
         "national": {
             "payroll": hero_payroll["national"],
             "headcount": hero_headcount["national"],
             "auto": hero_auto["national"],
             "risk": hero_rar["national"],
+            "delai": hero_delai["national"],
         },
     }
     return {"videos": video_manifest, "modules": modules}, hero

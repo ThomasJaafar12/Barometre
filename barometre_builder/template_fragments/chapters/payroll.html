@@ -49,4 +49,104 @@
               </div>
             </div>
           </div>
+
+          <div class="payroll-delai-block" id="module-delai">
+            <article class="employment-block snap-card delai-card" data-snap-card data-snap-label="Accords de délais de paiement des indépendants" data-snap-nav-label="Délais indépendants" aria-label="Accords de délais de paiement des indépendants">
+              <div class="section-grid employment-grid delai-grid">
+                <div class="viz-panel employment-main delai-main">
+                  <div class="employment-intro delai-intro">
+                    <div class="viz-title employment-title">
+                      <strong id="delaiChartTitle">Accords de délais de paiement : nombre et montant accordé</strong>
+                    </div>
+                    <div class="employment-controls delai-controls">
+                      <div class="employment-sector-picker delai-sector-picker" id="delaiSectorPicker">
+                        <span class="mono employment-select-label">Secteur NACE 17</span>
+                        <button class="employment-sector-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                          <span class="employment-sector-trigger-value" id="delaiSectorTriggerValue">Ensemble des secteurs</span>
+                          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="m5 7.5 5 5 5-5"></path></svg>
+                        </button>
+                        <div class="employment-sector-menu" role="listbox" aria-label="Sélection du secteur d'activité NACE 17" id="delaiSectorMenu"></div>
+                      </div>
+                      <div class="metric-switch delai-mode-switch" id="delaiModeSwitch" aria-label="Modalité de délai"></div>
+                    </div>
+                  </div>
+                  <div class="employment-chart-shell delai-chart-shell">
+                    <svg id="delaiChartSvg" viewBox="0 0 980 560" role="img" aria-labelledby="delaiChartTitleSvg delaiChartDescSvg">
+                      <title id="delaiChartTitleSvg">Évolution trimestrielle des accords de délais de paiement des travailleurs indépendants</title>
+                      <desc id="delaiChartDescSvg">Courbe du nombre d'accords et courbe du montant total accordé.</desc>
+                    </svg>
+                    <div id="delaiTooltip" class="employment-tooltip delai-tooltip" aria-hidden="true">
+                      <div class="tooltip-overline"></div>
+                      <div class="tooltip-body"></div>
+                    </div>
+                  </div>
+                  <div class="legend-row employment-legend delai-legend">
+                    <span class="legend-chip"><i class="legend-line" style="color: var(--accent); height: 3px;"></i><span id="delaiLegendNb">Nombre d'accords (axe gauche)</span></span>
+                    <span class="legend-chip"><i class="legend-line" style="color: var(--accent-secondary); height: 3px;"></i><span id="delaiLegendMt">Montant accordé (axe droit)</span></span>
+                  </div>
+                </div>
+                <div class="viz-panel employment-side employment-dashboard-panel delai-dashboard-panel">
+                  <div class="employment-dashboard-context" aria-label="Périmètre et période des données">
+                    <span id="delaiScope"></span>
+                    <time id="delaiPeriod"></time>
+                  </div>
+                  <div class="delai-kpis-wrapper">
+                    <div class="delai-kpi-block">
+                      <div class="employment-dashboard-level">
+                        <span class="employment-dashboard-level-label">Nombre d'accords de délais</span>
+                        <strong class="employment-dashboard-level-value delai-level-value" id="delaiCurrentNb"></strong>
+                      </div>
+                      <div class="employment-dashboard-stats">
+                        <div class="employment-dashboard-stat">
+                          <span class="employment-dashboard-stat-label">Gliss. annuel</span>
+                          <strong class="employment-dashboard-trend" id="delaiCurrentNbYoY">
+                            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0 7 7M12 3v18"></path></svg>
+                            <span></span>
+                          </strong>
+                        </div>
+                        <div class="employment-dashboard-stat">
+                          <span class="employment-dashboard-stat-label">Gliss. trimestriel</span>
+                          <strong class="employment-dashboard-trend" id="delaiCurrentNbQoQ">
+                            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0 7 7M12 3v18"></path></svg>
+                            <span></span>
+                          </strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="delai-kpi-block">
+                      <div class="employment-dashboard-level">
+                        <span class="employment-dashboard-level-label">Montant des délais accordés</span>
+                        <strong class="employment-dashboard-level-value delai-level-value" id="delaiCurrentMt"></strong>
+                      </div>
+                      <div class="employment-dashboard-stats">
+                        <div class="employment-dashboard-stat">
+                          <span class="employment-dashboard-stat-label">Gliss. annuel</span>
+                          <strong class="employment-dashboard-trend" id="delaiCurrentMtYoY">
+                            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0 7 7M12 3v18"></path></svg>
+                            <span></span>
+                          </strong>
+                        </div>
+                        <div class="employment-dashboard-stat">
+                          <span class="employment-dashboard-stat-label">Gliss. trimestriel</span>
+                          <strong class="employment-dashboard-trend" id="delaiCurrentMtQoQ">
+                            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0 7 7M12 3v18"></path></svg>
+                            <span></span>
+                          </strong>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="delai-top-sectors-block">
+                    <div class="delai-top-sectors-head">
+                      <strong class="delai-top-sectors-title">Top 5 secteurs (montants)</strong>
+                      <span class="mono delai-top-sectors-meta" id="delaiTopSectorsMeta">Dernier trimestre</span>
+                    </div>
+                    <div class="delai-top-table-wrapper" id="delaiTopSectorsTable"></div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
         </section>

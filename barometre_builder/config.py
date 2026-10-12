@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass
 import os
@@ -66,5 +66,8 @@ class GeometryOptimization:
 GEOMETRY_OPTIMIZATION = GeometryOptimization()
 
 SECTOR_DISPLAY_START_DATE = "2014-01-01"
+DELAI_DISPLAY_START_DATE = "2014-01-01"
 PAYROLL_WINDOW_MONTHS = 48
 RAR_WINDOW_MONTHS = 36
+DELAI_EXCEL_PATH = DATA_DIR / "NB_DELAI_3_TOT19694778149800.xlsx"
+

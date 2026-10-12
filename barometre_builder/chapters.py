@@ -62,7 +62,7 @@ CHAPTERS: tuple[ChapterFragment, ...] = (
 )
 
 
-SUPPORTING_SCRIPTS: tuple[str, ...] = ("auto.js", "rar.js")
+SUPPORTING_SCRIPTS: tuple[str, ...] = ("auto.js", "rar.js", "delai.js")
 
 
 def _fragment(name: str) -> str:

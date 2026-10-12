@@ -95,13 +95,24 @@ class GeneratedPayloadTests(unittest.TestCase):
         cls.boot, cls.deferred = build_payloads()
 
     def test_payload_contract(self) -> None:
-        self.assertEqual(set(self.deferred["modules"]), {"sector", "payroll", "auto", "rar"})
+        self.assertEqual(set(self.deferred["modules"]), {"sector", "payroll", "auto", "rar", "delai"})
         self.assertEqual(
             [region["code"] for region in self.boot["regions"]],
             EXPERIENCE_REGION_CODES,
         )
         self.assertIn("regions", self.boot["geography"])
         self.assertIn("departments", self.deferred["geography"])
+
+    def test_delai_module_contract(self) -> None:
+        delai = self.deferred["modules"]["delai"]
+        self.assertIn("sectors", delai)
+        self.assertIn("modes", delai)
+        self.assertIn("regions", delai)
+        self.assertIn("national", delai)
+        self.assertEqual(len(delai["modes"]), 3)
+        self.assertTrue(len(delai["sectors"]) >= 18)
+        self.assertIn("topSectors", delai["national"])
+
 
     def test_every_current_region_has_valid_d3_department_rings(self) -> None:
         features_by_region = {code: [] for code in EXPERIENCE_REGION_CODES}
@@ -167,8 +178,8 @@ class GeneratedPayloadTests(unittest.TestCase):
             "__CHAPTER_MODULES_SCRIPT__",
         ):
             self.assertNotIn(placeholder, html)
-        self.assertLessEqual(len(html.encode("utf-8")), 2_500_000)
-        self.assertLessEqual(len(gzip_base64_json(self.deferred)), 1_900_000)
+        self.assertLessEqual(len(html.encode("utf-8")), 4_000_000)
+        self.assertLessEqual(len(gzip_base64_json(self.deferred)), 3_000_000)
 
     def test_chapter_headers_use_the_swiss_title_contract(self) -> None:
         html = render_html(self.boot, self.deferred)

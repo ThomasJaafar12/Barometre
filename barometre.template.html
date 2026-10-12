@@ -5120,8 +5120,7 @@
       overflow: hidden;
       color: var(--dashboard-ink);
       background-color: #F8FAFC;
-      background-image: radial-gradient(rgba(148,163,184,0.20) 0.8px, transparent 0.8px);
-      background-size: 20px 20px;
+      background-image: none;
       border: 0;
       border-left: 1px solid #E2E8F0;
       border-radius: 0;
@@ -5264,6 +5263,177 @@
       font-weight: 800;
       font-style: normal;
     }
+
+    /* Module Délais de paiement des indépendants */
+    .payroll-delai-block {
+      margin-top: 32px;
+    }
+
+    .payroll-delai-block .snap-card.is-snap-active {
+      margin-top: 6px;
+    }
+
+    .delai-kpis-wrapper {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .delai-kpi-block {
+      padding: 16px;
+      background: #FFFFFF;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      border-radius: 14px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    }
+
+    .delai-kpi-block .employment-dashboard-level {
+      margin-top: 0;
+    }
+
+    .delai-kpi-block .employment-dashboard-level-label {
+      font-size: 0.8rem;
+      margin-bottom: 4px;
+    }
+
+    .delai-level-value {
+      font-size: clamp(1.9rem, 2.4vw, 2.4rem);
+      font-weight: 800;
+      color: var(--dashboard-blue, #004b9b);
+    }
+
+    .delai-kpi-block .employment-dashboard-stats {
+      margin: 12px 0 0 0;
+      gap: 8px;
+    }
+
+    .delai-kpi-block .employment-dashboard-stat {
+      padding: 10px 12px;
+    }
+
+    .delai-top-sectors-block {
+      margin-top: 20px;
+      padding: 18px;
+      background: #FFFFFF;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      border-radius: 14px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    }
+
+    .delai-top-sectors-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .delai-top-sectors-title {
+      font: 700 0.82rem/1.3 "Inter", system-ui, sans-serif;
+      color: var(--dashboard-text, #16212c);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .delai-top-sectors-meta {
+      font-size: 0.75rem;
+      color: var(--dashboard-muted, #64748B);
+    }
+
+    .delai-top-table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .delai-top-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: "Inter", system-ui, sans-serif;
+      font-size: 0.8rem;
+    }
+
+    .delai-top-table th {
+      padding: 6px 8px;
+      color: var(--dashboard-muted, #64748B);
+      font-weight: 600;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .delai-th-rank { text-align: center; width: 20px; }
+    .delai-th-sector { text-align: left; }
+    .delai-th-mt { text-align: right; }
+    .delai-th-yoy { text-align: right; }
+
+    .delai-top-row {
+      cursor: pointer;
+      transition: background-color 140ms ease;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+    }
+
+    .delai-top-row:hover {
+      background-color: rgba(0, 75, 155, 0.04);
+    }
+
+    .delai-top-row td {
+      padding: 8px;
+      vertical-align: middle;
+    }
+
+    .delai-td-rank {
+      font-weight: 700;
+      color: var(--dashboard-muted, #64748B);
+      text-align: center;
+    }
+
+    .delai-td-sector {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      max-width: 160px;
+    }
+
+    .delai-sector-name {
+      font-weight: 600;
+      color: var(--dashboard-text, #16212c);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .delai-sector-nb {
+      font-size: 0.7rem;
+      color: var(--dashboard-muted, #64748B);
+    }
+
+    .delai-td-mt {
+      font-weight: 700;
+      text-align: right;
+      color: var(--dashboard-blue, #004b9b);
+      white-space: nowrap;
+    }
+
+    .delai-td-yoy {
+      font-weight: 700;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .delai-td-yoy.trend-up { color: var(--dashboard-green, #10b981); }
+    .delai-td-yoy.trend-down { color: var(--dashboard-red, #ef4444); }
+    .delai-td-yoy.trend-flat { color: var(--dashboard-muted, #64748B); }
+
+    .delai-empty-table {
+      padding: 16px;
+      text-align: center;
+      color: var(--dashboard-muted);
+      font-size: 0.8rem;
+    }
+
 
     @media (max-width: 1240px) {
       .story .employment-grid {
@@ -5940,6 +6110,8 @@ __CHAPTER_SECTIONS_HTML__
         autoMetric: "economically_active",
         autoSector: null,
         rarMetric: "rar_90",
+        delaiSectorKey: "ensemble",
+        delaiMode: "all",
       };
 
       const publicationLabel = DATA.meta.publicationDateLabel && DATA.meta.publicationIssueNumber

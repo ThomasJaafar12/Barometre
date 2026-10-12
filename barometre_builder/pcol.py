@@ -34,7 +34,7 @@ PCOL_SECTORS = {
 
 
 def pcol_region_index(region_meta: dict[str, dict[str, Any]]) -> dict[str, str]:
-    """Match the workbook's damaged accents against the known region names."""
+    """Rapprocher les accents endommagés du classeur des noms de régions connus."""
     result = {}
     for code, region in region_meta.items():
         name = region["name"]
@@ -75,7 +75,7 @@ def build_pcol_module(region_meta: dict[str, dict[str, Any]]) -> dict[str, Any]:
         {"id": item["id"], "label": item["label"]} for item in PCOL_TYPES
     ]
 
-    # Aggregate once; national totals include records without a domestic region.
+    # Le total national inclut les dossiers sans région française attribuée.
     grouped = frame.groupby(["region", "sector", "date"])[value_columns].sum()
     national = frame.groupby(["sector", "date"])[value_columns].sum()
 
@@ -85,21 +85,19 @@ def build_pcol_module(region_meta: dict[str, dict[str, Any]]) -> dict[str, Any]:
         by_sector = {key: group.droplevel("sector") for key, group in values.groupby(level="sector")}
         by_sector["population-entiere"] = values.groupby(level="date").sum()
         scope: dict[str, Any] = {"latestDate": values.index.get_level_values("date").max(), "modes": {}, "topSectors": {}}
-        for mode in modes:
-            mode_id = mode["id"]
-            mode_types = PCOL_TYPES if mode_id == "all" else [item for item in PCOL_TYPES if item["id"] == mode_id]
-            nb_columns = [f"Nb_{item['column']}" for item in mode_types]
-            employment_columns = [f"Emploi_menace_detruit_{item['column']}" for item in mode_types]
-            scope["modes"][mode_id] = {}
-            ranking = []
-            for sector in sectors:
-                raw = by_sector.get(sector["key"])
-                if raw is None:
-                    raw = pd.DataFrame(0, index=dates, columns=value_columns)
-                else:
-                    raw = raw.reindex(dates, fill_value=0)
-                counts = raw[nb_columns].sum(axis=1).to_dict()
-                jobs = raw[employment_columns].sum(axis=1).to_dict()
+        scope["modes"] = {mode["id"]: {} for mode in modes}
+        rankings = {mode["id"]: [] for mode in modes}
+        for sector in sectors:
+            raw = by_sector.get(sector["key"])
+            if raw is None:
+                raw = pd.DataFrame(0, index=dates, columns=value_columns)
+            else:
+                raw = raw.reindex(dates, fill_value=0)
+            totals = {"all": (raw[count_columns].sum(axis=1).to_dict(), raw[jobs_columns].sum(axis=1).to_dict())}
+            totals.update({item["id"]: (raw[f"Nb_{item['column']}"].to_dict(), raw[f"Emploi_menace_detruit_{item['column']}"].to_dict()) for item in PCOL_TYPES})
+            for mode in modes:
+                mode_id = mode["id"]
+                counts, jobs = totals[mode_id]
                 points = []
                 for date in dates:
                     if date > scope["latestDate"] or date < history_start:
@@ -110,8 +108,8 @@ def build_pcol_module(region_meta: dict[str, dict[str, Any]]) -> dict[str, Any]:
                 scope["modes"][mode_id][sector["key"]] = points
                 if points and sector["key"] != "population-entiere" and points[-1][1] > 0:
                     previous_year = f"{int(points[-1][0][:4]) - 1}{points[-1][0][4:]}"
-                    ranking.append({"key": sector["key"], "label": sector["label"], "nb": points[-1][1], "nb_yoy": pcol_change(points[-1][1], counts.get(previous_year))})
-            scope["topSectors"][mode_id] = sorted(ranking, key=lambda row: (-row["nb"], row["key"]))[:5]
+                    rankings[mode_id].append({"key": sector["key"], "label": sector["label"], "nb": points[-1][1], "nb_yoy": pcol_change(points[-1][1], counts.get(previous_year))})
+        scope["topSectors"] = {mode_id: sorted(ranking, key=lambda row: (-row["nb"], row["key"]))[:5] for mode_id, ranking in rankings.items()}
         return scope
 
     regional = {code: values.droplevel("region") for code, values in grouped.groupby(level="region")}

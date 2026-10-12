@@ -50,6 +50,10 @@ Chaque indicateur possède sa propre période : la date de publication n’est p
 
 Les géographies simplifiées sont conservées dans `.cache/barometre/`. Le cache est invalidé lorsque les sources ou paramètres changent. Si la géographie départementale locale manque, son téléchargement est limité au domaine HTTPS officiel prévu, aux redirections autorisées et à 25 Mo.
 
+Les agrégats des modules et des DPAE sont également conservés dans ce dossier, sous forme de JSON. Leurs empreintes SHA-256 tiennent compte du contenu des sources, du code de préparation, des régions et des références vidéo concernées. Une modification est donc détectée même si la taille et la date du fichier restent identiques. L’intégrité du cache est vérifiée avant réutilisation ; un cache absent ou corrompu est recalculé. Les fichiers de cache sont remplacés atomiquement et leur écriture reste facultative.
+
+Les templates et les métadonnées de publication sont relus à chaque lancement, et les politiques CSP sont recalculées après le rendu. Dans la synthèse, les tableaux de valeurs sont construits à leur première ouverture et les formateurs français sont réutilisés lors des changements de région.
+
 ## Ouverture et diffusion
 
 Ouvrir `index.html` directement dans un navigateur récent, ou servir le dossier :

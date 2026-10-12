@@ -7,3 +7,4 @@ __pycache__/builder.cpython-314.pyc
 dist/
 .cache/
 Assets/Mockups/urssaf_barometre_landing_page.html
+tests/test_cache.py

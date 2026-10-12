@@ -3,7 +3,11 @@
   const hasCharts = barometreDependenciesAvailable();
   const container = document.getElementById("indicators");
   const selector = document.getElementById("regionSelect");
-  const number = (value, digits = 0) => Number(value).toLocaleString("fr-FR", { maximumFractionDigits: digits });
+  const numberFormats = [0, 1, 2].map(digits => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: digits }));
+  const monthFormat = new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" });
+  const axisDateFormat = new Intl.DateTimeFormat("fr-FR", { month: "short", year: "numeric" });
+  const chartViewport = window.matchMedia("(max-width: 760px)");
+  const number = (value, digits = 0) => numberFormats[digits].format(Number(value));
   const element = (tag, text = "", className = "") => {
     const node = document.createElement(tag);
     node.textContent = text;
@@ -15,7 +19,7 @@
     if (!date) return "Période indisponible";
     const value = new Date(date + "T00:00:00");
     return frequency === "month"
-      ? value.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
+      ? monthFormat.format(value)
       : `${Math.floor(value.getMonth() / 3) + 1}${value.getMonth() < 3 ? "er" : "e"} trimestre ${value.getFullYear()}`;
   };
   const valueLabel = (value, unit) => {
@@ -32,8 +36,7 @@
 
   function chart(card, indicator, points) {
     const svgNode = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    const mobile = window.matchMedia("(max-width: 760px)").matches;
-    const width = mobile ? 380 : 560;
+    const width = chartViewport.matches ? 380 : 560;
     svgNode.setAttribute("viewBox", `0 0 ${width} 235`);
     svgNode.setAttribute("role", "img");
     svgNode.setAttribute("aria-label", `Évolution de ${indicator.label.toLowerCase()} sur les trois dernières années disponibles`);
@@ -61,7 +64,7 @@
     const y = d3.scaleLinear().domain([Math.max(0, bounds[0] - padding), bounds[1] + padding]).nice().range([194, 16]);
     svg.append("g").attr("transform", "translate(64,0)").call(d3.axisLeft(y).ticks(4).tickSize(-(width - 74)).tickFormat(value => number(value, divisor > 1 ? 2 : 0)));
     const tickDates = data.length > 1 ? [data[0].time, data[Math.floor((data.length - 1) / 2)].time, data[data.length - 1].time] : [data[0].time];
-    const axis = svg.append("g").attr("transform", "translate(0,194)").call(d3.axisBottom(x).tickValues(tickDates).tickFormat(date => date.toLocaleDateString("fr-FR", {month:"short", year:"numeric"})).tickPadding(10));
+    const axis = svg.append("g").attr("transform", "translate(0,194)").call(d3.axisBottom(x).tickValues(tickDates).tickFormat(date => axisDateFormat.format(date)).tickPadding(10));
     axis.selectAll("text").attr("text-anchor", (_, index) => index === 0 ? "start" : index === tickDates.length - 1 ? "end" : "middle");
     const line = d3.line().defined(point => isValue(point.level)).x(point => x(point.time)).y(point => y(point.level));
     svg.append("path").datum(data).attr("fill", "none").attr("stroke", indicator.key === "headcount" || indicator.key === "pcol" ? "#2B82F6" : "#0A8C90").attr("stroke-width", 3).attr("d", line);
@@ -74,27 +77,33 @@
     if (!points.length) return;
     const details = element("details");
     details.append(element("summary", "Consulter les valeurs du graphique"));
-    const shell = element("div", "", "table-scroll");
-    const table = element("table");
-    const caption = element("caption", `${indicator.label} · valeurs par période`);
-    const head = element("thead");
-    const row = element("tr");
-    ["Période", "Niveau", "Évolution sur un an"].forEach(label => { const cell = element("th", label); cell.scope = "col"; row.append(cell); });
-    head.append(row);
-    const body = element("tbody");
-    [...points].reverse().forEach(point => {
+    let loaded = false;
+    details.addEventListener("toggle", () => {
+      if (!details.open || loaded) return;
+      const shell = element("div", "", "table-scroll");
+      const table = element("table");
+      const caption = element("caption", `${indicator.label} · valeurs par période`);
+      const head = element("thead");
       const row = element("tr");
-      row.append(element("td", period(point.date, indicator.frequency)), element("td", isValue(point.value) ? number(point.value) + (indicator.unit === "euros" ? " €" : "") : "Indisponible"), element("td", isValue(point.yearlyChange) ? `${point.yearlyChange > 0 ? "+" : ""}${number(point.yearlyChange, 1)} %` : "Indisponible"));
-      body.append(row);
+      ["Période", "Niveau", "Évolution sur un an"].forEach(label => { const cell = element("th", label); cell.scope = "col"; row.append(cell); });
+      head.append(row);
+      const body = element("tbody");
+      [...points].reverse().forEach(point => {
+        const row = element("tr");
+        row.append(element("td", period(point.date, indicator.frequency)), element("td", isValue(point.value) ? number(point.value) + (indicator.unit === "euros" ? " €" : "") : "Indisponible"), element("td", isValue(point.yearlyChange) ? `${point.yearlyChange > 0 ? "+" : ""}${number(point.yearlyChange, 1)} %` : "Indisponible"));
+        body.append(row);
+      });
+      table.append(caption, head, body); shell.append(table); details.append(shell);
+      loaded = true;
     });
-    table.append(caption, head, body); shell.append(table); details.append(shell); card.append(details);
+    card.append(details);
   }
 
   function render() {
     const code = Object.hasOwn(DATA.scopes, selector.value) ? selector.value : "national";
     const scope = DATA.scopes[code];
     document.getElementById("scopeLabel").textContent = code === "national" ? "France entière" : DATA.regions.find(region => region.code === code).name;
-    container.replaceChildren();
+    const fragment = document.createDocumentFragment();
     DATA.indicators.forEach((indicator, index) => {
       const series = scope[indicator.key];
       const points = series.points;
@@ -108,8 +117,9 @@
       card.append(element("p", indicator.explanation, "explanation"), element("p", indicator.source, "source-note"));
       if (series.coverageNote) card.append(element("p", series.coverageNote, "coverage-note"));
       valuesTable(card, indicator, points);
-      container.append(card);
+      fragment.append(card);
     });
+    container.replaceChildren(fragment);
   }
   selector.addEventListener("change", render);
   render();

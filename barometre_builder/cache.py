@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable
+from contextlib import suppress
 import hashlib
 import os
 from pathlib import Path
@@ -49,5 +50,6 @@ def cached_json(path: Path, fingerprint: str, prepare: Callable[[], dict], requi
         pass
     finally:
         if temporary:
-            temporary.unlink(missing_ok=True)
+            with suppress(OSError):
+                temporary.unlink(missing_ok=True)
     return payload

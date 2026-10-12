@@ -75,7 +75,7 @@
           btn.className = `employment-sector-option${sec.id === currentSectorKey ? " is-active" : ""}`;
           btn.setAttribute("role", "option");
           btn.setAttribute("aria-selected", String(sec.id === currentSectorKey));
-          btn.innerHTML = `<span>${sec.label}</span><span class="employment-sector-option-dot"></span>`;
+          btn.append(textElement("span", sec.label), textElement("span", "", "employment-sector-option-dot"));
           btn.addEventListener("click", () => {
             setDelaiSectorPickerOpen(picker, false);
             onSelect(sec.id);
@@ -119,49 +119,37 @@
           return;
         }
 
-        let html = `
-          <table class="delai-top-table">
-            <thead>
-              <tr>
-                <th class="delai-th-rank">#</th>
-                <th class="delai-th-sector">Secteur</th>
-                <th class="delai-th-mt">Montant</th>
-                <th class="delai-th-yoy">Évol. 1 an</th>
-              </tr>
-            </thead>
-            <tbody>
-        `;
-
+        const table = document.createElement("table");
+        table.className = "delai-top-table";
+        const head = document.createElement("thead");
+        const headings = document.createElement("tr");
+        [["#", "delai-th-rank"], ["Secteur", "delai-th-sector"], ["Montant", "delai-th-mt"], ["Évol. 1 an", "delai-th-yoy"]].forEach(([label, className]) => {
+          const cell = textElement("th", label, className);
+          cell.scope = "col";
+          headings.append(cell);
+        });
+        head.append(headings);
+        const body = document.createElement("tbody");
         topSectors.forEach((sector, idx) => {
           const yoy = sector.mt_yoy;
           const yoyClass = yoy != null ? (yoy > 0 ? "trend-up" : yoy < 0 ? "trend-down" : "trend-flat") : "trend-none";
           const yoyText = yoy != null ? `${yoy > 0 ? "+" : ""}${frNumber(yoy, 1)} %` : "—";
           const shortLabel = sector.label.length > 32 ? `${sector.label.slice(0, 30)}…` : sector.label;
-
-          html += `
-            <tr class="delai-top-row" data-sector-id="${sector.id}" title="${sector.label}">
-              <td class="delai-td-rank">${idx + 1}</td>
-              <td class="delai-td-sector">
-                <span class="delai-sector-name">${shortLabel}</span>
-                <span class="delai-sector-nb mono">${frNumber(sector.nb, 0)} accords</span>
-              </td>
-              <td class="delai-td-mt mono">${formatDelaiCurrency(sector.mt)}</td>
-              <td class="delai-td-yoy mono ${yoyClass}">${yoyText}</td>
-            </tr>
-          `;
-        });
-
-        html += `</tbody></table>`;
-        container.innerHTML = html;
-
-        container.querySelectorAll(".delai-top-row").forEach((row) => {
+          const row = document.createElement("tr");
+          row.className = "delai-top-row";
+          row.dataset.sectorId = sector.id;
+          row.title = sector.label;
+          const labelCell = document.createElement("td");
+          labelCell.className = "delai-td-sector";
+          labelCell.append(textElement("span", shortLabel, "delai-sector-name"), textElement("span", `${frNumber(sector.nb, 0)} accords`, "delai-sector-nb mono"));
+          row.append(textElement("td", idx + 1, "delai-td-rank"), labelCell, textElement("td", formatDelaiCurrency(sector.mt), "delai-td-mt mono"), textElement("td", yoyText, `delai-td-yoy mono ${yoyClass}`));
           row.addEventListener("click", () => {
-            const secId = row.getAttribute("data-sector-id");
-            if (secId && onSectorClick) {
-              onSectorClick(secId);
-            }
+            if (sector.id && onSectorClick) onSectorClick(sector.id);
           });
+          body.append(row);
         });
+        table.append(head, body);
+        container.replaceChildren(table);
       }
 
       function renderDelaiModule() {

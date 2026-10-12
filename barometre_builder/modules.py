@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from pathlib import Path
 from typing import Any
 
 from .config import (
@@ -9,6 +10,8 @@ from .config import (
     DELAI_EXCEL_PATH,
     EXPERIENCE_REGION_CODES,
     MP4_DIR,
+    MODULE_DATA_CACHE_PATH,
+    PCOL_EXCEL_PATH,
     PAYROLL_WINDOW_MONTHS,
     RAR_WINDOW_MONTHS,
     SECTOR_DISPLAY_START_DATE,
@@ -24,13 +27,23 @@ from .utils import (
     slugify,
 )
 from .pcol import build_pcol_module
+from .cache import cached_json, source_fingerprint
+
+
+MODULE_CSV_PATHS = {
+    "sector": DATA_DIR / "effectifs-salaries-et-masse-salariale-du-secteur-prive-par-region-x-na38.csv",
+    "departments": DATA_DIR / "effectifs-salaries-et-masse-salariale-du-secteur-prive-par-departement-x-grand-sec.csv",
+    "payroll": DATA_DIR / "masse-salariale-et-assiette-chomage-partiel-mensuelles-secteur-prive-par-region.csv",
+    "auto": DATA_DIR / "auto-entrepreneurs-par-departement-secteur.csv",
+    "rar": DATA_DIR / "taux-rar-horsto-mensuels-entreprises-de-10-salaries-ou-plus-par-region.csv",
+}
 
 
 def build_video_manifest(region_meta: dict[str, dict[str, Any]]) -> dict[str, Any]:
     available_videos = {slugify(path.stem): relative_asset(path) for path in MP4_DIR.glob("*.mp4")}
     placeholder = MP4_DIR / "placeholder.mp4"
     if not placeholder.exists():
-        raise RuntimeError("Assets/Mp4/placeholder.mp4 is required.")
+        raise RuntimeError("Le fichier Assets/Mp4/placeholder.mp4 est obligatoire.")
     placeholder_rel = relative_asset(placeholder)
     by_region = {}
     for code, region in region_meta.items():
@@ -621,8 +634,9 @@ def build_delai_module(
     import pandas as pd
 
     slug_to_code = {slugify(r["name"]): code for code, r in region_meta.items()}
-    df = pd.read_excel(excel_path)
-    df["region_code"] = df["Grdreggest_compte"].apply(lambda x: slug_to_code.get(slugify(str(x))))
+    df = pd.read_excel(excel_path, usecols=["Grdreggest_compte", "Date_accord", "Delai_proactif", "Secteur_nace_17_baro", "Nb_accord", "Mt_accord", "duree_mois"])
+    region_codes = {name: slug_to_code.get(slugify(str(name))) for name in df["Grdreggest_compte"].unique()}
+    df["region_code"] = df["Grdreggest_compte"].map(region_codes)
     df["date_str"] = pd.to_datetime(df["Date_accord"]).dt.strftime("%Y-%m-%d")
     df["Delai_proactif"] = df["Delai_proactif"].fillna(0).astype(int)
     df["Secteur_nace_17_baro"] = df["Secteur_nace_17_baro"].fillna("Inconnu").astype(str)
@@ -643,20 +657,17 @@ def build_delai_module(
         {"id": "classique", "label": "Délais sur demande"},
     ]
 
-    records = df.to_dict("records")
+    records = df[["region_code", "Delai_proactif", "Secteur_nace_17_baro", "date_str", "Nb_accord", "Mt_accord", "duree_mois"]].itertuples(index=False, name=None)
     acc = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {"nb": 0, "mt": 0.0, "duree": 0.0}))))
 
-    for r in records:
-        reg = r["region_code"]
-        if not reg:
+    for reg, pro, sector, d, count, amount, duration in records:
+        if reg not in region_meta:
             continue
-        pro = r["Delai_proactif"]
         mode = "proactif" if pro == 1 else "classique"
-        sec = sector_slug_map[r["Secteur_nace_17_baro"]]
-        d = r["date_str"]
-        nb = int(r["Nb_accord"])
-        mt = float(r["Mt_accord"])
-        dur = float(r["duree_mois"])
+        sec = sector_slug_map[sector]
+        nb = int(count)
+        mt = float(amount)
+        dur = float(duration)
 
         for target_reg in (reg, "national"):
             for target_mode in ("all", mode):
@@ -783,23 +794,41 @@ def build_region_records(
     return records
 
 
-def build_modules(region_meta: dict[str, dict[str, Any]]) -> tuple[dict[str, Any], dict[str, Any]]:
+def build_modules(region_meta: dict[str, dict[str, Any]], *, cache_path: Path | None = MODULE_DATA_CACHE_PATH) -> tuple[dict[str, Any], dict[str, Any]]:
     video_manifest = build_video_manifest(region_meta)
+    if cache_path is None:
+        return _prepare_modules(region_meta, video_manifest)
+    code_dir = Path(__file__).resolve().parent
+    fingerprint = source_fingerprint(
+        [*MODULE_CSV_PATHS.values(), DELAI_EXCEL_PATH, PCOL_EXCEL_PATH,
+         *(code_dir / name for name in ("modules.py", "pcol.py", "utils.py", "config.py", "cache.py"))],
+        {"regions": region_meta, "videos": video_manifest},
+    )
+
+    def prepare() -> dict:
+        bundle, hero = _prepare_modules(region_meta, video_manifest)
+        return {"bundle": bundle, "hero": hero}
+
+    cached = cached_json(cache_path, fingerprint, prepare, ("bundle", "hero"))
+    return cached["bundle"], cached["hero"]
+
+
+def _prepare_modules(region_meta: dict[str, dict[str, Any]], video_manifest: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
     sector_module, hero_headcount = build_sector_module(
-        load_csv(DATA_DIR / "effectifs-salaries-et-masse-salariale-du-secteur-prive-par-region-x-na38.csv"),
-        load_csv(DATA_DIR / "effectifs-salaries-et-masse-salariale-du-secteur-prive-par-departement-x-grand-sec.csv"),
+        load_csv(MODULE_CSV_PATHS["sector"]),
+        load_csv(MODULE_CSV_PATHS["departments"]),
         region_meta,
     )
     payroll_module, hero_payroll = build_payroll_module(
-        load_csv(DATA_DIR / "masse-salariale-et-assiette-chomage-partiel-mensuelles-secteur-prive-par-region.csv"),
+        load_csv(MODULE_CSV_PATHS["payroll"]),
         region_meta,
     )
     auto_module, hero_auto = build_auto_module(
-        load_csv(DATA_DIR / "auto-entrepreneurs-par-departement-secteur.csv"),
+        load_csv(MODULE_CSV_PATHS["auto"]),
         region_meta,
     )
     rar_module, hero_rar = build_rar_module(
-        load_csv(DATA_DIR / "taux-rar-horsto-mensuels-entreprises-de-10-salaries-ou-plus-par-region.csv"),
+        load_csv(MODULE_CSV_PATHS["rar"]),
         region_meta,
     )
     delai_module, hero_delai = build_delai_module(

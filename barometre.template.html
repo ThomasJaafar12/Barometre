@@ -5901,9 +5901,16 @@
         font-size: 22px;
       }
     }
+
+    .page-links { position: fixed; top: 0; right: 30px; z-index: 1000; display: flex; gap: 16px; padding: 2px 10px; background: #F8FAFC; color: #0B1D3A; font: 500 11px/16px Inter, sans-serif; }
+    .page-links a { color: inherit; text-underline-offset: 3px; }
+    #dependencyError { margin: 24px; padding: 16px; border: 1px solid #B32340; background: #FFF1F3; color: #8C1630; font: 14px/1.6 Inter, sans-serif; }
+    #dependencyError[hidden] { display: none; }
   </style>
 </head>
 <body>
+  <nav class="page-links" aria-label="Lectures du baromètre"><a href="index.html">Accueil</a><a href="barometre_bref.html">Le baromètre en bref</a></nav>
+  __ERROR_NOTICE__
   <div class="page">
     <div class="shell">
       <header class="topbar econ-header" id="econHeader">
@@ -5935,7 +5942,7 @@
         </div>
         <div class="econ-header-copy">
           <h1>Baromètre économique</h1>
-          <p id="publicationMeta">24 juin 2026 – N°189</p>
+          <p id="publicationMeta">__DETAILS_PUBLICATION__</p>
         </div>
         <div class="geo-control" id="geoControl">
           <button class="geo-trigger" id="geoTrigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Choisir la zone géographique, actuellement France entière">
@@ -5993,15 +6000,16 @@ __CHAPTER_SECTIONS_HTML__
     <strong id="tooltipValue"></strong>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  __EXTERNAL_SCRIPTS__
+  __DEPENDENCY_GUARD__
   <script>
     window.BAROMETRE_BOOT = __BOOT_JSON__;
     window.BAROMETRE_DEFERRED_GZIP = "__DEFERRED_B64__";
   </script>
   <script>
     (() => {
+      if (!barometreDependenciesAvailable()) return;
+__DETAILS_DOM_SCRIPT__
       const DATA = window.BAROMETRE_BOOT;
       let deferredGzip = window.BAROMETRE_DEFERRED_GZIP;
       window.BAROMETRE_BOOT = null;
@@ -6685,13 +6693,10 @@ __CHAPTER_REGISTRY_SCRIPT__
           button.setAttribute("aria-controls", chapter.id);
           button.setAttribute("aria-pressed", String(isActive));
           button.setAttribute("aria-label", `${chapter.number}. ${chapter.label}`);
-          button.innerHTML = `
-            <span class="chapter-tab__shape">
-              <span class="chapter-tab__index">${chapter.number}</span>
-              <span class="chapter-tab__label">${displayLabel}</span>
-              <span class="chapter-tab__meta">${chapter.railMeta}</span>
-            </span>
-          `;
+          const shape = document.createElement("span");
+          shape.className = "chapter-tab__shape";
+          shape.append(textElement("span", chapter.number, "chapter-tab__index"), textElement("span", displayLabel, "chapter-tab__label"), textElement("span", chapter.railMeta, "chapter-tab__meta"));
+          button.append(shape);
           button.addEventListener("click", (event) => {
             setActiveChapter(chapter.key, { force: true });
             scrollToChapter(chapter);
@@ -6711,7 +6716,7 @@ __CHAPTER_REGISTRY_SCRIPT__
             link.href = `#${cardId}`;
             link.dataset.targetId = cardId;
             link.setAttribute("aria-label", ariaLabel);
-            link.innerHTML = `<span>${label}</span>`;
+            link.append(textElement("span", label));
             link.addEventListener("click", (event) => {
               event.preventDefault();
               scrollToSnapCard(card, chapter);
@@ -6966,7 +6971,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         cards.forEach((card) => {
           const article = document.createElement("article");
           article.className = "kpi-card";
-          article.innerHTML = `<span class="label">${card.label}</span><strong class="${card.textual ? "is-textual" : ""}">${card.value}</strong><span class="meta">${card.meta}</span>`;
+          article.append(textElement("span", card.label, "label"), textElement("strong", card.value, card.textual ? "is-textual" : ""), textElement("span", card.meta, "meta"));
           heroKpis.appendChild(article);
         });
         highlightHeroKpiLabels(document.getElementById("heroPanel"));
@@ -7790,7 +7795,10 @@ __CHAPTER_REGISTRY_SCRIPT__
       }
 
       function renderEmptyState(target, title, message) {
-        target.innerHTML = `<div class="empty-state"><strong>${title}</strong><p>${message}</p></div>`;
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.append(textElement("strong", title), textElement("p", message));
+        target.replaceChildren(empty);
       }
 
       function syncDepartmentRankingHeight(gridElement) {

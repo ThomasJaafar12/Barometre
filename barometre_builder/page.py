@@ -1,68 +1,63 @@
-﻿from __future__ import annotations
+"""Orchestration et écriture atomique des trois pages du baromètre."""
+from __future__ import annotations
 
-from .chapters import build_chapter_fragments
-from .config import (
-    DOM_REGION_CODES,
-    EXPERIENCE_REGION_CODES,
-    LOGO_PATH,
-    MAP_LAYOUT,
-    OUTPUT_HTML_PATH,
-    PUBLICATION_DATE_LABEL,
-    PUBLICATION_ISSUE_NUMBER,
-    TEMPLATE_PATH,
-)
-from .geometry import build_geographies
-from .modules import build_modules
-from .palettes import build_color_system
-from .utils import dump_json, gzip_base64_json, relative_asset
+import os
+import sys
+from pathlib import Path
+import tempfile
 
-
-def build_payloads() -> tuple[dict, dict]:
-    regions_geojson, departments_geojson, region_meta = build_geographies()
-    bundle, hero = build_modules(region_meta)
-    color_system = build_color_system()
-    boot_payload = {
-        "meta": {
-            "publicationDateLabel": PUBLICATION_DATE_LABEL,
-            "publicationIssueNumber": PUBLICATION_ISSUE_NUMBER,
-            "mapLayout": MAP_LAYOUT,
-            "experienceRegionCodes": EXPERIENCE_REGION_CODES,
-            "domRegionCodes": sorted(DOM_REGION_CODES),
-        },
-        "assets": {"logo": relative_asset(LOGO_PATH), "videos": bundle["videos"]},
-        "colorSystem": color_system,
-        "regions": hero["regions"],
-        "nationalHero": hero["national"],
-        "geography": {"regions": regions_geojson},
-    }
-    deferred_payload = {
-        "geography": {"departments": departments_geojson},
-        "modules": bundle["modules"],
-    }
-    return boot_payload, deferred_payload
+from .config import ROOT, OUTPUT_PAGES
+from .context import build_context
+from .payloads import build_payloads
+from .renderers import RENDERERS
+from .renderers.details import render_details_payloads
+from .security import validate_html
 
 
 def render_html(boot_payload: dict, deferred_payload: dict) -> str:
-    template = TEMPLATE_PATH.read_text(encoding="utf-8")
-    chapter_fragments = build_chapter_fragments()
-    html = template.replace("__BOOT_JSON__", dump_json(boot_payload).replace("</", "<\\/"))
-    html = html.replace("__DEFERRED_B64__", gzip_base64_json(deferred_payload))
-    html = html.replace("__LOGO_PATH__", boot_payload["assets"]["logo"])
-    html = html.replace("__CHAPTER_SECTIONS_HTML__", chapter_fragments["sections_html"])
-    html = html.replace("__CHAPTER_REGISTRY_SCRIPT__", chapter_fragments["registry_script"])
-    html = html.replace("__CHAPTER_MODULES_SCRIPT__", chapter_fragments["chapter_scripts"])
-    return html
+    """Interface historique : retourner le rendu détaillé."""
+    return render_details_payloads(boot_payload, deferred_payload)
+
+
+def write_pages(pages: dict[str, str], output_dir: Path) -> None:
+    staged: list[tuple[Path, Path]] = []
+    try:
+        for name, html in pages.items():
+            if name not in OUTPUT_PAGES:
+                raise ValueError("Le nom d’un fichier de sortie n’est pas autorisé.")
+            with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", newline="\n", dir=output_dir,
+                                             prefix=".barometre-", suffix=".tmp", delete=False) as handle:
+                temporary = Path(handle.name)
+                staged.append((temporary, output_dir / name))
+                handle.write(html)
+        for temporary, destination in staged:
+            os.replace(temporary, destination)
+    finally:
+        for temporary, _ in staged:
+            temporary.unlink(missing_ok=True)
+
+
+def build_pages() -> dict[str, str]:
+    context = build_context()
+    pages = {name: RENDERERS[name](context) for name in OUTPUT_PAGES}
+    for name, html in pages.items():
+        validate_html(html, name)
+    write_pages(pages, ROOT)
+    return pages
 
 
 def build_page() -> str:
-    if not TEMPLATE_PATH.exists():
-        raise RuntimeError("barometre.template.html is missing.")
-    boot_payload, deferred_payload = build_payloads()
-    html = render_html(boot_payload, deferred_payload)
-    OUTPUT_HTML_PATH.write_text(html, encoding="utf-8")
-    return html
+    """Interface historique : générer les pages et retourner la version détaillée."""
+    return build_pages()["barometre_details.html"]
 
 
 def main() -> None:
-    build_page()
-    print(f"Wrote {OUTPUT_HTML_PATH.name}")
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    try:
+        pages = build_pages()
+    except (OSError, ValueError, RuntimeError) as error:
+        raise SystemExit(f"La génération a échoué : {error}") from error
+    for name in pages:
+        print(f"Fichier généré : {name}")

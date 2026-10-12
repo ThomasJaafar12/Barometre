@@ -2,11 +2,11 @@
 
 import base64
 import csv
-import gzip
 import json
 import math
 import re
 import unicodedata
+import zlib
 from pathlib import Path
 from typing import Any
 
@@ -76,7 +76,10 @@ def compact_number(value: int | float | None) -> int | float | None:
 
 
 def relative_asset(path: Path) -> str:
-    return path.relative_to(ROOT).as_posix()
+    resolved = path.resolve()
+    if not resolved.is_relative_to((ROOT / "Assets").resolve()):
+        raise ValueError("Une ressource doit rester dans le dossier Assets du projet.")
+    return resolved.relative_to(ROOT.resolve()).as_posix()
 
 
 def load_csv(path: Path) -> list[dict[str, str]]:
@@ -94,10 +97,11 @@ def load_json(path: Path) -> Any:
 
 
 def dump_json(value: Any) -> str:
-    return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
 
 
 def gzip_base64_json(value: Any) -> str:
     payload = dump_json(value).encode("utf-8")
-    compressed = gzip.compress(payload, compresslevel=9, mtime=0)
+    compressor = zlib.compressobj(level=9, wbits=31, strategy=zlib.Z_FILTERED)
+    compressed = compressor.compress(payload) + compressor.flush()
     return base64.b64encode(compressed).decode("ascii")

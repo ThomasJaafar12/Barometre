@@ -16,8 +16,13 @@ GEO_METADATA_PATH = GEO_DIR / "contours_administratifs_dataset.json"
 DEPARTMENT_GEOJSON_CACHE = GEO_DIR / "departements-50m.geojson"
 DERIVED_CACHE_DIR = ROOT / ".cache" / "barometre"
 GEOGRAPHY_CACHE_PATH = DERIVED_CACHE_DIR / "geographies.json"
+MODULE_DATA_CACHE_PATH = DERIVED_CACHE_DIR / "modules.json"
+DPAE_CACHE_PATH = DERIVED_CACHE_DIR / "dpae.json"
 OUTPUT_HTML_PATH = ROOT / "index.html"
+OUTPUT_PAGES = ("index.html", "barometre_bref.html", "barometre_details.html")
 TEMPLATE_PATH = ROOT / "barometre.template.html"
+PAGE_TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
+DPAE_EXCEL_PATH = DATA_DIR / "donnees_dpae_regions.xlsx"
 PUBLICATION_DATE_LABEL = os.getenv("BAROMETRE_PUBLICATION_DATE", "24 juin 2026")
 PUBLICATION_ISSUE_NUMBER = os.getenv("BAROMETRE_ISSUE_NUMBER", "189")
 

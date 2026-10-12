@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Quatre indicateurs du baromètre économique Urssaf, expliqués simplement pour la France et ses régions.">
+  <title>Baromètre économique Urssaf · En bref</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <style>__SHARED_CSS__</style>
+</head>
+<body>
+  <a class="skip-link" href="#contenu">Aller au contenu</a>
+  <div class="site-shell">
+    <header class="site-header">
+      <div class="header-art" aria-hidden="true">__HEADER_ART__</div>
+      <div><h1>Baromètre économique</h1><p class="publication">__PUBLICATION__</p></div>
+      <a class="header-home" href="index.html">Retour à l’accueil</a>
+    </header>
+    <main id="contenu">
+      <div class="intro"><p class="eyebrow">Le baromètre en bref</p><h2>Quatre repères pour comprendre l’économie.</h2><p>L’emploi, les rémunérations, les embauches déclarées et les difficultés des entreprises : les chiffres essentiels, avec les clés pour les lire.</p></div>
+      <div class="brief-toolbar">
+        <div><p class="scope-label" id="scopeLabel" aria-live="polite">France entière</p><p class="scope-note">Chaque indicateur affiche sa propre période de référence.</p></div>
+        <label class="region-control" for="regionSelect">Choisir un territoire<select id="regionSelect">__REGION_OPTIONS__</select></label>
+      </div>
+      __ERROR_NOTICE__
+      <noscript><p>Activez JavaScript pour consulter les indicateurs et choisir votre région.</p></noscript>
+      <div class="indicator-grid" id="indicators"></div>
+      <div class="brief-end"><p>Pour comparer les secteurs et explorer les cartes, poursuivez votre lecture.</p><a class="button-link" href="barometre_details.html">Voir le baromètre détaillé <span aria-hidden="true">→</span></a></div>
+    </main>
+    <footer class="site-footer"><span class="logo-badge"><img src="__LOGO_PATH__" alt="Urssaf"></span><span>Les évolutions sont comparées à la même période un an auparavant.</span><a href="index.html">Accueil</a></footer>
+  </div>
+  __EXTERNAL_SCRIPTS__
+  __DEPENDENCY_GUARD__
+  <script>const BAROMETRE_BRIEF = __BRIEF_JSON__;</script>
+  <script>__BRIEF_SCRIPT__</script>
+</body>
+</html>

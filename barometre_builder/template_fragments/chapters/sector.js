@@ -426,7 +426,7 @@
         function showChartTooltip(event, point) {
           const shellBounds = chartShell.getBoundingClientRect();
           tooltipOverline.textContent = quarterLabel(point.date);
-          tooltipBody.innerHTML = `Glissement annuel : ${formatPercent(point[metric.yoyKey])}<br>Niveau : ${metric.tooltipLevel(point[metric.levelKey])}`;
+          textLines(tooltipBody, [`Glissement annuel : ${formatPercent(point[metric.yoyKey])}`, `Niveau : ${metric.tooltipLevel(point[metric.levelKey])}`]);
           tooltip.classList.add("is-visible");
           tooltip.setAttribute("aria-hidden", "false");
 
@@ -641,8 +641,8 @@
         if (!shell.querySelector("#employmentTreemapSvg")) {
           shell.innerHTML = `
             <svg id="employmentTreemapSvg" viewBox="0 0 980 620" role="img" aria-labelledby="employmentTreemapTitleSvg employmentTreemapDescSvg">
-              <title id="employmentTreemapTitleSvg">Treemap sectorielle des effectifs et de la masse salariale</title>
-              <desc id="employmentTreemapDescSvg">La surface represente le niveau et la couleur represente le glissement annuel.</desc>
+              <title id="employmentTreemapTitleSvg">Carte proportionnelle des secteurs des effectifs et de la masse salariale</title>
+              <desc id="employmentTreemapDescSvg">La surface représente le niveau et la couleur représente le glissement annuel.</desc>
             </svg>
             <div id="employmentTreemapTooltip" class="employment-tooltip employment-treemap-tooltip" aria-hidden="true">
               <div class="tooltip-overline"></div>
@@ -753,7 +753,7 @@
         function showTreemapTooltip(event, row) {
           const shellBounds = shell.getBoundingClientRect();
           tooltipOverline.textContent = sectorTreemapTrimLabel(row.label);
-          tooltipBody.innerHTML = `${metric.label} : ${sectorTreemapMetricFormatter(metricKey, row.value)}<br>Glissement annuel : ${formatPercent(row.yoy)}<br>${quarterLabel(row.date)}`;
+          textLines(tooltipBody, [`${metric.label} : ${sectorTreemapMetricFormatter(metricKey, row.value)}`, `Glissement annuel : ${formatPercent(row.yoy)}`, quarterLabel(row.date)]);
           tooltipNode.classList.add("is-visible");
           tooltipNode.setAttribute("aria-hidden", "false");
 
@@ -833,7 +833,7 @@
         if (state.phase === "national") {
           mapMeta.textContent = "Choisir une région pour ouvrir la maille départementale";
           rankingMeta.textContent = "Lecture régionale requise";
-          mapShell.innerHTML = `<div class="empty-state"><strong>Choisir une région</strong><p>La carte départementale s'active après sélection d'un territoire dans la rail des régions.</p></div>`;
+          mapShell.innerHTML = `<div class="empty-state"><strong>Choisir une région</strong><p>La carte départementale s'active après sélection d'un territoire dans la barre des régions.</p></div>`;
           legend.innerHTML = "";
           ranking.innerHTML = `<div class="empty-state"><strong>Classement indisponible</strong><p>Le classement départemental n'est pas affiché à l'échelle France entière.</p></div>`;
           syncDepartmentRankingHeight(mapGrid);
@@ -900,7 +900,7 @@
           .on("mouseleave", hideTooltip);
 
         const domain = d3.extent(values);
-        legend.innerHTML = `<span>${departmentMetricFormatter(state.sectorDepartmentMetric, domain[0])}</span><span>→</span><span>${departmentMetricFormatter(state.sectorDepartmentMetric, domain[1])}</span>`;
+        rangeLegend(legend, departmentMetricFormatter(state.sectorDepartmentMetric, domain[0]), departmentMetricFormatter(state.sectorDepartmentMetric, domain[1]));
 
         ranking.innerHTML = "";
         regionScope
@@ -914,14 +914,7 @@
           .forEach((department) => {
             const article = document.createElement("article");
             article.className = "ranking-item";
-            article.innerHTML = `
-              <div class="topline">
-                <strong>${department.name}</strong>
-                <strong>${departmentMetricFormatter(state.sectorDepartmentMetric, department.metricValue)}</strong>
-              </div>
-              <span>${scopeLabel()}</span>
-              <small>Glissement annuel : ${formatPercent(department.yoyValue)}</small>
-            `;
+            article.replaceChildren(...rankingArticle(department.name, departmentMetricFormatter(state.sectorDepartmentMetric, department.metricValue), scopeLabel(), `Glissement annuel : ${formatPercent(department.yoyValue)}`).childNodes);
             ranking.appendChild(article);
           });
         syncDepartmentRankingHeight(mapGrid);

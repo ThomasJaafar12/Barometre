@@ -150,7 +150,7 @@
 
         const domain = d3.extent(values);
         const legend = document.getElementById("autoLegend");
-        legend.innerHTML = `<span>${state.autoMetric === "turnover" ? formatCurrency(domain[0]) : formatCount(domain[0])}</span><span>→</span><span>${state.autoMetric === "turnover" ? formatCurrency(domain[1]) : formatCount(domain[1])}</span>`;
+        rangeLegend(legend, state.autoMetric === "turnover" ? formatCurrency(domain[0]) : formatCount(domain[0]), state.autoMetric === "turnover" ? formatCurrency(domain[1]) : formatCount(domain[1]));
         autoRanking.innerHTML = "";
         departments
           .map((department) => ({ ...department, metric: metricValueForDepartment(department, state.autoSector, state.autoMetric) }))
@@ -160,7 +160,7 @@
           .forEach((department) => {
             const article = document.createElement("article");
             article.className = "ranking-item";
-            article.innerHTML = `<div class="topline"><strong>${department.name}</strong><strong>${state.autoMetric === "turnover" ? formatCurrency(department.metric) : formatCount(department.metric)}</strong></div><span>${regionsByCode.get(department.regionCode).name}</span>`;
+            article.replaceChildren(...rankingArticle(department.name, state.autoMetric === "turnover" ? formatCurrency(department.metric) : formatCount(department.metric), regionsByCode.get(department.regionCode).name).childNodes);
             autoRanking.appendChild(article);
           });
         syncDepartmentRankingHeight(mapGrid);

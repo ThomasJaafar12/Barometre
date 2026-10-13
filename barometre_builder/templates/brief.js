@@ -4,6 +4,7 @@
   const container = document.getElementById("indicators");
   const selector = document.getElementById("regionSelect");
   const numberFormats = [0, 1, 2].map(digits => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: digits }));
+  const compactFormat = new Intl.NumberFormat("fr-FR", { notation: "compact", compactDisplay: "long", maximumSignificantDigits: 3 });
   const monthFormat = new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" });
   const axisDateFormat = new Intl.DateTimeFormat("fr-FR", { month: "short", year: "numeric" });
   const chartViewport = window.matchMedia("(max-width: 760px)");
@@ -47,6 +48,24 @@
       return `${number(value)} euros`;
     }
     return `${number(value)} ${unit === "salaries" ? "salariés" : unit === "declarations" ? "déclarations" : "procédures"}`;
+  };
+  const headlineValue = (value, unit) => {
+    const headline = element("strong", "", "indicator-value");
+    if (!isValue(value) || unit === "euros") {
+      headline.textContent = valueLabel(value, unit);
+      return headline;
+    }
+    const noun = unit === "salaries" ? "salariés" : unit === "declarations" ? "déclarations" : "procédures";
+    let amount = number(value);
+    let label = noun;
+    if (value >= 1e6) {
+      const parts = compactFormat.formatToParts(value);
+      amount = parts.filter(part => part.type !== "compact" && part.type !== "literal").map(part => part.value).join("");
+      label = `${parts.find(part => part.type === "compact").value} de ${noun}`;
+    }
+    headline.classList.add("indicator-count");
+    headline.append(element("span", amount.replaceAll("\u202f", "\u00a0"), "indicator-amount"), document.createTextNode(" "), element("span", label, "indicator-unit"));
+    return headline;
   };
   const changeLabel = value => !isValue(value) ? "Comparaison annuelle indisponible"
     : value === 0 ? "Stable sur un an" : `${value > 0 ? "Hausse" : "Baisse"} de ${number(Math.abs(value), 1)} % sur un an`;
@@ -152,7 +171,7 @@
     const width = chartViewport.matches ? 380 : 560;
     svgNode.setAttribute("viewBox", `0 -12 ${width} 247`);
     svgNode.setAttribute("role", "group");
-    svgNode.setAttribute("aria-label", `Évolution de ${indicator.label.toLowerCase()} sur les trois dernières années disponibles`);
+    svgNode.setAttribute("aria-label", `Évolution de ${indicator.label.toLowerCase()}, de ${period(points[0].date, indicator.frequency)} à ${period(points[points.length - 1].date, indicator.frequency)}`);
     svgNode.classList.add("chart");
     card.append(svgNode);
     const maximum = Math.max(...points.filter(point => isValue(point.value)).map(point => point.value));
@@ -260,7 +279,7 @@
       if (trend !== "neutral") change.append(icon(trend));
       change.append(element("span", changeLabel(latest?.yearlyChange)));
       subline.append(date, change);
-      metric.append(element("strong", valueLabel(latest?.value, indicator.unit), "indicator-value"), subline);
+      metric.append(headlineValue(latest?.value, indicator.unit), subline);
       card.append(heading, element("p", indicator.definition, "definition"), metric);
       const plot = element("div", "", "indicator-plot");
       const hideHover = chart(plot, indicator, points);

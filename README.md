@@ -42,7 +42,7 @@ Les trois pages partagent ces métadonnées. Les fichiers HTML générés sont d
 
 ## Lecture des indicateurs
 
-La synthèse présente la masse salariale et les effectifs trimestriels corrigés des variations saisonnières, toutes les procédures collectives trimestrielles et les DPAE mensuelles du fichier fourni. Les douze derniers trimestres ou trente-six derniers mois sont affichés ; l’évolution annuelle utilise la même période un an auparavant, avant la sélection de cette fenêtre.
+La synthèse présente la masse salariale et les effectifs trimestriels corrigés des variations saisonnières, toutes les procédures collectives trimestrielles et les DPAE mensuelles du fichier fourni. Les quarante et un derniers trimestres ou cent vingt et un derniers mois sont affichés pour couvrir dix années complètes entre la première et la dernière observation, lorsque les données sont disponibles ; l’évolution annuelle utilise la même période un an auparavant, avant la sélection de cette fenêtre.
 
 Les DPAE additionnent les CDI, les CDD longs et les CDD courts. La colonne `due_long`, déjà comprise dans ces catégories, n’est pas ajoutée. Les anciennes régions sont agrégées par région actuelle et mois. Les territoires absents, dont Mayotte dans le fichier actuel, et les observations incomplètes sont indiqués comme indisponibles. Le périmètre national disponible est précisé. Les DPAE ne représentent pas les créations nettes d’emplois.
 

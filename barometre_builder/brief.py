@@ -4,6 +4,9 @@ from __future__ import annotations
 import math
 
 
+HISTORY_YEARS = 10
+
+
 INDICATORS = (
     {"key": "payroll", "label": "Masse salariale", "unit": "euros", "frequency": "quarter",
      "definition": "La somme des rémunérations brutes versées par les employeurs du secteur privé au cours du trimestre.",
@@ -38,7 +41,8 @@ def indicator_series(points: list[dict], frequency: str) -> dict:
         previous = values.get(f"{int(date[:4]) - 1}{date[4:]}")
         change = (value / previous - 1) * 100 if value is not None and previous not in (None, 0) else None
         enriched.append({"date": date, "value": value, "yearlyChange": change})
-    return {"points": enriched[-(36 if frequency == "month" else 12):]}
+    # Include both endpoints so a complete series spans ten full years.
+    return {"points": enriched[-(HISTORY_YEARS * (12 if frequency == "month" else 4) + 1):]}
 
 
 def build_bref_payload(boot: dict, deferred: dict, dpae: dict) -> dict:

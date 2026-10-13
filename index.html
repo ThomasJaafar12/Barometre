@@ -5,202 +5,709 @@
   <meta http-equiv="Content-Security-Policy" content="default-src &#x27;none&#x27;; script-src &#x27;none&#x27;; script-src-attr &#x27;none&#x27;; style-src &#x27;unsafe-inline&#x27; https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src &#x27;self&#x27; data:; media-src &#x27;self&#x27;; connect-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;; frame-src &#x27;none&#x27;">
   <meta name="referrer" content="no-referrer">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Découvrez le baromètre économique Urssaf : les chiffres essentiels expliqués simplement ou toutes les données en détail.">
-  <title>Baromètre économique Urssaf · Accueil</title>
+  <meta name="description" content="Panorama économique Urssaf : les chiffres du mois, la santé des entreprises et la conjoncture de l’emploi, en bref ou en détail.">
+  <title>Panorama économique · Urssaf</title>
   <link rel="icon" href="data:,">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
   <style>:root {
-  --bg: #F8FAFC; --text: #0F172A; --muted: #475569; --navy: #0B1D3A;
-  --accent: #0EA5A8; --blue: #2B82F6; --line: #D5DFEB;
-  --econ-bg: #2EBFC9; --econ-teal-deep: #00A3BB; --econ-coral: #F05A66;
-  --econ-sky: #BACFE3; --econ-yellow: #FFD400; --econ-blue: #0074BC;
-  --econ-orange: #F89B1B; --econ-date-blue: #164C8E;
+  --ink: #0f1c35;
+  --navy: #0b1d3a;
+  --muted: #55647a;
+  --line: #dfe6f2;
+  --fluid-pad-x: clamp(28px, 5vw, 88px);
+  --fluid-pad-y: clamp(28px, 3.8vh, 56px);
+  --c-chiffres: #1c59c2;
+  --t-chiffres: #eaf1ff;
+  --c-entreprises: #00816d;
+  --t-entreprises: #e6f5f2;
+  --c-emploi: #c95416;
+  --t-emploi: #fff0e5;
+  --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --spring: cubic-bezier(0.22, 1, 0.36, 1);
 }
-* { box-sizing: border-box; }
-body { margin: 0; background: #F1F5F9; color: var(--text); font-family: Inter, sans-serif; line-height: 1.6; }
-a { color: inherit; }
-button, select { font: inherit; }
-[hidden] { display: none !important; }
-:focus-visible { outline: 3px solid var(--blue); outline-offset: 5px; }
-.skip-link { position: absolute; top: -100px; left: 24px; z-index: 9; background: white; padding: 12px; }
-.skip-link:focus { top: 8px; }
-.site-shell { width: min(1360px, calc(100% - 40px)); margin: 20px auto; padding: 18px; background: white; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 20px 60px #0B1D3A12; }
-.site-header { display: flex; align-items: center; gap: 30px; min-height: 122px; background: var(--econ-bg); padding-right: 30px; }
-.header-art { align-self: stretch; width: 185px; flex: 0 0 185px; overflow: hidden; }
-.header-art svg { display: block; width: 185px; height: 100%; min-height: 122px; }
-.site-header h1 { font: 800 clamp(26px, 3.6vw, 49px)/1.1 'Plus Jakarta Sans', sans-serif; margin: 0 0 8px; letter-spacing: -.04em; }
-.publication { color: #123E73; margin: 0; font-size: 14px; font-weight: 500; }
-.header-home { margin-left: auto; font-size: 13px; font-weight: 700; text-decoration-thickness: 1px; text-underline-offset: 4px; }
-main { padding: 48px 36px; }
-.eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: .15em; font-weight: 700; color: #00767A; margin: 0 0 18px; }
-.intro h2 { font: 800 clamp(34px, 4.2vw, 60px)/1.12 'Plus Jakarta Sans', sans-serif; letter-spacing: -.045em; max-width: 950px; margin: 0 0 22px; }
-.intro p:not(.eyebrow) { max-width: 750px; color: var(--muted); font-size: 17px; margin: 0; }
-.choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 42px; }
-.choice { position: relative; padding: 32px; border: 1px solid var(--line); border-radius: 10px; display: flex; flex-direction: column; align-items: flex-start; }
-.choice-primary { color: white; background: var(--navy); border-color: var(--navy); }
-.choice-number { font-size: 12px; letter-spacing: .12em; margin-bottom: 26px; font-weight: 600; }
-.choice-primary .choice-number { color: #80DBDE; }
-.choice h3 { font: 700 30px/1.2 'Plus Jakarta Sans', sans-serif; letter-spacing: -.035em; margin: 0 0 16px; }
-.choice p { margin: 0 0 26px; color: var(--muted); max-width: 440px; }
-.choice-primary p { color: #D1DCE9; }
-.choice-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 30px; padding: 0; list-style: none; }
-.choice-tags li { font-size: 12px; border: 1px solid #CBD5E1; border-radius: 4px; padding: 5px 9px; }
-.choice-primary .choice-tags li { border-color: #536779; }
-.button-link { display: inline-flex; align-items: center; gap: 22px; margin-top: auto; padding: 13px 18px; font-size: 14px; font-weight: 700; border-radius: 5px; background: var(--navy); color: white; text-decoration: none; }
-.choice-primary .button-link { background: white; color: var(--navy); }
-.button-link:hover { box-shadow: 0 0 0 3px #2B82F633; }
-.reading-note { margin: 26px 0 0; color: var(--muted); font-size: 13px; }
-.site-footer { margin: 0 36px; padding: 24px 0 12px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 18px; color: var(--muted); font-size: 12px; }
-.logo-badge { background: var(--navy); padding: 9px 14px; border-radius: 5px; flex-shrink: 0; }
-.logo-badge img { display: block; width: 92px; height: auto; }
-.site-footer a { margin-left: auto; font-weight: 600; text-underline-offset: 4px; }
-.brief-toolbar { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin: 34px 0 24px; padding: 22px 24px; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; }
-.brief-toolbar p { margin: 0; }
-.scope-label { font-weight: 700; font-size: 20px; }
-.brief-toolbar .scope-note { color: var(--muted); font-size: 12px; margin-top: 4px; }
-.region-control { display: flex; flex-direction: column; gap: 5px; font-size: 12px; font-weight: 600; }
-.region-control select { max-width: 310px; padding: 10px 36px 10px 12px; border: 1px solid #9CAEC3; border-radius: 5px; color: var(--text); background: white; font-size: 14px; }
-.brief-section { background: #F8FAFC; padding: 24px; border-radius: 24px; }
-.brief-section .indicator-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
-.brief-section .indicator { --indicator-color: #E11D48; --indicator-label: white; display: flex; flex-direction: column; padding: clamp(20px, 2.4vw, 32px); border: 1px solid #E2E8F0; border-radius: 18px; background: white; box-shadow: 0 4px 20px -4px #0F172A0D, 0 2px 6px -1px #0F172A05; min-width: 0; transition: box-shadow .2s ease, border-color .2s ease; }
-.brief-section .indicator[data-indicator="headcount"] { --indicator-color: #0284C7; }
-.brief-section .indicator[data-indicator="dpae"] { --indicator-color: #F59E0B; --indicator-label: #78350F; }
-.brief-section .indicator[data-indicator="pcol"] { --indicator-color: #7C3AED; }
-.brief-section .indicator:hover { border-color: #CBD5E1; box-shadow: 0 14px 32px -12px #0F172A1A, 0 2px 6px -1px #0F172A08; }
-.brief-section .indicator-heading { display: flex; align-items: start; justify-content: space-between; gap: 14px; }
-.brief-section .indicator h3 { width: fit-content; min-width: 0; padding: 5px 10px; font: 800 13px/1.4 'Plus Jakarta Sans', sans-serif; letter-spacing: -.015em; margin: 0; border-radius: 5px; color: var(--indicator-label); background: var(--indicator-color); }
-.brief-section .indicator-number { flex-shrink: 0; font: 600 10px/1.5 ui-monospace, monospace; color: #64748B; background: #F1F5F9; border: 1px solid #E2E8F0; border-radius: 999px; padding: 3px 7px; margin-top: 1px; }
-.brief-section .definition { color: #64748B; font-size: 13px; line-height: 1.55; min-height: 41px; margin: 10px 0 22px; }
-.brief-section .indicator-value { display: block; font: 800 clamp(28px, 2.6vw, 38px)/1.15 'Plus Jakarta Sans', sans-serif; letter-spacing: -.045em; overflow-wrap: anywhere; }
-.brief-section .indicator-subline { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-top: 10px; }
-.brief-section .indicator-period { display: inline-flex; align-items: start; gap: 6px; color: #64748B; font-size: 12px; line-height: 1.5; margin: 0; }
-.brief-section .indicator-icon { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; }
-.brief-section .indicator-change { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; border: 1px solid #E2E8F0; border-radius: 999px; padding: 4px 9px; background: #F1F5F9; color: #475569; font-size: 11px; line-height: 1.4; font-weight: 600; }
-.brief-section .indicator-change .indicator-icon { width: 13px; height: 13px; margin: 0; }
-.brief-section .trend-up { background: #ECFDF5; color: #065F46; border-color: #A7F3D0; }
-.brief-section .trend-down { background: #FFF1F2; color: #9F1239; border-color: #FECDD3; }
-.brief-section .indicator-plot { margin: 28px 0 20px; }
-.brief-section .chart { display: block; width: 100%; height: auto; }
-.brief-section .chart text { font-family: Inter, sans-serif; fill: #64748B; font-size: 13px; }
-.brief-section .chart .domain, .brief-section .chart-x-axis .tick line { stroke: #E2E8F0; }
-.brief-section .chart-y-axis .domain { display: none; }
-.brief-section .chart-y-axis .tick line { stroke: #EDF2F7; stroke-dasharray: 2 4; }
-.brief-section .chart-line { fill: none; stroke: var(--indicator-color); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-.brief-section .chart-point { fill: var(--indicator-color); stroke: white; stroke-width: 2; opacity: 0; transition: opacity .15s ease; }
-.brief-section .chart-point:hover { opacity: 1; }
-.brief-section .chart-note { font-size: 11px; line-height: 1.55; color: #64748B; margin: 12px 0 0; }
-.brief-section .chart-empty { display: flex; align-items: center; min-height: 180px; padding: 18px; border: 1px dashed #E2E8F0; border-radius: 10px; color: #64748B; font-size: 13px; margin: 0; }
-.brief-section .explanation { display: flex; align-items: start; gap: 10px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px 16px; color: #475569; font-size: 13px; line-height: 1.55; margin: 0 0 20px; }
-.brief-section .explanation .indicator-icon { color: #0284C7; }
-.brief-section .explanation p { min-width: 0; margin: 0; }
-.brief-section .indicator-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid #E2E8F0; }
-.brief-section .source-note, .brief-section .coverage-note { color: #64748B; font-size: 11px; line-height: 1.6; margin: 0; }
-.brief-section .coverage-note { color: #644914; margin-top: 8px; }
-.brief-section .indicator details { font-size: 12px; margin-top: 14px; }
-.brief-section .indicator summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: fit-content; max-width: 100%; margin-left: auto; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px; color: #475569; background: white; font-size: 11px; font-weight: 600; line-height: 1.45; list-style: none; cursor: pointer; transition: background .2s ease, border-color .2s ease; }
-.brief-section .indicator summary::-webkit-details-marker { display: none; }
-.brief-section .indicator summary::after { content: ""; width: 6px; height: 6px; flex-shrink: 0; border: solid currentColor; border-width: 0 1px 1px 0; transform: rotate(45deg); margin-top: -3px; }
-.brief-section .indicator details[open] summary::after { transform: rotate(225deg); margin-top: 3px; }
-.brief-section .indicator summary:hover { background: #F8FAFC; border-color: #94A3B8; }
-.brief-section .table-scroll { overflow: auto; max-height: 310px; margin-top: 14px; border: 1px solid #E2E8F0; border-radius: 8px; }
-.brief-section table { border-collapse: collapse; width: 100%; font-size: 11px; }
-.brief-section caption { padding: 10px; text-align: left; color: #475569; }
-.brief-section th, .brief-section td { text-align: right; padding: 8px; border-bottom: 1px solid #E2E8F0; }
-.brief-section th:first-child, .brief-section td:first-child { text-align: left; }
-.brief-section thead { position: sticky; top: 0; background: #F8FAFC; }
-.brief-section .brief-end { margin-top: 28px; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 28px; background: white; border: 1px solid #E2E8F0; border-radius: 18px; box-shadow: 0 4px 20px -4px #0F172A0D; }
-.brief-section .brief-end p { margin: 0; font-size: 14px; color: #475569; }
-.brief-section .brief-end .button-link { flex-shrink: 0; margin-top: 0; padding: 14px 22px; border-radius: 10px; background: #0B192C; box-shadow: 0 4px 14px #0B192C26; transition: box-shadow .2s ease; }
-.brief-section .brief-end .button-link:hover { box-shadow: 0 6px 18px #0B192C40; }
-#dependencyError { border: 1px solid #B32340; color: #8C1630; background: #FFF1F3; padding: 14px; margin: 18px 0; border-radius: 5px; }
-@media (max-width: 760px) {
-  .site-shell { width: calc(100% - 20px); margin: 10px; padding: 10px; }
-  .site-header { gap: 14px; padding: 18px; min-height: 100px; flex-wrap: wrap; }
-  .header-art { display: none; }
-  .site-header h1 { font-size: 28px; }
-  .header-home { margin: 0; }
-  main { padding: 30px 12px; }
-  .intro h2 { font-size: 35px; }
-  .intro p:not(.eyebrow) { font-size: 14px; }
-  .choice-grid { grid-template-columns: 1fr; gap: 18px; }
-  .choice-grid { margin-top: 30px; }
-  .choice { padding: 24px; }
-  .choice h3 { font-size: 26px; }
-  .choice p { font-size: 14px; }
-  .choice-number { margin-bottom: 16px; }
-  .choice-tags { display: none; }
-  .brief-section .chart text { font-size: 16px; }
-  .site-footer { margin: 0 12px; flex-wrap: wrap; }
-  .site-footer a { margin-left: 0; }
-  .brief-toolbar { flex-direction: column; align-items: stretch; padding: 18px; }
-  .region-control select { max-width: 100%; width: 100%; }
-  .brief-section { padding: 12px; border-radius: 18px; }
-  .brief-section .indicator-grid { grid-template-columns: 1fr; gap: 18px; }
-  .brief-section .indicator { padding: 20px; }
-  .brief-section .definition { min-height: auto; }
-  .brief-section .brief-end { flex-direction: column; align-items: start; padding: 20px; }
-  .brief-section .brief-end .button-link { max-width: 100%; gap: 12px; padding: 12px 14px; }
+
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  color: var(--ink);
+  background: #fff;
+  font: 400 14px/1.6 var(--font-sans);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--c-chiffres);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.skip {
+  position: fixed;
+  top: -90px;
+  left: 20px;
+  z-index: 1000;
+  padding: 12px 18px;
+  background: #fff;
+  color: var(--navy);
+  font-weight: 600;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(11, 29, 58, 0.12);
+  transition: top 0.2s ease;
+}
+
+.skip:focus {
+  top: 16px;
+}
+
+.symbols {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.icon {
+  display: block;
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+}
+
+.workspace {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page {
+  flex: 1;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.page h1, .page h2 {
+  margin: 0;
+  font-family: var(--font-display);
+}
+
+.page p {
+  margin: 0;
+}
+
+.brand-header {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px var(--fluid-pad-x);
+  border-bottom: 1px solid #edf1f8;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.brand-logo {
+  display: block;
+  width: 164px;
+  height: auto;
+  flex-shrink: 0;
+}
+
+.brand-title {
+  color: var(--ink);
+  font: 800 16px/1.2 var(--font-display);
+  letter-spacing: -0.035em;
+}
+
+.brand-subtitle {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font: 400 11px/1.35 var(--font-sans);
+  letter-spacing: 0;
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.edition {
+  padding: 0;
+  color: var(--muted);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.edition-date {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.content {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: var(--fluid-pad-y) var(--fluid-pad-x);
+}
+
+.hero {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  align-items: end;
+  gap: clamp(32px, 4vw, 64px);
+  margin-bottom: clamp(28px, 4vh, 48px);
+}
+
+.page h1 {
+  color: var(--ink);
+  font-size: clamp(40px, 4.4vw, 64px);
+  line-height: 1.08;
+  letter-spacing: -0.05em;
+  font-weight: 800;
+}
+
+.highlight-word {
+  white-space: nowrap;
+  background: linear-gradient(180deg, transparent 77%, #d8e8fc 77%, #d8e8fc 94%, transparent 94%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.lead-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 8px;
+}
+
+.lead {
+  max-width: 560px;
+  color: var(--muted);
+  font-size: clamp(13.5px, 1.05vw, 15.5px);
+  line-height: 1.75;
+}
+
+.lead strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.topics {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  width: 100%;
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.topic {
+  --accent: var(--c-chiffres);
+  --tint: var(--t-chiffres);
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(24px, 2vw, 32px);
+  border: 1px solid #e4ebf5;
+  border-radius: 18px;
+  background: #f8fafd;
+  box-shadow: 0 14px 36px rgba(20, 32, 57, 0.04);
+  overflow: hidden;
+  transition: flex 0.55s var(--spring), background-color 0.4s ease,
+    border-color 0.35s ease, box-shadow 0.4s ease;
+}
+
+.topic[data-topic="entreprises"] {
+  --accent: var(--c-entreprises);
+  --tint: var(--t-entreprises);
+}
+
+.topic[data-topic="emploi"] {
+  --accent: var(--c-emploi);
+  --tint: var(--t-emploi);
+}
+
+.topic-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: clamp(18px, 2vh, 24px);
+}
+
+.topic-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  color: var(--accent);
+  background: var(--tint);
+  border-radius: 12px;
+}
+
+.topic-icon .icon {
+  width: 23px;
+  height: 23px;
+}
+
+.topic-meta-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topic-index {
+  color: var(--accent);
+  font: 800 34px/1.6 var(--font-display);
+  letter-spacing: -0.05em;
+  opacity: 0.22;
+  transition: opacity 0.35s ease, transform 0.4s var(--spring);
+}
+
+.topic h2 {
+  margin: 0 0 12px;
+  color: var(--ink);
+  font-size: clamp(21px, 1.6vw, 25px);
+  line-height: 1.28;
+  letter-spacing: -0.038em;
+  font-weight: 700;
+}
+
+.topic-description {
+  max-width: 46ch;
+  color: var(--muted);
+  font-size: clamp(12.5px, 0.95vw, 14px);
+  line-height: 1.75;
+}
+
+.topic-photo {
+  flex: 1;
+  min-width: 0;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  margin: 20px 0 0;
+}
+
+.topic-photo-frame {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  min-height: 200px;
+  border-radius: 10px;
+  background: var(--tint);
+  overflow: hidden;
+}
+
+.topic-photo-img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.topic-actions {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding-top: 18px;
+}
+
+.reading-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 13px;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 1px solid #dce5f3;
+  border-radius: 9px;
+  color: var(--navy);
+  background: #f4f7fc;
+  font-size: 13px;
+  font-weight: 600;
+  transition: border-color 0.25s var(--spring), background-color 0.25s var(--spring),
+    color 0.25s var(--spring), transform 0.25s var(--spring), box-shadow 0.25s var(--spring);
+}
+
+.reading-link-left {
+  display: flex;
+  align-items: center;
+}
+
+.reading-link .icon {
+  width: 16px;
+  height: 16px;
+  color: var(--accent);
+  transition: transform 0.25s var(--spring), color 0.25s var(--spring);
+}
+
+.reading-link.details {
+  border-color: #e2e9f4;
+  color: #425b7e;
+  background: #fff;
+}
+
+.reading-link.details .icon {
+  color: #6b7f9e;
+}
+
+.reading-link:is(:hover, :focus-visible) {
+  border-color: var(--accent);
+  color: var(--navy);
+  background: var(--tint);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(20, 32, 57, 0.06);
+}
+
+.reading-link:is(:hover, :focus-visible) .icon {
+  color: var(--accent);
+  transform: translateX(4px);
+}
+
+.topic:focus-within {
+  border-color: var(--accent);
+  background: #fff;
+}
+
+.topic:focus-within .topic-index {
+  opacity: 0.9;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px var(--fluid-pad-x) 24px;
+  border-top: 1px solid #e7eaf1;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.footer-mark {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+@media (min-width: 861px) {
+  .topic:focus-within {
+    flex: 1.45;
+  }
+}
+
+@media (min-width: 861px) and (hover: hover) and (pointer: fine) {
+  .topic:hover {
+    flex: 1.45;
+    border-color: var(--accent);
+    background: #fff;
+    box-shadow: 0 24px 55px rgba(15, 28, 53, 0.085);
+  }
+
+  .topic:hover .topic-index {
+    opacity: 0.9;
+    transform: translateX(-2px);
+  }
+}
+
+@media (max-width: 1100px) {
+  .topic-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 860px) {
+  .brand-header {
+    flex-wrap: wrap;
+    padding: 18px 24px;
+  }
+
+  .content {
+    padding: 28px 24px;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+
+  .topics {
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .topic-photo {
+    flex: 0 0 auto;
+  }
+
+  .topic-photo-frame {
+    flex: none;
+    height: clamp(200px, 53vw, 320px);
+  }
+
+  .footer {
+    padding: 18px 24px 24px;
+  }
+}
+
+@media (max-width: 600px) {
+  .brand {
+    width: 100%;
+    gap: 18px;
+  }
+
+  .brand-logo {
+    width: 140px;
+  }
+
+  .brand-title {
+    font-size: 14px;
+  }
+
+  .brand-subtitle {
+    font-size: 10px;
+  }
+
+  .page h1 {
+    font-size: clamp(32px, 8vw, 40px);
+  }
+
+  .highlight-word {
+    white-space: normal;
+  }
+
+  .footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .brand {
+    gap: 14px;
+  }
+
+  .brand-logo {
+    width: 122px;
+  }
+
+  .brand-title {
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
 </style>
 </head>
 <body>
-  <a class="skip-link" href="#contenu">Aller au contenu</a>
-  <div class="site-shell">
-    <header class="site-header">
-      <div class="header-art" aria-hidden="true"><svg class="econ-header-art" viewBox="0 0 185 122" focusable="false">
-            <defs>
-              <clipPath id="econRightBlockClip" clipPathUnits="userSpaceOnUse">
-                <rect x="123" y="60" width="62" height="62"></rect>
-              </clipPath>
-            </defs>
-            <rect x="0" y="0" width="185" height="122" fill="var(--econ-bg)" shape-rendering="crispEdges"></rect>
-            <circle cx="31" cy="31" r="31" fill="var(--econ-teal-deep)"></circle>
-            <circle cx="77" cy="15" r="15" fill="#FFFFFF"></circle>
-            <circle cx="107" cy="15" r="15" fill="var(--econ-sky)"></circle>
-            <circle cx="77" cy="45" r="15" fill="var(--econ-sky)"></circle>
-            <circle cx="107" cy="45" r="15" fill="var(--econ-yellow)"></circle>
-            <circle cx="31" cy="91.5" r="31.5" fill="var(--econ-sky)"></circle>
-            <circle cx="0" cy="91.5" r="31.5" fill="var(--econ-yellow)"></circle>
-            <rect x="62" y="60" width="61" height="62" fill="var(--econ-coral)" shape-rendering="crispEdges"></rect>
-            <circle cx="92.5" cy="90.5" r="15" fill="#FFFFFF"></circle>
-            <rect x="123" y="60" width="62" height="62" fill="var(--econ-orange)" shape-rendering="crispEdges"></rect>
-            <g clip-path="url(#econRightBlockClip)">
-              <circle cx="184" cy="60" r="63" fill="var(--econ-blue)"></circle>
-              <circle cx="184" cy="60" r="32" fill="var(--econ-bg)"></circle>
-            </g>
-            <rect x="123" y="60" width="29" height="1" fill="var(--econ-blue)" shape-rendering="crispEdges"></rect>
-            <rect x="152" y="60" width="33" height="1" fill="var(--econ-bg)" shape-rendering="crispEdges"></rect>
-          </svg></div>
-      <div><h1>Baromètre économique</h1><p class="publication">24 juin 2026 · N°189</p></div>
-    </header>
-    <main id="contenu">
-      <div class="intro">
-        <p class="eyebrow">Urssaf · Les chiffres de vos territoires</p>
-        <h2>L’économie de votre territoire,<br>en clair.</h2>
-        <p>Comment évoluent l’emploi, les rémunérations et la situation des entreprises ? Choisissez la lecture qui vous convient pour comprendre les données du baromètre.</p>
-      </div>
-      <div class="choice-grid">
-        <article class="choice choice-primary">
-          <span class="choice-number">01 · COMPRENDRE L’ESSENTIEL</span>
-          <h3>Le baromètre en bref</h3>
-          <p>Quatre indicateurs, des graphiques simples et des explications accessibles, pour la France et votre région.</p>
-          <ul class="choice-tags"><li>Masse salariale</li><li>Effectifs salariés</li><li>Embauches déclarées</li><li>Procédures collectives</li></ul>
-          <a class="button-link" href="barometre_bref.html">Découvrir l’essentiel <span aria-hidden="true">→</span></a>
-        </article>
-        <article class="choice">
-          <span class="choice-number">02 · EXPLORER LES DONNÉES</span>
-          <h3>Le baromètre détaillé</h3>
-          <p>Retrouvez tous les graphiques, les cartes et les filtres du baromètre pour approfondir votre lecture.</p>
-          <ul class="choice-tags"><li>Secteurs d’activité</li><li>Cartes et classements</li><li>Travailleurs indépendants</li><li>Santé des entreprises</li></ul>
-          <a class="button-link" href="barometre_details.html">Explorer les données <span aria-hidden="true">→</span></a>
-        </article>
-      </div>
-      <p class="reading-note">Les deux lectures utilisent les mêmes sources pour les indicateurs communs. Chaque donnée est accompagnée de sa période de référence.</p>
-    </main>
-    <footer class="site-footer"><span class="logo-badge"><img src="Assets/logo/Urssaf_blanc.png" alt="Urssaf"></span><span>Des données pour comprendre l’économie de nos territoires.</span></footer>
+  <a class="skip" href="#rubriques">Aller aux rubriques</a>
+
+  <svg class="symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="arrow" viewBox="0 0 24 24">
+      <path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="chart" viewBox="0 0 24 24">
+      <path d="M4 4v16h16M8 15l4-5 4 2 4-6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="building" viewBox="0 0 24 24">
+      <path d="M4 21V4h12v17M16 10h4v11M2 21h20M8 8h4M8 12h4M8 16h4" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="people" viewBox="0 0 24 24">
+      <circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.55"/>
+      <path d="M3 20v-2a6 6 0 0 1 12 0v2M16 5a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 4v2" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+    </symbol>
+  </svg>
+
+  <div class="workspace">
+    <div class="page">
+      <header class="brand-header">
+        <div class="brand">
+          <img class="brand-logo" src="Assets/logo/Urssaf.svg" alt="Urssaf — Au service de notre protection sociale" width="199" height="55" data-logo-source="https://www.urssaf.fr/files/live/sites/urssaffr/files/logos/logo.svg">
+          <span class="brand-title">
+            Panorama économique
+            <span class="brand-subtitle">Les chiffres de vos territoires</span>
+          </span>
+        </div>
+
+        <div class="header-meta">
+          <p class="edition"><span class="edition-date">24 juin 2026</span> · N°189</p>
+        </div>
+      </header>
+
+      <main class="content">
+        <div class="hero">
+          <div class="hero-title-col">
+            <h1>Des chiffres en Opendata. <br>Des clés pour <span class="highlight-word">comprendre.</span></h1>
+          </div>
+          <div class="lead-wrapper">
+            <p class="lead">
+              <strong>L’emploi, les rémunérations et la vie des entreprises.</strong><br>
+              Choisissez votre rubrique, puis votre niveau de lecture.
+            </p>
+          </div>
+        </div>
+
+        <section class="topics" id="rubriques" aria-label="Choisir une rubrique et une lecture" tabindex="-1">
+          <article class="topic" data-topic="chiffres" aria-labelledby="topic-chiffres">
+            <div class="topic-top">
+              <span class="topic-icon">
+                <svg class="icon" aria-hidden="true"><use href="#chart"/></svg>
+              </span>
+              <div class="topic-meta-badge">
+                <span class="topic-index">01</span>
+              </div>
+            </div>
+            <h2 id="topic-chiffres">Les chiffres du mois</h2>
+            <p class="topic-description">Suivez les indicateurs macro-économiques clés et leurs évolutions récentes sur le territoire.</p>
+            <figure class="topic-photo">
+              <div class="topic-photo-frame">
+                <!-- Photo : Carlos Muza | https://unsplash.com/fr/photos/laptop-computer-on-glass-top-table-hpjSkU2UYSU | https://unsplash.com/license -->
+                <img class="topic-photo-img" alt="Un ordinateur portable affiche un tableau de bord avec des graphiques statistiques." decoding="async" src="Assets/Images/landing/chiffres.jpg" data-photo-id="hpjSkU2UYSU" width="1280" height="912" style="object-position: 50% 50%">
+              </div>
+            </figure>
+            <div class="topic-actions">
+              <a class="reading-link bref" href="barometre_bref.html" aria-label="Les chiffres du mois — En bref">
+                <span class="reading-link-left">
+                  <span>Voir en bref</span>
+                </span>
+                <svg class="icon" aria-hidden="true"><use href="#arrow"/></svg>
+              </a>
+              <a class="reading-link details" href="barometre_details.html" aria-label="Les chiffres du mois — En détail">
+                <span class="reading-link-left">
+                  <span>Explorer en détail</span>
+                </span>
+                <svg class="icon" aria-hidden="true"><use href="#arrow"/></svg>
+              </a>
+            </div>
+          </article>
+
+          <article class="topic" data-topic="entreprises" aria-labelledby="topic-entreprises">
+            <div class="topic-top">
+              <span class="topic-icon">
+                <svg class="icon" aria-hidden="true"><use href="#building"/></svg>
+              </span>
+              <div class="topic-meta-badge">
+                <span class="topic-index">02</span>
+              </div>
+            </div>
+            <h2 id="topic-entreprises">Santé des entreprises</h2>
+            <p class="topic-description">Analysez la vitalité du tissu économique et les évolutions de la situation des entreprises.</p>
+            <figure class="topic-photo">
+              <div class="topic-photo-frame">
+                <!-- Photo : LYCS Architecture | https://unsplash.com/fr/photos/trois-personnes-collaborant-en-open-office-U2BI3GMnSSE | https://unsplash.com/license -->
+                <img class="topic-photo-img" alt="Un grand espace de bureaux avec des collaborateurs autour d’une table." decoding="async" src="Assets/Images/landing/entreprises.jpg" data-photo-id="U2BI3GMnSSE" width="1280" height="854" style="object-position: 50% 50%">
+              </div>
+            </figure>
+            <div class="topic-actions">
+              <a class="reading-link bref" href="barometre_bref.html" aria-label="Santé des entreprises — En bref">
+                <span class="reading-link-left">
+                  <span>Voir en bref</span>
+                </span>
+                <svg class="icon" aria-hidden="true"><use href="#arrow"/></svg>
+              </a>
+              <a class="reading-link details" href="barometre_details.html" aria-label="Santé des entreprises — En détail">
+                <span class="reading-link-left">
+                  <span>Explorer en détail</span>
+                </span>
+                <svg class="icon" aria-hidden="true"><use href="#arrow"/></svg>
+              </a>
+            </div>
+          </article>
+
+          <article class="topic" data-topic="emploi" aria-labelledby="topic-emploi">
+            <div class="topic-top">
+              <span class="topic-icon">
+                <svg class="icon" aria-hidden="true"><use href="#people"/></svg>
+              </span>
+              <div class="topic-meta-badge">
+                <span class="topic-index">03</span>
+              </div>
+            </div>
+            <h2 id="topic-emploi">Conjoncture de l’emploi</h2>
+            <p class="topic-description">Visualisez les dynamiques de l’emploi, les embauches et la masse salariale.</p>
+            <figure class="topic-photo">
+              <div class="topic-photo-frame">
+                <!-- Photo : Annie Spratt | https://unsplash.com/fr/photos/groupe-de-personnes-utilisant-un-ordinateur-portable-QckxruozjRg | https://unsplash.com/license -->
+                <img class="topic-photo-img" alt="Plusieurs collègues travaillent ensemble sur leurs ordinateurs autour d’une table." decoding="async" src="Assets/Images/landing/emploi.jpg" data-photo-id="QckxruozjRg" width="1280" height="854" style="object-position: 50% 50%">
+              </div>
+            </figure>
+            <div class="topic-actions">
+              <a class="reading-link bref" href="barometre_bref.html" aria-label="Conjoncture de l’emploi — En bref">
+                <span class="reading-link-left">
+                  <span>Voir en bref</span>
+                </span>
+                <svg class="icon" aria-hidden="true"><use href="#arrow"/></svg>
+              </a>
+              <a class="reading-link details" href="barometre_details.html" aria-label="Conjoncture de l’emploi — En détail">
+                <span class="reading-link-left">
+                  <span>Explorer en détail</span>
+                </span>
+                <svg class="icon" aria-hidden="true"><use href="#arrow"/></svg>
+              </a>
+            </div>
+          </article>
+        </section>
+
+      </main>
+
+      <footer class="footer">
+        <span class="footer-mark">
+          Données Opendata issues de la DSN et des directions métiers
+        </span>
+        <span>Panorama économique · N°189</span>
+      </footer>
+    </div>
   </div>
 </body>
 </html>

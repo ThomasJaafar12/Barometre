@@ -3,46 +3,172 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Découvrez le baromètre économique Urssaf : les chiffres essentiels expliqués simplement ou toutes les données en détail.">
-  <title>Baromètre économique Urssaf · Accueil</title>
+  <meta name="description" content="Panorama économique Urssaf : les chiffres du mois, la santé des entreprises et la conjoncture de l’emploi, en bref ou en détail.">
+  <title>Panorama économique · Urssaf</title>
   <link rel="icon" href="data:,">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
-  <style>__SHARED_CSS__</style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <style>__LANDING_CSS__</style>
 </head>
 <body>
-  <a class="skip-link" href="#contenu">Aller au contenu</a>
-  <div class="site-shell">
-    <header class="site-header">
-      <div class="header-art" aria-hidden="true">__HEADER_ART__</div>
-      <div><h1>Baromètre économique</h1><p class="publication">__PUBLICATION__</p></div>
-    </header>
-    <main id="contenu">
-      <div class="intro">
-        <p class="eyebrow">Urssaf · Les chiffres de vos territoires</p>
-        <h2>L’économie de votre territoire,<br>en clair.</h2>
-        <p>Comment évoluent l’emploi, les rémunérations et la situation des entreprises ? Choisissez la lecture qui vous convient pour comprendre les données du baromètre.</p>
-      </div>
-      <div class="choice-grid">
-        <article class="choice choice-primary">
-          <span class="choice-number">01 · COMPRENDRE L’ESSENTIEL</span>
-          <h3>Le baromètre en bref</h3>
-          <p>Quatre indicateurs, des graphiques simples et des explications accessibles, pour la France et votre région.</p>
-          <ul class="choice-tags"><li>Masse salariale</li><li>Effectifs salariés</li><li>Embauches déclarées</li><li>Procédures collectives</li></ul>
-          <a class="button-link" href="barometre_bref.html">Découvrir l’essentiel <span aria-hidden="true">→</span></a>
-        </article>
-        <article class="choice">
-          <span class="choice-number">02 · EXPLORER LES DONNÉES</span>
-          <h3>Le baromètre détaillé</h3>
-          <p>Retrouvez tous les graphiques, les cartes et les filtres du baromètre pour approfondir votre lecture.</p>
-          <ul class="choice-tags"><li>Secteurs d’activité</li><li>Cartes et classements</li><li>Travailleurs indépendants</li><li>Santé des entreprises</li></ul>
-          <a class="button-link" href="barometre_details.html">Explorer les données <span aria-hidden="true">→</span></a>
-        </article>
-      </div>
-      <p class="reading-note">Les deux lectures utilisent les mêmes sources pour les indicateurs communs. Chaque donnée est accompagnée de sa période de référence.</p>
-    </main>
-    <footer class="site-footer"><span class="logo-badge"><img src="__LOGO_PATH__" alt="Urssaf"></span><span>Des données pour comprendre l’économie de nos territoires.</span></footer>
+  <a class="skip" href="#rubriques">Aller aux rubriques</a>
+
+  <svg class="symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="arrow" viewBox="0 0 24 24">
+      <path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="chart" viewBox="0 0 24 24">
+      <path d="M4 4v16h16M8 15l4-5 4 2 4-6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="building" viewBox="0 0 24 24">
+      <path d="M4 21V4h12v17M16 10h4v11M2 21h20M8 8h4M8 12h4M8 16h4" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="people" viewBox="0 0 24 24">
+      <circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.55"/>
+      <path d="M3 20v-2a6 6 0 0 1 12 0v2M16 5a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 4v2" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+    </symbol>
+  </svg>
+
+  <div class="workspace">
+    <div class="page">
+      <header class="brand-header">
+        <div class="brand">
+          <img class="brand-logo" src="Assets/logo/Urssaf.svg" alt="Urssaf — Au service de notre protection sociale" width="199" height="55" data-logo-source="https://www.urssaf.fr/files/live/sites/urssaffr/files/logos/logo.svg">
+          <span class="brand-title">
+            Panorama économique
+            <span class="brand-subtitle">Les chiffres de vos territoires</span>
+          </span>
+        </div>
+
+        <div class="header-meta">
+          <p class="edition"><span class="edition-date">__PUBLICATION_DATE_LABEL__</span> · N°__PUBLICATION_ISSUE_NUMBER__</p>
+        </div>
+      </header>
+
+      <main class="content">
+        <div class="hero">
+          <div class="hero-title-col">
+            <h1>Des chiffres en Opendata. <br>Des clés pour <span class="highlight-word">comprendre.</span></h1>
+          </div>
+          <div class="lead-wrapper">
+            <p class="lead">
+              <strong>L’emploi, les rémunérations et la vie des entreprises.</strong><br>
+              Choisissez votre rubrique, puis votre niveau de lecture.
+            </p>
+          </div>
+        </div>
+
+        <section class="topics" id="rubriques" aria-label="Choisir une rubrique et une lecture" tabindex="-1">
+          <article class="topic" data-topic="chiffres" aria-labelledby="topic-chiffres">
+            <div class="topic-top">
+              <span class="topic-icon">
+                <svg class="icon" aria-hidden="true"><use href="#chart"/></svg>
+              </span>
+              <div class="topic-meta-badge">
+                <span class="topic-index">01</span>
+              </div>
+            </div>
+            <h2 id="topic-chiffres">Les chiffres du mois</h2>
+            <p class="topic-description">Suivez les indicateurs macro-économiques clés et leurs évolutions récentes sur le territoire.</p>
+            <figure class="topic-photo">
+              <div class="topic-photo-frame">
+                <!-- Photo : Carlos Muza | https://unsplash.com/fr/photos/laptop-computer-on-glass-top-table-hpjSkU2UYSU | https://unsplash.com/license -->
+                <img class="topic-photo-img" alt="Un ordinateur portable affiche un tableau de bord avec des graphiques statistiques." decoding="async" src="Assets/Images/landing/chiffres.jpg" data-photo-id="hpjSkU2UYSU" width="1280" height="912" style="object-position: 50% 50%">
+              </div>
+            </figure>
+            <div class="topic-actions">
+              <a class="reading-link bref" href="barometre_bref.html" aria-label="Les chiffres du mois — En bref">
+                <span class="reading-link-left">
+                  <span>Voir en bref</span>
+                </span>
+                <svg class="icon" aria-hidden="true"><use href="#arrow"/></svg>
+              </a>
+              <a class="reading-link details" href="barometre_details.html" aria-label="Les chiffres du mois — En détail">
+                <span class="reading-link-left">
+                  <span>Explorer en détail</span>
+                </span>
+                <svg class="icon" aria-hidden="true"><use href="#arrow"/></svg>
+              </a>
+            </div>
+          </article>
+
+          <article class="topic" data-topic="entreprises" aria-labelledby="topic-entreprises">
+            <div class="topic-top">
+              <span class="topic-icon">
+                <svg class="icon" aria-hidden="true"><use href="#building"/></svg>
+              </span>
+              <div class="topic-meta-badge">
+                <span class="topic-index">02</span>
+              </div>
+            </div>
+            <h2 id="topic-entreprises">Santé des entreprises</h2>
+            <p class="topic-description">Analysez la vitalité du tissu économique et les évolutions de la situation des entreprises.</p>
+            <figure class="topic-photo">
+              <div class="topic-photo-frame">
+                <!-- Photo : LYCS Architecture | https://unsplash.com/fr/photos/trois-personnes-collaborant-en-open-office-U2BI3GMnSSE | https://unsplash.com/license -->
+                <img class="topic-photo-img" alt="Un grand espace de bureaux avec des collaborateurs autour d’une table." decoding="async" src="Assets/Images/landing/entreprises.jpg" data-photo-id="U2BI3GMnSSE" width="1280" height="854" style="object-position: 50% 50%">
+              </div>
+            </figure>
+            <div class="topic-actions">
+              <a class="reading-link bref" href="barometre_bref.html" aria-label="Santé des entreprises — En bref">
+                <span class="reading-link-left">
+                  <span>Voir en bref</span>
+                </span>
+                <svg class="icon" aria-hidden="true"><use href="#arrow"/></svg>
+              </a>
+              <a class="reading-link details" href="barometre_details.html" aria-label="Santé des entreprises — En détail">
+                <span class="reading-link-left">
+                  <span>Explorer en détail</span>
+                </span>
+                <svg class="icon" aria-hidden="true"><use href="#arrow"/></svg>
+              </a>
+            </div>
+          </article>
+
+          <article class="topic" data-topic="emploi" aria-labelledby="topic-emploi">
+            <div class="topic-top">
+              <span class="topic-icon">
+                <svg class="icon" aria-hidden="true"><use href="#people"/></svg>
+              </span>
+              <div class="topic-meta-badge">
+                <span class="topic-index">03</span>
+              </div>
+            </div>
+            <h2 id="topic-emploi">Conjoncture de l’emploi</h2>
+            <p class="topic-description">Visualisez les dynamiques de l’emploi, les embauches et la masse salariale.</p>
+            <figure class="topic-photo">
+              <div class="topic-photo-frame">
+                <!-- Photo : Annie Spratt | https://unsplash.com/fr/photos/groupe-de-personnes-utilisant-un-ordinateur-portable-QckxruozjRg | https://unsplash.com/license -->
+                <img class="topic-photo-img" alt="Plusieurs collègues travaillent ensemble sur leurs ordinateurs autour d’une table." decoding="async" src="Assets/Images/landing/emploi.jpg" data-photo-id="QckxruozjRg" width="1280" height="854" style="object-position: 50% 50%">
+              </div>
+            </figure>
+            <div class="topic-actions">
+              <a class="reading-link bref" href="barometre_bref.html" aria-label="Conjoncture de l’emploi — En bref">
+                <span class="reading-link-left">
+                  <span>Voir en bref</span>
+                </span>
+                <svg class="icon" aria-hidden="true"><use href="#arrow"/></svg>
+              </a>
+              <a class="reading-link details" href="barometre_details.html" aria-label="Conjoncture de l’emploi — En détail">
+                <span class="reading-link-left">
+                  <span>Explorer en détail</span>
+                </span>
+                <svg class="icon" aria-hidden="true"><use href="#arrow"/></svg>
+              </a>
+            </div>
+          </article>
+        </section>
+
+      </main>
+
+      <footer class="footer">
+        <span class="footer-mark">
+          Données Opendata issues de la DSN et des directions métiers
+        </span>
+        <span>Panorama économique · N°__PUBLICATION_ISSUE_NUMBER__</span>
+      </footer>
+    </div>
   </div>
 </body>
 </html>

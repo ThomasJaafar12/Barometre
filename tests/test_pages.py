@@ -148,11 +148,16 @@ class BriefProjectionTests(unittest.TestCase):
         self.assertIsNone(result["points"][-2]["yearlyChange"])
 
     def test_comparisons_are_computed_before_windowing(self):
-        points = [{"date": f"{year}-{month:02d}-01", "value": year} for year in range(2020, 2026) for month in range(1, 13)]
+        points = [{"date": f"{year}-{month:02d}-01", "value": year} for year in range(2010, 2026) for month in range(1, 13)]
         monthly = indicator_series(points, "month")["points"]
-        self.assertEqual(len(monthly), 36)
-        self.assertIsNotNone(monthly[0]["yearlyChange"])
-        self.assertEqual(len(indicator_series(points, "quarter")["points"]), 12)
+        self.assertEqual(len(monthly), 121)
+        self.assertEqual((monthly[0]["date"], monthly[-1]["date"]), ("2015-12-01", "2025-12-01"))
+        self.assertAlmostEqual(monthly[0]["yearlyChange"], (2015 / 2014 - 1) * 100)
+        quarters = [point for point in points if point["date"][5:7] in ("03", "06", "09", "12")]
+        quarterly = indicator_series(quarters, "quarter")["points"]
+        self.assertEqual(len(quarterly), 41)
+        self.assertEqual((quarterly[0]["date"], quarterly[-1]["date"]), ("2015-12-01", "2025-12-01"))
+        self.assertAlmostEqual(quarterly[0]["yearlyChange"], (2015 / 2014 - 1) * 100)
 
     def test_missing_and_zero_denominators_are_unavailable(self):
         for previous in (0, None):

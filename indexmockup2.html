@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Baromètre économique Urssaf · Variantes de Couleurs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ==============================================================
+       BASE STYLES & LAYOUT (Elegant Data Foundation)
+       ============================================================== */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      background-color: #F0F4F8;
+      color: #102A43;
+      transition: all 0.3s ease;
+    }
+    
+    .site-shell {
+      max-width: 1200px;
+      margin: 40px auto;
+      background: #FFFFFF;
+      border: 1px solid #D9E2EC;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(16, 42, 67, 0.05);
+      overflow: hidden;
+    }
+
+    /* Header */
+    .site-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 30px 40px;
+      background: #FFFFFF;
+      color: #0B2545;
+      border-bottom: 1px solid #D9E2EC;
+    }
+    .site-header h1 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 2rem;
+      letter-spacing: -0.03em;
+    }
+    .publication {
+      font-size: 0.9rem;
+      font-weight: 600;
+      opacity: 0.8;
+      margin-top: 4px;
+      color: #486581;
+    }
+
+    /* Main Content */
+    main { padding: 60px 40px; }
+    .eyebrow {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      font-weight: 700;
+      color: #164C8E;
+      margin-bottom: 16px;
+    }
+    .intro h2 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 2.8rem;
+      line-height: 1.1;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      margin-bottom: 20px;
+      color: #0B2545;
+    }
+    .intro p {
+      font-size: 1.1rem;
+      color: #486581;
+      max-width: 700px;
+    }
+
+    /* Grid & Cards */
+    .choice-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-top: 50px;
+    }
+    .choice {
+      padding: 40px;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #D9E2EC;
+      background: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(16,42,67,0.03);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .choice:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(16,42,67,0.08);
+    }
+    
+    .choice-primary {
+      background: #F0F9FF;
+      border-color: #BCCCDC;
+    }
+    
+    .choice-number {
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #164C8E;
+    }
+    .choice-primary .choice-number { color: #0284C7; }
+    
+    .choice h3 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.75rem;
+      margin-bottom: 15px;
+    }
+    .choice p { margin-bottom: 30px; font-size: 1rem; color: #486581; }
+    .choice-primary p { color: #334E68; }
+
+    /* Base Tags (Card 2) */
+    .choice-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      list-style: none;
+      margin-bottom: 40px;
+    }
+    .choice-tags li {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 4px;
+      background: #F0F4F8;
+      color: #243B53;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+
+    /* Base Colored Tags (Card 1) - Overridden by Variants below */
+    .colored-tags li {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Buttons */
+    .button-link {
+      margin-top: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 24px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+      border-radius: 4px;
+      background: #102A43;
+      color: #FFFFFF;
+      transition: opacity 0.2s;
+      width: fit-content;
+    }
+    .choice-primary .button-link { background: #0284C7; }
+    .button-link:hover { opacity: 0.9; }
+
+    /* Footer */
+    .site-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      border-top: 1px solid #D9E2EC;
+      font-size: 0.85rem;
+      color: #486581;
+      background: #FFFFFF;
+    }
+
+    /* ==============================================================
+       THE THEME VARIANTS (Focusing on Elegant Color Application)
+       ============================================================== */
+    .theme-switcher {
+      text-align: center;
+      padding: 20px;
+      background: #FFFFFF;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid #D9E2EC;
+      box-shadow: 0 2px 10px rgba(16,42,67,0.02);
+    }
+    .theme-switcher button {
+      padding: 8px 16px;
+      margin: 0 5px;
+      cursor: pointer;
+      border: 1px solid #D9E2EC;
+      background: #F0F4F8;
+      color: #243B53;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      transition: all 0.2s;
+    }
+    .theme-switcher button:hover { background: #E2E8F0; }
+    .theme-switcher button.active {
+      background: #102A43;
+      color: #FFFFFF;
+      border-color: #102A43;
+    }
+
+    /* VARIANT 1: Soft Pastel Backgrounds (Light & Airy) */
+    .v1-pastel .colored-tags .tag-masse { background: #FFE4E6; color: #9F1239; border-color: transparent; }
+    .v1-pastel .colored-tags .tag-effectifs { background: #E0F2FE; color: #075985; border-color: transparent; }
+    .v1-pastel .colored-tags .tag-embauches { background: #FEF3C7; color: #92400E; border-color: transparent; }
+    .v1-pastel .colored-tags .tag-procedures { background: #F3E8FF; color: #5B21B6; border-color: transparent; }
+
+    /* VARIANT 2: Subtle Outlines (Ghost buttons style, very clean) */
+    .v2-outline .colored-tags li { background: #FFFFFF; }
+    .v2-outline .colored-tags .tag-masse { border-color: #F43F5E; color: #E11D48; }
+    .v2-outline .colored-tags .tag-effectifs { border-color: #38BDF8; color: #0284C7; }
+    .v2-outline .colored-tags .tag-embauches { border-color: #FBBF24; color: #D97706; }
+    .v2-outline .colored-tags .tag-procedures { border-color: #A78BFA; color: #7C3AED; }
+
+    /* VARIANT 3: Left Accent Border (Professional & Structured) */
+    .v3-accent .colored-tags li { background: #FFFFFF; color: #334E68; border: 1px solid #D9E2EC; border-radius: 2px; }
+    .v3-accent .colored-tags .tag-masse { border-left: 4px solid #E11D48; }
+    .v3-accent .colored-tags .tag-effectifs { border-left: 4px solid #0284C7; }
+    .v3-accent .colored-tags .tag-embauches { border-left: 4px solid #F59E0B; }
+    .v3-accent .colored-tags .tag-procedures { border-left: 4px solid #7C3AED; }
+
+    /* VARIANT 4: Colored Dots Indicator (Minimalist Data approach) */
+    .v4-dot .colored-tags li { background: #FFFFFF; color: #334E68; border: 1px solid #D9E2EC; border-radius: 100px; padding-left: 10px; }
+    .v4-dot .colored-tags li::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .v4-dot .colored-tags .tag-masse::before { background: #E11D48; }
+    .v4-dot .colored-tags .tag-effectifs::before { background: #0284C7; }
+    .v4-dot .colored-tags .tag-embauches::before { background: #F59E0B; }
+    .v4-dot .colored-tags .tag-procedures::before { background: #7C3AED; }
+
+    /* VARIANT 5: Deep Muted Solids (Desaturated colors with white text, mature feel) */
+    .v5-muted .colored-tags .tag-masse { background: #9F1239; color: #FFFFFF; }
+    .v5-muted .colored-tags .tag-effectifs { background: #075985; color: #FFFFFF; }
+    .v5-muted .colored-tags .tag-embauches { background: #92400E; color: #FFFFFF; }
+    .v5-muted .colored-tags .tag-procedures { background: #5B21B6; color: #FFFFFF; }
+
+    @media (max-width: 768px) {
+      .choice-grid { grid-template-columns: 1fr; }
+      .site-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .site-shell { margin: 10px; }
+      main { padding: 30px 20px; }
+    }
+  </style>
+</head>
+<body class="v1-pastel"> <!-- Default to Variant 1 -->
+
+  <div class="theme-switcher">
+    <strong>Variantes de tags colorés : </strong>
+    <button onclick="setTheme('v1-pastel')" class="active" id="btn-v1">1. Pastel (Fonds clairs)</button>
+    <button onclick="setTheme('v2-outline')" id="btn-v2">2. Contours fins</button>
+    <button onclick="setTheme('v3-accent')" id="btn-v3">3. Accent latéral</button>
+    <button onclick="setTheme('v4-dot')" id="btn-v4">4. Puces colorées</button>
+    <button onclick="setTheme('v5-muted')" id="btn-v5">5. Aplats sobres</button>
+  </div>
+
+  <div class="site-shell">
+    <header class="site-header">
+      <div>
+        <h1>Baromètre économique</h1>
+        <p class="publication">24 juin 2026 · N°189[cite: 1, 6]</p>
+      </div>
+      <div class="header-logo">
+        <svg width="120" height="40" viewBox="0 0 120 40" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <rect width="120" height="40" rx="4" fill="#164C8E" fill-opacity="0.1"/>
+          <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-weight="700" font-family="Plus Jakarta Sans" fill="#164C8E">Urssaf</text>
+        </svg>
+      </div>
+    </header>
+
+    <main>
+      <div class="intro">
+        <p class="eyebrow">Urssaf · Les chiffres de vos territoires[cite: 1, 6]</p>
+        <h2>L’économie de votre territoire,<br>en clair.[cite: 1, 6]</h2>
+        <p>Comment évoluent l’emploi, les rémunérations et la situation des entreprises ? Choisissez la lecture qui vous convient pour comprendre les données du baromètre.[cite: 1, 6]</p>
+      </div>
+
+      <div class="choice-grid">
+        <article class="choice choice-primary">
+          <span class="choice-number">01 · COMPRENDRE L’ESSENTIEL[cite: 1, 6]</span>
+          <h3>Le baromètre en bref[cite: 1, 6]</h3>
+          <p>Quatre indicateurs, des graphiques simples et des explications accessibles, pour la France et votre région.[cite: 1, 6]</p>
+          
+          <!-- Colored Indicator Tags -->
+          <ul class="choice-tags colored-tags">
+            <li class="tag-masse">Masse salariale[cite: 1, 6]</li>
+            <li class="tag-effectifs">Effectifs salariés[cite: 1, 6]</li>
+            <li class="tag-embauches">Embauches déclarées[cite: 1, 6]</li>
+            <li class="tag-procedures">Procédures collectives[cite: 1, 6]</li>
+          </ul>
+          
+          <a class="button-link" href="#">Découvrir l’essentiel &rarr;[cite: 1, 6]</a>
+        </article>
+
+        <article class="choice">
+          <span class="choice-number">02 · EXPLORER LES DONNÉES[cite: 1, 6]</span>
+          <h3>Le baromètre détaillé[cite: 1, 6]</h3>
+          <p>Retrouvez tous les graphiques, les cartes et les filtres du baromètre pour approfondir votre lecture.[cite: 1, 6]</p>
+          
+          <!-- Standard Tags -->
+          <ul class="choice-tags">
+            <li>Secteurs d’activité[cite: 1, 6]</li>
+            <li>Cartes et classements[cite: 1, 6]</li>
+            <li>Travailleurs indépendants[cite: 1, 6]</li>
+            <li>Santé des entreprises[cite: 1, 6]</li>
+          </ul>
+          
+          <a class="button-link" href="#">Explorer les données &rarr;[cite: 1, 6]</a>
+        </article>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <span>Des données pour comprendre l’économie de nos territoires.[cite: 1, 6]</span>
+      <strong>urssaf.fr</strong>
+    </footer>
+  </div>
+
+  <script>
+    function setTheme(themeName) {
+      document.body.className = themeName;
+      document.querySelectorAll('.theme-switcher button').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('btn-' + themeName.split('-')[0]).classList.add('active');
+    }
+  </script>
+</body>
+</html>

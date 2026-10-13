@@ -17,7 +17,7 @@ import pandas as pd
 
 from barometre_builder.brief import build_bref_payload, indicator_series
 from barometre_builder.context import BuildContext, build_context
-from barometre_builder.dpae import build_dpae_module
+from barometre_builder.dpae import build_dpae_module, compact_dpae_payload
 from barometre_builder.dependencies import PAGE_DEPENDENCIES, SCRIPTS
 from barometre_builder import page
 from barometre_builder.renderers import RENDERERS
@@ -53,6 +53,7 @@ def example_context() -> BuildContext:
     pcol = {"modes": {"all": {"population-entiere": [["2024-04-01", 10, 20], ["2025-04-01", 8, 12]]}}}
     deferred = {"modules": {"sector": {"regional": {"national": sector, "regions": {"11": sector}}}, "pcol": {"national": pcol, "regions": {"11": pcol}}}}
     dpae = {"national": {"points": [{"date": "2025-05-01", "value": 30}, {"date": "2026-05-01", "value": 33}]}, "regions": {}, "coveredRegions": ["11"]}
+    deferred["modules"]["dpae"] = dpae
     return BuildContext(boot, deferred, build_bref_payload(boot, deferred, dpae))
 
 
@@ -76,6 +77,34 @@ class DpaeTests(unittest.TestCase):
         self.assertEqual(module["regions"]["84"]["points"][-1]["value"], 96)
         self.assertEqual(module["national"]["points"][-1]["value"], 96)
         self.assertEqual(module["coveredRegions"], ["04", "84"])
+
+    def test_contract_breakdown_and_long_contracts_reconcile_with_total(self):
+        module = self.build()
+        regional = module["regions"]["84"]["points"][-1]
+        self.assertEqual([regional[key] for key in ("cdi", "cddlong", "cddcourt")], [21, 32, 43])
+        self.assertEqual(regional["long"], 53)
+        self.assertEqual(regional["value"], regional["long"] + regional["cddcourt"])
+        self.assertEqual(module["national"]["points"][-1]["long"], regional["long"])
+
+    def test_missing_short_contracts_preserve_available_long_contracts(self):
+        frame = self.frame()
+        frame.loc[1, "due_cddcourt"] = float("nan")
+        point = self.build(frame)["regions"]["84"]["points"][-1]
+        self.assertIsNone(point["value"])
+        self.assertIsNone(point["cddcourt"])
+        self.assertEqual(point["long"], 53)
+        self.assertEqual(point["cdi"], 21)
+
+    def test_embedded_history_keeps_prior_year_without_mutating_source(self):
+        module = self.build()
+        source = module["regions"]["84"]["points"]
+        source[:0] = [{"date": "2012-01-01", "value": 60, "long": 30},
+                      {"date": "2013-01-01", "value": 60, "long": 30}]
+        compact = compact_dpae_payload(module)
+        self.assertEqual(compact["regions"]["84"]["points"][0]["date"], "2013-01-01")
+        self.assertNotIn("long", compact["regions"]["84"]["points"][-1])
+        self.assertEqual(source[0]["date"], "2012-01-01")
+        self.assertEqual(source[-1]["long"], 53)
 
     def test_zero_and_missing_territory_are_distinct(self):
         module = self.build()
@@ -191,10 +220,25 @@ class PageSecurityTests(unittest.TestCase):
 class OrchestrationTests(unittest.TestCase):
     def test_shared_payloads_and_dpae_are_built_once(self):
         context = example_context()
-        with mock.patch("barometre_builder.context.build_payloads", return_value=(context.boot, context.deferred)) as payloads, mock.patch("barometre_builder.context.build_dpae_module", return_value={"national": {"points": []}, "regions": {}, "coveredRegions": []}) as dpae:
-            build_context()
+        with mock.patch("barometre_builder.context.build_payloads", return_value=(context.boot, context.deferred)) as payloads, mock.patch("barometre_builder.context.build_bref_payload", wraps=build_bref_payload) as brief:
+            result = build_context()
         payloads.assert_called_once()
-        dpae.assert_called_once()
+        brief.assert_called_once_with(context.boot, context.deferred, context.deferred["modules"]["dpae"])
+        self.assertIs(result.deferred["modules"]["dpae"], context.deferred["modules"]["dpae"])
+
+    def test_dpae_workbook_is_read_once_for_both_readings(self):
+        context = example_context()
+        module = context.deferred["modules"]["dpae"]
+        regions = {region["code"]: region for region in context.boot["regions"]}
+        bundle = {"videos": context.boot["assets"]["videos"], "modules": context.deferred["modules"]}
+        hero = {"regions": context.boot["regions"], "national": {}}
+        with mock.patch("barometre_builder.payloads.build_geographies", return_value=({}, {}, regions)), \
+             mock.patch("barometre_builder.payloads.build_modules", return_value=(bundle, hero)), \
+             mock.patch("barometre_builder.payloads.build_dpae_module", return_value=module) as prepare:
+            result = build_context()
+        prepare.assert_called_once()
+        self.assertEqual(result.deferred["modules"]["dpae"], compact_dpae_payload(module))
+        self.assertEqual(result.brief["scopes"]["national"]["dpae"]["points"][-1]["value"], module["national"]["points"][-1]["value"])
 
     def test_build_writes_three_validated_outputs(self):
         with tempfile.TemporaryDirectory() as directory, mock.patch.object(page, "ROOT", Path(directory)), mock.patch.object(page, "build_context", return_value=example_context()):

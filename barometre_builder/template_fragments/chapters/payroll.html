@@ -112,6 +112,100 @@
             </article>
           </div>
 
+          <div class="payroll-dpae-block" id="module-dpae">
+            <article class="employment-block snap-card dpae-card" data-snap-card data-snap-label="Déclarations préalables à l’embauche" data-snap-nav-label="DPAE" aria-label="Déclarations préalables à l’embauche">
+              <div class="section-grid employment-grid delai-grid">
+                <div class="viz-panel employment-main dpae-main">
+                  <div class="employment-intro delai-intro">
+                    <div class="viz-title employment-title">
+                      <strong id="dpaeChartTitle">Déclarations préalables à l’embauche</strong>
+                    </div>
+                    <div class="employment-controls dpae-controls">
+                      <span class="mono employment-select-label">Type de contrat</span>
+                      <div class="metric-switch delai-mode-switch" id="dpaeModeSwitch" aria-label="Type de contrat des déclarations préalables à l’embauche"></div>
+                    </div>
+                  </div>
+                  <div class="employment-chart-shell dpae-chart-shell">
+                    <svg id="dpaeChartSvg" viewBox="0 0 980 560" role="img" aria-labelledby="dpaeChartTitleSvg dpaeChartDescSvg">
+                      <title id="dpaeChartTitleSvg">Évolution mensuelle des déclarations préalables à l’embauche</title>
+                      <desc id="dpaeChartDescSvg">Nombre de déclarations pour le contrat sélectionné et pour les CDI et CDD longs, sur une même échelle.</desc>
+                    </svg>
+                    <div id="dpaeTooltip" class="employment-tooltip" aria-hidden="true">
+                      <div class="tooltip-overline"></div>
+                      <div class="tooltip-body"></div>
+                    </div>
+                  </div>
+                  <div class="legend-row employment-legend delai-legend">
+                    <span class="legend-chip"><i class="legend-line" style="color: var(--accent); height: 3px;"></i><span id="dpaeLegendNb">Tous contrats</span></span>
+                    <span class="legend-chip"><i class="legend-line" style="color: var(--accent-secondary); height: 3px;"></i><span>CDI et CDD longs</span></span>
+                  </div>
+                  <p class="pcol-data-note">Source : Urssaf · données mensuelles du fichier fourni. Les DPAE ne mesurent pas les créations nettes d’emplois.</p>
+                  <p class="pcol-data-note dpae-coverage-note" id="dpaeCoverageNote" role="status"></p>
+                </div>
+                <div class="viz-panel employment-side employment-dashboard-panel dpae-dashboard-panel">
+                  <div class="employment-dashboard-context" aria-label="Périmètre et période des données">
+                    <span id="dpaeScope"></span>
+                    <time id="dpaePeriod"></time>
+                  </div>
+                  <div class="delai-kpis-wrapper">
+                    <div class="delai-kpi-block">
+                      <div class="employment-dashboard-level">
+                        <span class="employment-dashboard-level-label" id="dpaeCurrentNbLabel">Nombre de DPAE · tous contrats</span>
+                        <strong class="employment-dashboard-level-value delai-level-value" id="dpaeCurrentNb"></strong>
+                      </div>
+                      <div class="employment-dashboard-stats">
+                        <div class="employment-dashboard-stat">
+                          <span class="employment-dashboard-stat-label">Gliss. annuel</span>
+                          <strong class="employment-dashboard-trend" id="dpaeCurrentNbYoY">
+                            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0 7 7M12 3v18"></path></svg>
+                            <span></span>
+                          </strong>
+                        </div>
+                        <div class="employment-dashboard-stat">
+                          <span class="employment-dashboard-stat-label">Gliss. mensuel</span>
+                          <strong class="employment-dashboard-trend" id="dpaeCurrentNbMoM">
+                            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0 7 7M12 3v18"></path></svg>
+                            <span></span>
+                          </strong>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="delai-kpi-block">
+                      <div class="employment-dashboard-level">
+                        <span class="employment-dashboard-level-label">CDI et CDD longs</span>
+                        <strong class="employment-dashboard-level-value delai-level-value" id="dpaeCurrentLong"></strong>
+                        <span class="delai-sector-nb dpae-long-share" id="dpaeLongShare"></span>
+                      </div>
+                      <div class="employment-dashboard-stats">
+                        <div class="employment-dashboard-stat">
+                          <span class="employment-dashboard-stat-label">Gliss. annuel</span>
+                          <strong class="employment-dashboard-trend" id="dpaeCurrentLongYoY">
+                            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0 7 7M12 3v18"></path></svg>
+                            <span></span>
+                          </strong>
+                        </div>
+                        <div class="employment-dashboard-stat">
+                          <span class="employment-dashboard-stat-label">Gliss. mensuel</span>
+                          <strong class="employment-dashboard-trend" id="dpaeCurrentLongMoM">
+                            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0 7 7M12 3v18"></path></svg>
+                            <span></span>
+                          </strong>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="delai-top-sectors-block">
+                    <div class="delai-top-sectors-head">
+                      <strong class="delai-top-sectors-title">Répartition par contrat</strong>
+                      <span class="mono delai-top-sectors-meta" id="dpaeContractsMeta">Dernier mois</span>
+                    </div>
+                    <div class="delai-top-table-wrapper" id="dpaeContractsTable"></div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+
           <div class="payroll-delai-block" id="module-delai">
             <article class="employment-block snap-card delai-card" data-snap-card data-snap-label="Accords de délais de paiement des indépendants" data-snap-nav-label="Délais indépendants" aria-label="Accords de délais de paiement des indépendants">
               <div class="section-grid employment-grid delai-grid">

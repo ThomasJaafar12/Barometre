@@ -1,8 +1,9 @@
 """Préparation des données historiques de la version détaillée."""
 from .config import (
-    DOM_REGION_CODES, EXPERIENCE_REGION_CODES, LOGO_PATH, MAP_LAYOUT,
+    DOM_REGION_CODES, DPAE_CACHE_PATH, EXPERIENCE_REGION_CODES, LOGO_PATH, MAP_LAYOUT,
     PUBLICATION_DATE_LABEL, PUBLICATION_ISSUE_NUMBER,
 )
+from .dpae import build_dpae_module, compact_dpae_payload
 from .geometry import build_geographies
 from .modules import build_modules
 from .palettes import build_color_system
@@ -12,6 +13,8 @@ from .utils import relative_asset
 def build_payloads() -> tuple[dict, dict]:
     regions_geojson, departments_geojson, region_meta = build_geographies()
     bundle, hero = build_modules(region_meta)
+    dpae = compact_dpae_payload(build_dpae_module(region_meta, cache_path=DPAE_CACHE_PATH))
+    modules = {**bundle["modules"], "dpae": dpae}
     boot = {
         "meta": {
             "publicationDateLabel": PUBLICATION_DATE_LABEL,
@@ -26,4 +29,4 @@ def build_payloads() -> tuple[dict, dict]:
         "nationalHero": hero["national"],
         "geography": {"regions": regions_geojson},
     }
-    return boot, {"geography": {"departments": departments_geojson}, "modules": bundle["modules"]}
+    return boot, {"geography": {"departments": departments_geojson}, "modules": modules}

@@ -23,6 +23,7 @@ OUTPUT_PAGES = ("index.html", "barometre_bref.html", "barometre_details.html")
 TEMPLATE_PATH = ROOT / "barometre.template.html"
 PAGE_TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 DPAE_EXCEL_PATH = DATA_DIR / "donnees_dpae_regions.xlsx"
+DPAE_DISPLAY_START_DATE = "2014-01-01"
 PUBLICATION_DATE_LABEL = os.getenv("BAROMETRE_PUBLICATION_DATE", "24 juin 2026")
 PUBLICATION_ISSUE_NUMBER = os.getenv("BAROMETRE_ISSUE_NUMBER", "189")
 

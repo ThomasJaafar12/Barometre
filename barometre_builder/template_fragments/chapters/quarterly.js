@@ -34,7 +34,7 @@
       });
 
       function drawQuarterlyComparisonChart(config) {
-        const { svgId, tooltipId, points, series, description, scope } = config;
+        const { svgId, tooltipId, points, series, description, scope, sharedScale = false, periodLabel = quarterLabel } = config;
         quarterlyChartConfigs.set(svgId, config);
         const svg = d3.select(`#${svgId}`);
         const tooltip = document.getElementById(tooltipId);
@@ -50,7 +50,7 @@
         const viewBoxWidth = compact ? Math.max(280, availableWidth) : 980;
         const viewBoxHeight = compact ? 360 : 560;
         svg.attr("viewBox", `0 0 ${viewBoxWidth} ${viewBoxHeight}`);
-        const margin = { top: 32, right: compact ? 58 : 74, bottom: compact ? 44 : 54, left: compact ? 56 : 74 };
+        const margin = { top: 32, right: sharedScale ? 24 : compact ? 58 : 74, bottom: compact ? 44 : 54, left: compact ? 56 : 74 };
         const width = viewBoxWidth - margin.left - margin.right;
         const height = viewBoxHeight - margin.top - margin.bottom;
         const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
@@ -58,16 +58,18 @@
         const gridColor = paletteToken("employment-chart-grid", "rgba(148,163,184,0.18)");
         const gridStrong = paletteToken("employment-chart-grid-strong", "rgba(148,163,184,0.28)");
 
-        if (!points.length) {
+        if (!points.some((point) => series.some((item) => Number.isFinite(point[item.key])))) {
           g.append("text").attr("x", width / 2).attr("y", height / 2).attr("text-anchor", "middle")
-            .attr("fill", muted).style("font-size", "18px").text("Aucune donnée disponible pour ce territoire.");
+            .attr("fill", muted).style("font-size", compact ? "13px" : "18px")
+            .text(compact ? "Données indisponibles" : "Aucune donnée disponible pour ce territoire.");
           return;
         }
 
         const dates = points.map((point) => point.date);
         const x = d3.scalePoint().domain(dates).range([0, width]).padding(0.3);
+        const sharedMaximum = sharedScale ? d3.max(series, (item) => d3.max(points, (point) => point[item.key])) : null;
         const yScales = series.map((item) => d3.scaleLinear()
-          .domain([0, Math.max(10, d3.max(points, (point) => point[item.key]) || 0) * 1.12]).nice().range([height, 0]));
+          .domain([0, Math.max(10, (sharedScale ? sharedMaximum : d3.max(points, (point) => point[item.key])) || 0) * 1.12]).nice().range([height, 0]));
         g.append("g").call(d3.axisLeft(yScales[0]).ticks(compact ? 4 : 6).tickSize(-width).tickFormat(""))
           .call((axis) => {
             axis.select(".domain").remove();
@@ -83,30 +85,33 @@
             .attr("x1", "0%").attr("x2", "0%").attr("y1", "0%").attr("y2", "100%");
           gradient.append("stop").attr("offset", "0%").attr("stop-color", item.color).attr("stop-opacity", 0.2);
           gradient.append("stop").attr("offset", "100%").attr("stop-color", item.color).attr("stop-opacity", 0);
-          const area = d3.area().x((point) => x(point.date)).y0(height).y1((point) => y(point[item.key])).curve(d3.curveMonotoneX);
-          const line = d3.line().x((point) => x(point.date)).y((point) => y(point[item.key])).curve(d3.curveMonotoneX);
+          const defined = (point) => Number.isFinite(point[item.key]);
+          const area = d3.area().defined(defined).x((point) => x(point.date)).y0(height).y1((point) => y(point[item.key])).curve(d3.curveMonotoneX);
+          const line = d3.line().defined(defined).x((point) => x(point.date)).y((point) => y(point[item.key])).curve(d3.curveMonotoneX);
           g.append("path").attr("d", area(points)).attr("fill", `url(#${gradientId})`);
           g.append("path").attr("class", "quarterly-series").attr("data-metric", item.key)
             .attr("d", line(points)).attr("fill", "none").attr("stroke", item.color)
             .attr("stroke-width", compact ? 2.4 : 3.2).attr("stroke-linecap", "round");
-          g.append("g").selectAll("circle").data(points).join("circle")
+          g.append("g").selectAll("circle").data(points.filter(defined)).join("circle")
             .attr("cx", (point) => x(point.date)).attr("cy", (point) => y(point[item.key]))
             .attr("r", compact ? 2 : 3.5).attr("fill", item.color).attr("stroke", "#FFFFFF").attr("stroke-width", compact ? 1 : 1.8);
 
-          const axis = g.append("g").attr("transform", `translate(${index ? width : 0},0)`)
-            .call((index ? d3.axisRight(y) : d3.axisLeft(y)).ticks(compact ? 4 : 6).tickFormat(item.format));
-          axis.select(".domain").attr("stroke", gridStrong);
-          axis.selectAll("line").attr("stroke", gridStrong);
-          axis.selectAll("text").attr("fill", item.color)
-            .style("font-family", "IBM Plex Mono, monospace").style("font-size", "11px").style("font-weight", "600");
-          axis.append("text").attr("x", index ? 10 : -10).attr("y", -14)
-            .attr("fill", item.color).attr("text-anchor", index ? "end" : "start")
-            .style("font-family", "Manrope, sans-serif").style("font-size", "11px").style("font-weight", "600").text(compact ? item.compactAxisLabel : item.axisLabel);
+          if (!sharedScale || index === 0) {
+            const axis = g.append("g").attr("transform", `translate(${index ? width : 0},0)`)
+              .call((index ? d3.axisRight(y) : d3.axisLeft(y)).ticks(compact ? 4 : 6).tickFormat(compact ? item.compactFormat || item.format : item.format));
+            axis.select(".domain").attr("stroke", gridStrong);
+            axis.selectAll("line").attr("stroke", gridStrong);
+            axis.selectAll("text").attr("fill", item.color)
+              .style("font-family", "IBM Plex Mono, monospace").style("font-size", "11px").style("font-weight", "600");
+            axis.append("text").attr("x", index ? 10 : -10).attr("y", -14)
+              .attr("fill", item.color).attr("text-anchor", index ? "end" : "start")
+              .style("font-family", "Manrope, sans-serif").style("font-size", "11px").style("font-weight", "600").text(compact ? item.compactAxisLabel : item.axisLabel);
+          }
           markers.push(g.append("circle").attr("r", 6).attr("fill", item.color)
             .attr("stroke", "#FFFFFF").attr("stroke-width", 2.5).style("opacity", 0));
         });
 
-        const tickStep = compact ? Math.max(1, Math.ceil(dates.length / 3)) : dates.length > 36 ? 4 : dates.length > 20 ? 2 : 1;
+        const tickStep = compact ? Math.max(1, Math.ceil(dates.length / 3)) : config.tickInterval || (dates.length > 36 ? 4 : dates.length > 20 ? 2 : 1);
         const tickIndices = dates.map((_, index) => index).filter((index) => index % tickStep === 0);
         const lastIndex = dates.length - 1;
         if (tickIndices[tickIndices.length - 1] !== lastIndex) {
@@ -114,7 +119,7 @@
           tickIndices.push(lastIndex);
         }
         const xAxis = g.append("g").attr("transform", `translate(0,${height})`)
-          .call(d3.axisBottom(x).tickValues(tickIndices.map((index) => dates[index])).tickFormat(quarterLabel));
+          .call(d3.axisBottom(x).tickValues(tickIndices.map((index) => dates[index])).tickFormat(periodLabel));
         xAxis.selectAll("path,line").attr("stroke", gridStrong);
         xAxis.selectAll("text").attr("fill", muted)
           .style("font-family", "IBM Plex Mono, monospace").style("font-size", "11px").attr("dy", "1.2em");
@@ -130,13 +135,17 @@
         };
         const showTooltip = (event) => {
           const [mouseX] = d3.pointer(event, g.node());
-          // The quarterly points are evenly spaced: locate the nearest in O(1).
+          // Les points sont régulièrement espacés : trouver le plus proche en O(1).
           const index = Math.max(0, Math.min(points.length - 1, Math.round((mouseX - x(dates[0])) / (x.step() || 1))));
           const point = points[index];
           const posX = x(point.date);
           crosshair.attr("x1", posX).attr("x2", posX).style("opacity", 0.6);
-          markers.forEach((marker, i) => marker.attr("cx", posX).attr("cy", yScales[i](point[series[i].key])).style("opacity", 1));
-          tooltip.querySelector(".tooltip-overline").textContent = `${quarterLabel(point.date)} • ${scope}`;
+          markers.forEach((marker, i) => {
+            const value = point[series[i].key];
+            marker.style("opacity", Number.isFinite(value) ? 1 : 0);
+            if (Number.isFinite(value)) marker.attr("cx", posX).attr("cy", yScales[i](value));
+          });
+          tooltip.querySelector(".tooltip-overline").textContent = `${periodLabel(point.date)} • ${scope}`;
           const body = tooltip.querySelector(".tooltip-body");
           body.replaceChildren();
           series.forEach((item) => {
@@ -163,7 +172,8 @@
           const shellBounds = chartShell.getBoundingClientRect();
           const svgBounds = svg.node().getBoundingClientRect();
           const screenX = svgBounds.left - shellBounds.left + (margin.left + posX) * svgBounds.width / viewBoxWidth;
-          const screenY = svgBounds.top - shellBounds.top + (margin.top + Math.min(...series.map((item, i) => yScales[i](point[item.key])))) * svgBounds.height / viewBoxHeight;
+          const positions = series.flatMap((item, i) => Number.isFinite(point[item.key]) ? [yScales[i](point[item.key])] : []);
+          const screenY = svgBounds.top - shellBounds.top + (margin.top + (positions.length ? Math.min(...positions) : height / 2)) * svgBounds.height / viewBoxHeight;
           const tooltipWidth = tooltip.offsetWidth;
           const left = screenX + 16 + tooltipWidth <= shellBounds.width ? screenX + 16 : screenX - tooltipWidth - 16;
           tooltip.style.left = `${Math.max(8, Math.min(shellBounds.width - tooltipWidth - 8, left))}px`;

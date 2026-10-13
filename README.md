@@ -46,6 +46,8 @@ La synthèse présente la masse salariale et les effectifs trimestriels corrigé
 
 Les DPAE additionnent les CDI, les CDD longs et les CDD courts. La colonne `due_long`, déjà comprise dans ces catégories, n’est pas ajoutée. Les anciennes régions sont agrégées par région actuelle et mois. Les territoires absents, dont Mayotte dans le fichier actuel, et les observations incomplètes sont indiqués comme indisponibles. Le périmètre national disponible est précisé. Les DPAE ne représentent pas les créations nettes d’emplois.
 
+Dans la version détaillée, le chapitre « Santé des entreprises » présente les DPAE mensuelles depuis 2014. Les filtres permettent de suivre tous les contrats, les CDI, les CDD longs ou les CDD courts ; le total des CDI et CDD longs reste visible pour comparaison, sur la même échelle. Les cartes présentent les glissements annuel et mensuel et le tableau détaille les trois types de contrats. Les comparaisons utilisent le même mois de l’année précédente et le mois précédent, avant la sélection de la fenêtre affichée. Les données du classeur sont utilisées telles quelles, sans supposer un traitement saisonnier absent de ses métadonnées.
+
 Chaque indicateur possède sa propre période : la date de publication n’est pas la date des observations. Les mêmes sources et agrégats sont utilisés dans les deux lectures pour les indicateurs communs.
 
 Les géographies simplifiées sont conservées dans `.cache/barometre/`. Le cache est invalidé lorsque les sources ou paramètres changent. Si la géographie départementale locale manque, son téléchargement est limité au domaine HTTPS officiel prévu, aux redirections autorisées et à 25 Mo.

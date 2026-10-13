@@ -5286,6 +5286,37 @@
       margin-top: 32px;
     }
 
+    .payroll-dpae-block {
+      margin-top: 32px;
+    }
+
+    .payroll-dpae-block .snap-card.is-snap-active {
+      margin-top: 6px;
+    }
+
+    .dpae-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .dpae-contract-table { --ranking-value-width: 86px; }
+    .dpae-contract-table .sector-ranking-link { white-space: normal; }
+    .dpae-contract-table .delai-top-row.is-active { background: rgba(0,75,155,0.06); }
+    .dpae-long-share { display: block; margin-top: 6px; }
+    .dpae-coverage-note:empty { display: none; }
+
+    @media (max-width: 560px) {
+      .dpae-controls .metric-switch {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+        overflow: visible;
+      }
+    }
+
     .payroll-delai-block .snap-card.is-snap-active {
       margin-top: 6px;
     }
@@ -6188,6 +6219,7 @@ __DETAILS_DOM_SCRIPT__
         autoSector: null,
         pcolSectorKey: "population-entiere",
         pcolMode: "all",
+        dpaeMode: "all",
         delaiSectorKey: "ensemble",
         delaiMode: "all",
       };

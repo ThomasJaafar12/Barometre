@@ -99,6 +99,15 @@ __DETAILS_DOM_SCRIPT__
         },
       };
       let storyRenderHandle = null;
+      let storyRenderGeneration = 0;
+      let chapterTrackingFrame = null;
+      let scrollRefreshFrame = null;
+      let scrollRefresh260 = null;
+      let scrollRefresh900 = null;
+      let scrollRefreshFontsBound = false;
+      let geographySelectorView = null;
+      const rankingHeightFrames = new WeakMap();
+      const compositeMapViews = new WeakMap();
       let deferredDataPromise = null;
       let regionTransitionToken = 0;
       let chapterObserver = null;
@@ -158,12 +167,20 @@ __CHAPTER_REGISTRY_SCRIPT__
         document.documentElement.style.setProperty("--accent-glow", colorWithAlpha(theme.glow));
       }
 
+      const decimalNumberFormatters = new Map([0, 1, 2].map((digits) => [digits, new Intl.NumberFormat("fr-FR", {
+        minimumFractionDigits: digits, maximumFractionDigits: digits,
+      })]));
+      const integerNumberFormatter = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
+      const monthDateFormatter = new Intl.DateTimeFormat("fr-FR", { month: "short", year: "numeric" });
+
       function frNumber(value, digits = 1) {
         if (value == null || Number.isNaN(value)) return "—";
-        return Number(value).toLocaleString("fr-FR", {
-          minimumFractionDigits: digits,
-          maximumFractionDigits: digits,
-        });
+        let formatter = decimalNumberFormatters.get(digits);
+        if (!formatter) {
+          formatter = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+          decimalNumberFormatters.set(digits, formatter);
+        }
+        return formatter.format(Number(value));
       }
 
       function formatCount(value) {
@@ -171,7 +188,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         const abs = Math.abs(value);
         if (abs >= 1e6) return `${frNumber(value / 1e6, 2)} M`;
         if (abs >= 1e3) return `${frNumber(value / 1e3, 1)} k`;
-        return Number(value).toLocaleString("fr-FR", { maximumFractionDigits: 0 });
+        return integerNumberFormatter.format(Number(value));
       }
 
       function formatCurrency(value) {
@@ -179,7 +196,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         const abs = Math.abs(value);
         if (abs >= 1e9) return `${frNumber(value / 1e9, 1)} Md€`;
         if (abs >= 1e6) return `${frNumber(value / 1e6, 1)} M€`;
-        return `${Number(value).toLocaleString("fr-FR", { maximumFractionDigits: 0 })} €`;
+        return `${integerNumberFormatter.format(Number(value))} €`;
       }
 
       function formatPercent(value, digits = 1) {
@@ -190,7 +207,7 @@ __CHAPTER_REGISTRY_SCRIPT__
       function monthLabel(dateValue) {
         if (!dateValue) return "—";
         const date = new Date(`${dateValue}T00:00:00`);
-        return date.toLocaleDateString("fr-FR", { month: "short", year: "numeric" });
+        return Number.isNaN(date.valueOf()) ? date.toLocaleDateString("fr-FR", { month: "short", year: "numeric" }) : monthDateFormatter.format(date);
       }
 
       function quarterLabel(dateValue) {
@@ -640,7 +657,9 @@ __CHAPTER_REGISTRY_SCRIPT__
       }
 
       function refreshChapterTracking() {
-        requestAnimationFrame(() => {
+        if (chapterTrackingFrame != null) return;
+        chapterTrackingFrame = requestAnimationFrame(() => {
+          chapterTrackingFrame = null;
           updateChapterLayoutVars();
           mountChapterObserver();
           mountSnapCardObserver();
@@ -648,27 +667,45 @@ __CHAPTER_REGISTRY_SCRIPT__
         });
       }
 
+      function refreshScrollTriggers() {
+        updateChapterLayoutVars();
+        ScrollTrigger.refresh();
+        syncActiveChapter({ force: true });
+        syncActiveSnapCard();
+      }
+
       function scheduleScrollTriggerRefresh() {
         if (REDUCED_MOTION || !window.ScrollTrigger) return;
-        const refresh = () => {
-          updateChapterLayoutVars();
-          ScrollTrigger.refresh();
-          syncActiveChapter({ force: true });
-          syncActiveSnapCard();
-        };
-        requestAnimationFrame(() => {
-          refresh();
-          requestAnimationFrame(refresh);
-        });
-        window.setTimeout(refresh, 260);
-        window.setTimeout(refresh, 900);
-        if (document.fonts && document.fonts.ready) {
-          document.fonts.ready.then(refresh).catch(() => {});
+        // Garder les jalons existants sans multiplier les tâches ni repousser leur échéance.
+        if (scrollRefreshFrame == null) {
+          scrollRefreshFrame = requestAnimationFrame(() => {
+            refreshScrollTriggers();
+            scrollRefreshFrame = requestAnimationFrame(() => {
+              scrollRefreshFrame = null;
+              refreshScrollTriggers();
+            });
+          });
+        }
+        if (scrollRefresh260 == null) {
+          scrollRefresh260 = window.setTimeout(() => {
+            scrollRefresh260 = null;
+            refreshScrollTriggers();
+          }, 260);
+        }
+        if (scrollRefresh900 == null) {
+          scrollRefresh900 = window.setTimeout(() => {
+            scrollRefresh900 = null;
+            refreshScrollTriggers();
+          }, 900);
+        }
+        if (!scrollRefreshFontsBound) {
+          scrollRefreshFontsBound = true;
+          onFontsReady(refreshScrollTriggers);
         }
       }
 
       function renderSubjectNav() {
-        subjectNav.innerHTML = "";
+        subjectNav.replaceChildren();
         const initialKey = activeChapterKey || (chapterRegistry[0] ? chapterRegistry[0].key : null);
         chapterRegistry.forEach((chapter, index) => {
           const isActive = initialKey ? initialKey === chapter.key : index === 0;
@@ -780,7 +817,18 @@ __CHAPTER_REGISTRY_SCRIPT__
         geoCurrent.textContent = activeLabel;
         geoTrigger.setAttribute("aria-label", `Choisir la zone géographique, actuellement ${activeLabel}`);
         geoControl.classList.toggle("has-return-action", hasReturnAction);
-        geoMenu.innerHTML = "";
+        if (geographySelectorView?.hasReturnAction === hasReturnAction) {
+          if (geographySelectorView.activeKey !== activeKey) {
+            geographySelectorView.optionButtons.forEach((button, key) => {
+              button.classList.toggle("is-active", key === activeKey);
+              button.setAttribute("aria-selected", String(key === activeKey));
+            });
+            geographySelectorView.activeKey = activeKey;
+          }
+          return;
+        }
+        const optionButtons = new Map();
+        geoMenu.replaceChildren();
 
         const header = document.createElement("div");
         header.className = "geo-menu-action-header";
@@ -792,12 +840,9 @@ __CHAPTER_REGISTRY_SCRIPT__
           const returnButton = document.createElement("button");
           returnButton.type = "button";
           returnButton.className = "geo-return-button";
-          returnButton.innerHTML = `
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
-            <span>Retour à la carte</span>
-          `;
+          const returnIcon = svgElement("svg", { viewBox: "0 0 24 24", "aria-hidden": "true", focusable: "false" });
+          returnIcon.append("\n              ", svgElement("polyline", { points: "15 18 9 12 15 6" }), "\n            ");
+          returnButton.append("\n            ", returnIcon, "\n            ", textElement("span", "Retour à la carte"), "\n          ");
           returnButton.addEventListener("click", () => {
             setGeoMenuOpen(false);
             transitionToLanding();
@@ -843,15 +888,16 @@ __CHAPTER_REGISTRY_SCRIPT__
         nationalButton.className = `geo-national-card${activeKey === "national" ? " is-active" : ""}`;
         nationalButton.setAttribute("role", "option");
         nationalButton.setAttribute("aria-selected", String(activeKey === "national"));
-        nationalButton.innerHTML = `
-          <span class="geo-national-title">France entière</span>
-          <span class="geo-national-desc">Vue consolidée sur tout le territoire.</span>
-        `;
+        nationalButton.append(
+          "\n          ", textElement("span", "France entière", "geo-national-title"),
+          "\n          ", textElement("span", "Vue consolidée sur tout le territoire.", "geo-national-desc"), "\n        ",
+        );
         nationalButton.addEventListener("click", () => {
           setGeoMenuOpen(false);
           transitionToNational(true);
         });
         nationalColumn.appendChild(nationalButton);
+        optionButtons.set("national", nationalButton);
 
         const createList = (column) => {
           const list = document.createElement("ul");
@@ -878,6 +924,7 @@ __CHAPTER_REGISTRY_SCRIPT__
           });
           item.appendChild(button);
           list.appendChild(item);
+          optionButtons.set(region.code, button);
         };
 
         const appendHistoricalRow = (list, labelText) => {
@@ -906,6 +953,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         const overseasColumn = createColumn("Outre-mer", 5);
         const overseasList = createList(overseasColumn);
         SELECTOR_OVERSEAS_REGION_CODES.forEach((code) => appendRegionRow(overseasList, regionsByCode.get(code)));
+        geographySelectorView = { hasReturnAction, activeKey, optionButtons };
       }
 
       function renderHero() {
@@ -927,7 +975,7 @@ __CHAPTER_REGISTRY_SCRIPT__
             : "Territoire visible, données partielles ou absentes dans les CSV fournis.";
         }
 
-        heroDates.innerHTML = "";
+        heroDates.replaceChildren();
         [
           heroData.payroll ? `Masse ${dateLabel(heroData.payroll.date)}` : null,
           heroData.headcount ? `Emploi ${quarterLabel(heroData.headcount.date)}` : null,
@@ -960,7 +1008,7 @@ __CHAPTER_REGISTRY_SCRIPT__
               { label: "RAR +90 jours", value: formatPercent(heroData.rar90 && heroData.rar90.value), meta: monthLabel(heroData.rar90 && heroData.rar90.date) },
             ];
 
-        heroKpis.innerHTML = "";
+        heroKpis.replaceChildren();
         cards.forEach((card) => {
           const article = document.createElement("article");
           article.className = "kpi-card";
@@ -1057,6 +1105,14 @@ __CHAPTER_REGISTRY_SCRIPT__
       }
 
       function drawCompositeMap(selection, featureCollection, config) {
+        const viewKey = selection.node();
+        const geometryKey = JSON.stringify([Boolean(config.showMainlandLabels), Boolean(config.isolateShadows), config.hoverClass || ""]);
+        const previousView = !config.clickable ? compositeMapViews.get(viewKey) : null;
+        if (previousView && previousView.featureCollection === featureCollection && previousView.geometryKey === geometryKey
+          && previousView.refs.rootGroup.node().parentNode === viewKey) {
+          previousView.update(config);
+          return previousView.refs;
+        }
         selection.selectAll("*").remove();
         if (config.shadowSelection) config.shadowSelection.selectAll("*").remove();
         const staticShadowRoot = config.isolateShadows && config.shadowSelection
@@ -1091,6 +1147,13 @@ __CHAPTER_REGISTRY_SCRIPT__
         const labelByCode = new Map();
         const pathGeneratorByCode = new Map();
         let hoveredElement = null;
+        let activeTooltipDatum = null;
+        let activeTooltipEvent = null;
+        const clearPathTooltip = () => {
+          activeTooltipDatum = null;
+          activeTooltipEvent = null;
+          hideTooltip();
+        };
         const clearHoverShadow = () => {
           hoverEffectPaths.forEach((effectPath) => effectPath.attr("display", "none").attr("d", null));
         };
@@ -1139,28 +1202,32 @@ __CHAPTER_REGISTRY_SCRIPT__
                 setPathHover(element, datum, pathGenerator, true);
               }
               if (!canShowPathTooltip()) {
-                hideTooltip();
+                clearPathTooltip();
                 return;
               }
+              activeTooltipDatum = datum;
+              activeTooltipEvent = event;
               const tooltipText = config.tooltipResolver(datum);
               showTooltip(event, tooltipText.label, tooltipText.value);
             })
-            .on("mousemove", (event) => {
+            .on("mousemove", (event, datum) => {
               if (!canUseHoverEffect()) clearPathHover();
               if (!canShowPathTooltip()) {
-                hideTooltip();
+                clearPathTooltip();
                 return;
               }
+              activeTooltipDatum = datum;
+              activeTooltipEvent = event;
               moveTooltip(event);
             })
             .on("mouseleave", (event, datum) => {
               setPathHover(element, datum, pathGenerator, false);
-              hideTooltip();
+              clearPathTooltip();
             });
           if (config.clickable) {
             element.on("click", () => {
               clearPathHover();
-              hideTooltip();
+              clearPathTooltip();
               config.onClick(key);
             });
           }
@@ -1259,7 +1326,7 @@ __CHAPTER_REGISTRY_SCRIPT__
           });
         });
 
-        return {
+        const refs = {
           rootGroup: root,
           cameraGroup,
           cameraState: { scale: 1, x: 0, y: 0 },
@@ -1271,6 +1338,28 @@ __CHAPTER_REGISTRY_SCRIPT__
           labelByCode,
           pathGeneratorByCode,
         };
+        // La carte interactive d'accueil conserve sa reconstruction et ses animations.
+        // Ce registre ne sert qu'aux vues départementales : les événements lisent le contexte courant.
+        if (!config.clickable) {
+          compositeMapViews.set(viewKey, { featureCollection, geometryKey, refs, update(nextConfig) {
+            clearPathHover();
+            config = nextConfig;
+            pathByCode.forEach((element) => {
+              const feature = element.datum();
+              element.attr("class", config.className(feature)).attr("fill", config.fillResolver(feature));
+            });
+            if (activeTooltipDatum && activeTooltipEvent && tooltip.classList.contains("is-visible")) {
+              const activePath = pathByCode.get(config.keyResolver(activeTooltipDatum));
+              if (activePath?.node().isConnected && activePath.node().matches(":hover") && canShowPathTooltip()) {
+                const tooltipText = config.tooltipResolver(activeTooltipDatum);
+                showTooltip(activeTooltipEvent, tooltipText.label, tooltipText.value);
+              } else {
+                clearPathTooltip();
+              }
+            }
+          } });
+        }
+        return refs;
       }
 
       function renderLandingMap() {
@@ -1424,8 +1513,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         const generator = chartRefs.regionMap.pathGeneratorByCode.get(regionCode);
         if (!focusGroup || !generator || !DATA.geography.departments) return [];
         clearFocusOverlay();
-        return DATA.geography.departments.features
-          .filter((feature) => feature.properties.region === regionCode)
+        return (geographyIndex(DATA.geography).departmentsByRegion.get(regionCode) || [])
           .map((feature) => focusGroup.append("path")
             .datum(feature)
             .attr("class", "focus-department-path")
@@ -1564,11 +1652,14 @@ __CHAPTER_REGISTRY_SCRIPT__
       }
 
       function scheduleStoryRender() {
+        const generation = ++storyRenderGeneration;
+        const transitionToken = regionTransitionToken;
         if (storyRenderHandle != null) cancelAnimationFrame(storyRenderHandle);
         storyRenderHandle = requestAnimationFrame(() => {
           storyRenderHandle = null;
           ensureDeferredData()
             .then(() => {
+              if (generation !== storyRenderGeneration || transitionToken !== regionTransitionToken || state.phase === "landing") return;
               renderStoryModules();
               hydrateChapterSections();
               refreshChapterTracking();
@@ -1583,7 +1674,6 @@ __CHAPTER_REGISTRY_SCRIPT__
         story.classList.add("is-visible");
         // Set initial animation styles before the browser can paint the story.
         mountScrollReveal();
-        renderSwitchRail();
         refreshChapterTracking();
         scheduleScrollTriggerRefresh();
         scheduleChapterNavVisibility();
@@ -1594,6 +1684,9 @@ __CHAPTER_REGISTRY_SCRIPT__
         stageShell.dataset.phase = phase;
         if (phase === "landing") {
           state.mapHoverLocked = false;
+          storyRenderGeneration += 1;
+          if (storyRenderHandle != null) cancelAnimationFrame(storyRenderHandle);
+          storyRenderHandle = null;
         }
         stageShell.classList.toggle("is-map-hover-locked", state.mapHoverLocked);
         clearChapterScrollLock();
@@ -1615,6 +1708,7 @@ __CHAPTER_REGISTRY_SCRIPT__
       }
 
       function animateFranceRipple() {
+        const transitionToken = regionTransitionToken;
         const values = DATA.regions.map((region) => region.hero.payroll && region.hero.payroll.value).filter((value) => value != null);
         const scale = buildScale(
           d3.extent(values),
@@ -1633,7 +1727,9 @@ __CHAPTER_REGISTRY_SCRIPT__
           const delay = Math.sqrt(dx * dx + dy * dy) / 560;
           timeline.to(selection.node(), { fill: value != null ? scale(value) : paletteToken("map-empty", "rgba(255,255,255,0.06)"), duration: REDUCED_MOTION ? 0.01 : 0.9, ease: "power2.out" }, delay);
         });
-        timeline.add(() => clearFocusOverlay());
+        timeline.add(() => {
+          if (transitionToken === regionTransitionToken) clearFocusOverlay();
+        });
         return timeline;
       }
 
@@ -1655,7 +1751,7 @@ __CHAPTER_REGISTRY_SCRIPT__
       }
 
       function transitionToNational(fromRail) {
-        regionTransitionToken += 1;
+        const transitionToken = ++regionTransitionToken;
         setMapCameraMoving(false);
         clearFocusOverlay();
         gsap.killTweensOf(chartRefs.regionMap.cameraState);
@@ -1681,7 +1777,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         }
         let revealDone = false;
         const finishReveal = () => {
-          if (revealDone) return;
+          if (revealDone || transitionToken !== regionTransitionToken) return;
           revealDone = true;
           revealContent();
           scheduleStoryRender();
@@ -1690,6 +1786,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         const revealFallback = window.setTimeout(finishReveal, 1800);
         const timeline = gsap.timeline();
         timeline.add(() => {
+          if (transitionToken !== regionTransitionToken) return;
           try {
             animateFranceRipple();
           } catch (error) {
@@ -1714,8 +1811,6 @@ __CHAPTER_REGISTRY_SCRIPT__
         state.selectedRegion = regionCode;
         setTheme(regionCode);
         hideMapLabels();
-        renderHero();
-        renderSwitchRail();
         updateVideo(regionCode);
         clearFocusOverlay();
         gsap.killTweensOf(chartRefs.regionMap.cameraState);
@@ -1730,6 +1825,7 @@ __CHAPTER_REGISTRY_SCRIPT__
           return;
         }
 
+        renderHero();
         mapStage.classList.remove("is-hidden", "is-muted");
         gsap.set(mapStage, { opacity: 1 });
         resetCamera();
@@ -1776,16 +1872,7 @@ __CHAPTER_REGISTRY_SCRIPT__
       }
 
       function renderMetricSwitch(containerId, items, activeKey, onChange) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = "";
-        items.forEach((item) => {
-          const button = document.createElement("button");
-          button.type = "button";
-          button.className = `metric-button${item.key === activeKey ? " is-active" : ""}`;
-          button.textContent = item.label;
-          button.addEventListener("click", () => onChange(item.key));
-          container.appendChild(button);
-        });
+        renderButtonOptions(document.getElementById(containerId), items, activeKey, onChange);
       }
 
       function renderEmptyState(target, title, message) {
@@ -1796,8 +1883,9 @@ __CHAPTER_REGISTRY_SCRIPT__
       }
 
       function syncDepartmentRankingHeight(gridElement) {
-        if (!gridElement) return;
-        requestAnimationFrame(() => {
+        if (!gridElement || rankingHeightFrames.has(gridElement)) return;
+        rankingHeightFrames.set(gridElement, requestAnimationFrame(() => {
+          rankingHeightFrames.delete(gridElement);
           const isStacked = window.matchMedia("(max-width: 980px)").matches;
           const mapPanel = gridElement.querySelector(".map-card");
           const rankingPanel = gridElement.querySelector(".department-ranking-panel");
@@ -1809,7 +1897,7 @@ __CHAPTER_REGISTRY_SCRIPT__
           if (mapHeight > 0) {
             gridElement.style.setProperty("--department-map-height", `${mapHeight}px`);
           }
-        });
+        }));
       }
 __CHAPTER_MODULES_SCRIPT__
       function renderStoryModules() {
@@ -1877,7 +1965,6 @@ __CHAPTER_MODULES_SCRIPT__
         initGeographySelector();
         renderLandingMap();
         renderHero();
-        renderSwitchRail();
         renderHeaderActions();
         stageVideo.muted = true;
         setMapStageMode("landing");

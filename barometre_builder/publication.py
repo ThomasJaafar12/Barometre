@@ -14,7 +14,7 @@ from .config import ROOT, OUTPUT_PAGES
 from .context import BuildContext
 from .dependencies import PAGE_DEPENDENCIES, SCRIPTS
 from .renderers import RENDERERS
-from .security import local_asset_url, secure_html, validate_html
+from .security import local_asset_url, secure_html, validate_html, validate_application_script
 
 
 MANIFEST_NAME = "site_manifest.json"
@@ -134,6 +134,7 @@ def assemble_publication(context: BuildContext, source_root: Path = ROOT) -> Pub
                 destination = APP_SCRIPTS[page_name]
                 if destination is None:
                     raise ValueError("Un script applicatif inattendu a été trouvé.")
+                validate_application_script(match[2])
                 files[destination] = match[2].encode("utf-8")
                 return f'<script src="{destination}"></script>'
             return match[0]

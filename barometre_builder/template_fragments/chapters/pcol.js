@@ -1,3 +1,6 @@
+      const pcolPointWindows = new WeakMap();
+      const pcolRankingRows = new WeakMap();
+
       const PCOL_SECTOR_GROUPS = [
         { key: "industry", label: "Industrie & agriculture", codes: ["AZ", "C1", "C2", "C3", "C4", "C5", "DE"] },
         { key: "trade", label: "Construction & commerce", codes: ["FZ", "GZ", "HZ", "IZ"] },
@@ -6,9 +9,11 @@
       ];
 
       function normalizePcolPoints(rawPoints, displayStartDate) {
+        const cached = pcolPointWindows.get(rawPoints);
+        if (cached && cached.displayStartDate === displayStartDate) return cached.points;
         const history = new Map(rawPoints.map((point) => [point[0], point]));
         const change = (value, previous) => previous ? Math.round((value / previous - 1) * 1000) / 10 : null;
-        return rawPoints.filter((point) => point[0] >= displayStartDate).map(([date, nb, jobs]) => {
+        const points = rawPoints.filter((point) => point[0] >= displayStartDate).map(([date, nb, jobs]) => {
           const year = Number(date.slice(0, 4));
           const month = Number(date.slice(5, 7));
           const previousYear = history.get(`${year - 1}${date.slice(4)}`);
@@ -19,13 +24,20 @@
             nb_qoq: change(nb, previousQuarter?.[1]), jobs_qoq: change(jobs, previousQuarter?.[2]),
           };
         });
+        pcolPointWindows.set(rawPoints, { displayStartDate, points });
+        return points;
       }
 
       function renderPcolTopSectors(rows) {
+        let rankingRows = pcolRankingRows.get(rows);
+        if (!rankingRows) {
+          rankingRows = rows.map((sector) => ({ ...sector, value: sector.nb, yoy: sector.nb_yoy }));
+          pcolRankingRows.set(rows, rankingRows);
+        }
         renderSectorRanking({
           containerId: "pcolTopSectorsTable",
           tableClass: "pcol-top-table",
-          rows: rows.map((sector) => ({ ...sector, value: sector.nb, yoy: sector.nb_yoy })),
+          rows: rankingRows,
           valueLabel: "Nombre",
           formatValue: (value) => frNumber(value, 0),
           emptyMessage: "Aucune procédure sectorielle sur ce trimestre.",

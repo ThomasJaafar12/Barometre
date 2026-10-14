@@ -1,6 +1,14 @@
-      let sectorDepartmentFeaturesByRegion = null;
+      const employmentPickerContexts = new WeakMap();
+      const employmentPointWindows = new WeakMap();
+      const employmentLatestRowsByScope = new WeakMap();
+      const sectorDepartmentsByScope = new WeakMap();
+      let sectorDepartmentGeometry = null;
+      let sectorDepartmentHover = null;
       let sectorTreemapResizeObserver = null;
       let sectorTreemapResizeFrame = null;
+      let sectorTreemapFontsBound = false;
+      let sectorTreemapLabelFitFrame = null;
+      let sectorTreemapLabelFitQueued = false;
 
       function getSectorRegionalScopeData() {
         return state.phase === "national"
@@ -9,16 +17,7 @@
       }
 
       function getSectorDepartmentFeaturesByRegion() {
-        if (!sectorDepartmentFeaturesByRegion) {
-          sectorDepartmentFeaturesByRegion = new Map();
-          DATA.geography.departments.features.forEach((feature) => {
-            const regionCode = feature.properties.region;
-            const features = sectorDepartmentFeaturesByRegion.get(regionCode) || [];
-            features.push(feature);
-            sectorDepartmentFeaturesByRegion.set(regionCode, features);
-          });
-        }
-        return sectorDepartmentFeaturesByRegion;
+        return geographyIndex(DATA.geography).departmentsByRegion;
       }
 
       function employmentMetricConfig(metricKey) {
@@ -107,73 +106,83 @@
         const menu = control.querySelector(".employment-sector-menu");
         const selectedOption = sectorOptions.find((option) => option.key === state[stateKey]) || sectorOptions[0];
         const aggregateOption = sectorOptions.find((option) => option.key === "population-entiere");
+        const previousContext = employmentPickerContexts.get(control);
+        employmentPickerContexts.set(control, { sectorOptions, groups, stateKey, onRender });
 
         const selectedDisplayLabel = employmentSectorDisplayLabel(selectedOption);
         triggerValue.textContent = selectedDisplayLabel;
         trigger.setAttribute("aria-label", `Choisir le secteur, actuellement ${selectedDisplayLabel}`);
         menu.id = `${controlId}Menu`;
         trigger.setAttribute("aria-controls", menu.id);
-        menu.innerHTML = "";
+        if (!previousContext || previousContext.sectorOptions !== sectorOptions || previousContext.groups !== groups) {
+          menu.replaceChildren();
 
-        const createOptionButton = (option, extraClass = "") => {
-          const button = document.createElement("button");
-          button.type = "button";
-          button.className = `employment-sector-option${extraClass ? ` ${extraClass}` : ""}${option.key === state[stateKey] ? " is-active" : ""}`;
-          button.dataset.sectorKey = option.key;
-          button.setAttribute("role", "option");
-          button.setAttribute("aria-selected", String(option.key === state[stateKey]));
-          const label = document.createElement("span");
-          label.textContent = employmentSectorDisplayLabel(option);
-          const dot = document.createElement("span");
-          dot.className = "employment-sector-active-dot";
-          dot.setAttribute("aria-hidden", "true");
-          button.append(label, dot);
-          return button;
-        };
+          const createOptionButton = (option, extraClass = "") => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = `employment-sector-option${extraClass ? ` ${extraClass}` : ""}${option.key === state[stateKey] ? " is-active" : ""}`;
+            button.dataset.sectorKey = option.key;
+            button.setAttribute("role", "option");
+            button.setAttribute("aria-selected", String(option.key === state[stateKey]));
+            const label = document.createElement("span");
+            label.textContent = employmentSectorDisplayLabel(option);
+            const dot = document.createElement("span");
+            dot.className = "employment-sector-active-dot";
+            dot.setAttribute("aria-hidden", "true");
+            button.append(label, dot);
+            return button;
+          };
 
-        const header = document.createElement("div");
-        header.className = "employment-sector-menu-header";
-        const title = document.createElement("span");
-        title.className = "employment-sector-menu-title";
-        title.textContent = "Sélection du secteur d’activité";
-        header.appendChild(title);
-        if (aggregateOption) header.appendChild(createOptionButton(aggregateOption, "employment-sector-all-option"));
-        menu.appendChild(header);
+          const header = document.createElement("div");
+          header.className = "employment-sector-menu-header";
+          const title = document.createElement("span");
+          title.className = "employment-sector-menu-title";
+          title.textContent = "Sélection du secteur d’activité";
+          header.appendChild(title);
+          if (aggregateOption) header.appendChild(createOptionButton(aggregateOption, "employment-sector-all-option"));
+          menu.appendChild(header);
 
-        const grid = document.createElement("div");
-        grid.className = "employment-sector-grid";
-        menu.appendChild(grid);
-        groups.forEach((group) => {
-          const options = sectorOptions
-            .filter((option) => group.codes.includes(employmentSectorCode(option)))
-            .sort((left, right) => group.codes.indexOf(employmentSectorCode(left)) - group.codes.indexOf(employmentSectorCode(right)));
-          if (!options.length) return;
-          const column = document.createElement("section");
-          column.className = `employment-sector-column employment-sector-column--${group.key}`;
-          column.setAttribute("role", "group");
-          const groupTitleId = `${controlId}-${group.key}-title`;
-          column.setAttribute("aria-labelledby", groupTitleId);
+          const grid = document.createElement("div");
+          grid.className = "employment-sector-grid";
+          menu.appendChild(grid);
+          groups.forEach((group) => {
+            const options = sectorOptions
+              .filter((option) => group.codes.includes(employmentSectorCode(option)))
+              .sort((left, right) => group.codes.indexOf(employmentSectorCode(left)) - group.codes.indexOf(employmentSectorCode(right)));
+            if (!options.length) return;
+            const column = document.createElement("section");
+            column.className = `employment-sector-column employment-sector-column--${group.key}`;
+            column.setAttribute("role", "group");
+            const groupTitleId = `${controlId}-${group.key}-title`;
+            column.setAttribute("aria-labelledby", groupTitleId);
 
-          const columnHeader = document.createElement("div");
-          columnHeader.className = "employment-sector-column-header";
-          const badge = document.createElement("span");
-          badge.className = "employment-sector-badge";
-          badge.id = groupTitleId;
-          badge.textContent = group.label;
-          const count = document.createElement("span");
-          count.className = "employment-sector-count";
-          count.textContent = String(options.length);
-          columnHeader.append(badge, count);
+            const columnHeader = document.createElement("div");
+            columnHeader.className = "employment-sector-column-header";
+            const badge = document.createElement("span");
+            badge.className = "employment-sector-badge";
+            badge.id = groupTitleId;
+            badge.textContent = group.label;
+            const count = document.createElement("span");
+            count.className = "employment-sector-count";
+            count.textContent = String(options.length);
+            columnHeader.append(badge, count);
 
-          const list = document.createElement("ul");
-          list.className = "employment-sector-list";
-          options.forEach((option) => {
-            const item = document.createElement("li");
-            item.appendChild(createOptionButton(option));
-            list.appendChild(item);
+            const list = document.createElement("ul");
+            list.className = "employment-sector-list";
+            options.forEach((option) => {
+              const item = document.createElement("li");
+              item.appendChild(createOptionButton(option));
+              list.appendChild(item);
+            });
+            column.append(columnHeader, list);
+            grid.appendChild(column);
           });
-          column.append(columnHeader, list);
-          grid.appendChild(column);
+
+        }
+        menu.querySelectorAll(".employment-sector-option").forEach((option) => {
+          const isSelected = option.dataset.sectorKey === state[stateKey];
+          option.classList.toggle("is-active", isSelected);
+          option.setAttribute("aria-selected", String(isSelected));
         });
 
         if (!control.dataset.bound) {
@@ -191,9 +200,10 @@
           menu.addEventListener("click", (event) => {
             const option = event.target.closest(".employment-sector-option");
             if (!option) return;
-            state[stateKey] = option.dataset.sectorKey;
+            const context = employmentPickerContexts.get(control);
+            state[context.stateKey] = option.dataset.sectorKey;
             setEmploymentSectorPickerOpen(control, false);
-            onRender();
+            context.onRender();
             requestAnimationFrame(() => control.querySelector(".employment-sector-trigger")?.focus());
           });
           menu.addEventListener("keydown", (event) => {
@@ -483,10 +493,16 @@
         const selectedSeries = scope.series[state[config.seriesStateKey]] || scope.series[scope.defaultSeriesKey];
         if (!selectedSeries || !selectedSeries.points || !selectedSeries.points.length) return;
 
-        const points = selectedSeries.points.filter((point) => point.date >= (regionalData.displayStartDate || "2014-01-01"));
+        const displayStartDate = regionalData.displayStartDate || "2014-01-01";
+        let pointWindow = employmentPointWindows.get(selectedSeries.points);
+        if (!pointWindow || pointWindow.displayStartDate !== displayStartDate) {
+          pointWindow = { displayStartDate, points: selectedSeries.points.filter((point) => point.date >= displayStartDate) };
+          employmentPointWindows.set(selectedSeries.points, pointWindow);
+        }
+        const points = pointWindow.points;
         const lastPoint = points[points.length - 1];
 
-        renderEmploymentSeriesPicker(config.seriesControlId, scope, config.seriesStateKey, renderSectorModule);
+        renderEmploymentSeriesPicker(config.seriesControlId, scope, config.seriesStateKey, () => renderRegionalEmploymentBlock(config));
 
         const periodLabel = quarterLabel(lastPoint.date);
         document.getElementById(config.chartTitleId).textContent = `${metric.heading} ${periodLabel} : niveau et évolution en ${scopeLabel()}.`;
@@ -514,7 +530,7 @@
           emptyMessage: "Aucune donnée sectorielle sur ce trimestre.",
           onSelect: (key) => {
             state[config.seriesStateKey] = key;
-            renderSectorModule();
+            renderRegionalEmploymentBlock(config);
             document.getElementById(config.seriesControlId).querySelector(".employment-sector-trigger").focus({ preventScroll: true });
           },
         });
@@ -548,7 +564,13 @@
 
       function employmentLatestSectorRows(scope, metric) {
         if (!scope || !scope.seriesOptions || !scope.series) return [];
-        return scope.seriesOptions
+        let rowsByMetric = employmentLatestRowsByScope.get(scope);
+        if (!rowsByMetric) {
+          rowsByMetric = new Map();
+          employmentLatestRowsByScope.set(scope, rowsByMetric);
+        }
+        if (rowsByMetric.has(metric.key)) return rowsByMetric.get(metric.key);
+        const rows = scope.seriesOptions
           .filter((option) => option.key !== scope.defaultSeriesKey && option.key !== "population-entiere")
           .map((option) => {
             const series = scope.series[option.key];
@@ -564,6 +586,8 @@
           })
           .filter(Boolean)
           .sort((left, right) => right.value - left.value || left.label.localeCompare(right.label, "fr"));
+        rowsByMetric.set(metric.key, rows);
+        return rows;
       }
 
       function sectorTreemapColorScale(rows) {
@@ -692,6 +716,30 @@
         });
       }
 
+      function fitCurrentSectorTreemapLabels() {
+        sectorTreemapLabelFitQueued = false;
+        const svgNode = document.getElementById("employmentTreemapSvg");
+        const shell = document.getElementById("employmentTreemapShell");
+        if (svgNode?.isConnected && shell && !shell.classList.contains("is-empty")) fitSectorTreemapLabels(svgNode);
+      }
+
+      function scheduleSectorTreemapLabelFit() {
+        if (fontsReadySettled) {
+          if (sectorTreemapLabelFitFrame != null) {
+            cancelAnimationFrame(sectorTreemapLabelFitFrame);
+            sectorTreemapLabelFitFrame = null;
+          }
+          if (sectorTreemapLabelFitQueued) return;
+          sectorTreemapLabelFitQueued = true;
+          Promise.resolve().then(fitCurrentSectorTreemapLabels);
+        } else if (sectorTreemapLabelFitFrame == null) {
+          sectorTreemapLabelFitFrame = requestAnimationFrame(() => {
+            sectorTreemapLabelFitFrame = null;
+            fitCurrentSectorTreemapLabels();
+          });
+        }
+      }
+
       function renderSectorTreemap() {
         const scope = getSectorRegionalScopeData();
         const metricKey = state.sectorTreemapMetric || "effectifs_cvs";
@@ -722,7 +770,7 @@
         shell.querySelector(".employment-treemap-empty")?.remove();
         if (!rows.length) {
           meta.textContent = `${scopeLabel()} / aucun secteur exploitable`;
-          legend.innerHTML = "";
+          legend.replaceChildren();
           shell.classList.add("is-empty");
           rootSvg.style("display", "none");
           zoomLevel.textContent = "—";
@@ -742,13 +790,19 @@
         const layoutRows = sectorTreemapLayoutRows(rows, width - padding * 2, height - padding * 2);
 
         meta.textContent = `${scopeLabel()} / ${quarterLabel(latestDate)}`;
-        legend.innerHTML = `
-          <span class="legend-chip"><i class="employment-treemap-swatch is-negative"></i>Repli annuel</span>
-          <span class="legend-chip"><i class="employment-treemap-swatch is-neutral"></i>Quasi stable</span>
-          <span class="legend-chip"><i class="employment-treemap-swatch is-positive"></i>Hausse annuelle</span>
-        `;
+        const legendChip = (stateName, label) => {
+          const chip = document.createElement("span");
+          chip.className = "legend-chip";
+          chip.append(textElement("i", "", `employment-treemap-swatch is-${stateName}`), document.createTextNode(label));
+          return chip;
+        };
+        legend.replaceChildren(
+          legendChip("negative", "Repli annuel"),
+          legendChip("neutral", "Quasi stable"),
+          legendChip("positive", "Hausse annuelle"),
+        );
         if (rows.some((row) => !Number.isFinite(row.yoy))) {
-          legend.insertAdjacentHTML("beforeend", '<span class="legend-chip"><i class="employment-treemap-swatch is-unknown"></i>GA indisponible</span>');
+          legend.append(legendChip("unknown", "GA indisponible"));
         }
         rootSvg.attr("viewBox", `0 0 ${width} ${height}`);
         rootSvg.append("title").attr("id", "employmentTreemapTitleSvg")
@@ -911,10 +965,11 @@
             else rootSvg.call(zoom.scaleBy, event.key === "+" || event.key === "=" ? 1.5 : 1 / 1.5);
           }
         });
-        requestAnimationFrame(() => fitSectorTreemapLabels(rootSvg.node()));
-        document.fonts.ready.then(() => {
-          if (viewport.node().isConnected) fitSectorTreemapLabels(rootSvg.node());
-        });
+        if (!sectorTreemapFontsBound) {
+          sectorTreemapFontsBound = true;
+          onFontsReady(scheduleSectorTreemapLabelFit);
+        }
+        scheduleSectorTreemapLabelFit();
 
         if (!REDUCED_MOTION) {
           gsap.fromTo(
@@ -940,6 +995,46 @@
         return metricKey === "masse_cvs" ? formatCurrency(value) : formatCount(value);
       }
 
+      function sectorDepartmentIndex(departments) {
+        let index = sectorDepartmentsByScope.get(departments);
+        if (!index) {
+          index = new Map(departments.map((department) => [department.code, department]));
+          sectorDepartmentsByScope.set(departments, index);
+        }
+        return index;
+      }
+
+      // Seuls les chemins calculés sont conservés ; la projection ne dépend pas des métriques.
+      function departmentMapGeometry(features) {
+        const projection = d3.geoMercator().fitExtent([[32, 32], [868, 588]], { type: "FeatureCollection", features });
+        const path = d3.geoPath(projection);
+        return { features, paths: new Map(features.map((feature) => [feature.properties.code, path(feature)])) };
+      }
+
+      function showSectorDepartmentTooltip(event, feature) {
+        sectorDepartmentHover = { element: event.currentTarget, feature, clientX: event.clientX, clientY: event.clientY };
+        updateSectorDepartmentTooltip(event, feature);
+      }
+
+      function updateSectorDepartmentTooltip(event, feature) {
+        const departments = DATA.modules.sector.departmental.regions[state.selectedRegion]?.departments;
+        const department = departments ? sectorDepartmentIndex(departments).get(feature.properties.code) : null;
+        const value = department ? departmentMetricValue(department, state.sectorDepartmentSectorKey, state.sectorDepartmentMetric) : null;
+        showTooltip(event, department ? department.name : feature.properties.nom, departmentMetricFormatter(state.sectorDepartmentMetric, value));
+      }
+
+      function hideSectorDepartmentTooltip() {
+        sectorDepartmentHover = null;
+        hideTooltip();
+      }
+
+      function refreshSectorDepartmentTooltip() {
+        const hovered = sectorDepartmentHover;
+        if (hovered?.element.isConnected && hovered.element.matches(":hover") && tooltip.classList.contains("is-visible")) {
+          updateSectorDepartmentTooltip(hovered, hovered.element.__data__);
+        }
+      }
+
       function renderSectorDepartmentModule() {
         const departmentModule = DATA.modules.sector.departmental;
         const mapMeta = document.getElementById("employmentDeptMapMeta");
@@ -952,7 +1047,7 @@
 
         renderMetricSwitch("employmentDeptMetricSwitch", departmentModule.metrics, state.sectorDepartmentMetric, (key) => {
           state.sectorDepartmentMetric = key;
-          renderSectorModule();
+          renderSectorDepartmentModule();
         });
 
         if (!state.sectorDepartmentSectorKey) {
@@ -962,16 +1057,17 @@
           "employmentDeptSectorPicker",
           departmentModule.sectorOptions,
           "sectorDepartmentSectorKey",
-          renderSectorModule,
+          renderSectorDepartmentModule,
           EMPLOYMENT_GRAND_SECTOR_GROUPS,
         );
 
         if (state.phase === "national") {
+          sectorDepartmentHover = null;
           mapMeta.textContent = "Choisir une région pour ouvrir la maille départementale";
           rankingMeta.textContent = "Lecture régionale requise";
-          mapShell.innerHTML = `<div class="empty-state"><strong>Choisir une région</strong><p>La carte départementale s'active après sélection d'un territoire dans la barre des régions.</p></div>`;
-          legend.innerHTML = "";
-          ranking.innerHTML = `<div class="empty-state"><strong>Classement indisponible</strong><p>Le classement départemental n'est pas affiché à l'échelle France entière.</p></div>`;
+          renderEmptyState(mapShell, "Choisir une région", "La carte départementale s'active après sélection d'un territoire dans la barre des régions.");
+          legend.replaceChildren();
+          renderEmptyState(ranking, "Classement indisponible", "Le classement départemental n'est pas affiché à l'échelle France entière.");
           syncDepartmentRankingHeight(mapGrid);
           return;
         }
@@ -986,9 +1082,10 @@
         rankingMeta.textContent = `${selectedMetric.label} / niveau actuel + glissement annuel`;
 
         if (!regionScope.length) {
-          mapShell.innerHTML = `<div class="empty-state"><strong>Données indisponibles</strong><p>Le fichier départemental ne documente pas ce territoire pour le dernier trimestre retenu.</p></div>`;
-          legend.innerHTML = "";
-          ranking.innerHTML = `<div class="empty-state"><strong>Aucun classement</strong><p>Les départements de cette région ne sont pas présents dans la source départementale fournie.</p></div>`;
+          sectorDepartmentHover = null;
+          renderEmptyState(mapShell, "Données indisponibles", "Le fichier départemental ne documente pas ce territoire pour le dernier trimestre retenu.");
+          legend.replaceChildren();
+          renderEmptyState(ranking, "Aucun classement", "Les départements de cette région ne sont pas présents dans la source départementale fournie.");
           syncDepartmentRankingHeight(mapGrid);
           return;
         }
@@ -1007,39 +1104,38 @@
             )
           : () => paletteToken("chart-employment-dept-low", "#F7C96B");
 
-        mapShell.innerHTML = `<svg id="employmentDeptMapSvg" viewBox="0 0 900 620"></svg>`;
+        if (!document.getElementById("employmentDeptMapSvg")) {
+          mapShell.replaceChildren(svgElement("svg", { id: "employmentDeptMapSvg", viewBox: "0 0 900 620" }));
+        }
         const svg = d3.select("#employmentDeptMapSvg");
-        const departmentsByCode = new Map(regionScope.map((department) => [department.code, department]));
-        const projection = d3.geoMercator().fitExtent([[32, 32], [868, 588]], { type: "FeatureCollection", features });
-        const path = d3.geoPath(projection);
-        svg.append("g")
+        const departmentsByCode = sectorDepartmentIndex(regionScope);
+        const geometryChanged = !sectorDepartmentGeometry || sectorDepartmentGeometry.features !== features;
+        if (geometryChanged) {
+          sectorDepartmentGeometry = departmentMapGeometry(features);
+        }
+        let root = svg.select("g");
+        if (root.empty()) root = svg.append("g");
+        const paths = root
           .selectAll("path")
-          .data(features)
-          .join("path")
+          .data(features, (feature) => feature.properties.code)
+          .join((enter) => enter.append("path")
+            .attr("d", (feature) => sectorDepartmentGeometry.paths.get(feature.properties.code))
+            .on("mouseenter", showSectorDepartmentTooltip)
+            .on("mousemove", showSectorDepartmentTooltip)
+            .on("mouseleave", hideSectorDepartmentTooltip));
+        if (geometryChanged) paths.attr("d", (feature) => sectorDepartmentGeometry.paths.get(feature.properties.code));
+        paths
           .attr("class", (feature) => `path-department${departmentsByCode.has(feature.properties.code) ? "" : " is-unavailable"}`)
-          .attr("d", path)
           .attr("fill", (feature) => {
             const department = departmentsByCode.get(feature.properties.code);
             const value = department ? departmentMetricValue(department, state.sectorDepartmentSectorKey, state.sectorDepartmentMetric) : null;
             return value != null ? scale(value) : paletteToken("map-empty", "rgba(255,255,255,0.05)");
-          })
-          .on("mouseenter", (event, feature) => {
-            const department = departmentsByCode.get(feature.properties.code);
-            const value = department ? departmentMetricValue(department, state.sectorDepartmentSectorKey, state.sectorDepartmentMetric) : null;
-            showTooltip(event, department ? department.name : feature.properties.nom, departmentMetricFormatter(state.sectorDepartmentMetric, value));
-          })
-          .on("mousemove", (event, feature) => {
-            const department = departmentsByCode.get(feature.properties.code);
-            const value = department ? departmentMetricValue(department, state.sectorDepartmentSectorKey, state.sectorDepartmentMetric) : null;
-            showTooltip(event, department ? department.name : feature.properties.nom, departmentMetricFormatter(state.sectorDepartmentMetric, value));
-          })
-          .on("mouseleave", hideTooltip);
+          });
 
         const domain = d3.extent(values);
         rangeLegend(legend, departmentMetricFormatter(state.sectorDepartmentMetric, domain[0]), departmentMetricFormatter(state.sectorDepartmentMetric, domain[1]));
 
-        ranking.innerHTML = "";
-        regionScope
+        const articles = regionScope
           .map((department) => ({
             ...department,
             metricValue: departmentMetricValue(department, state.sectorDepartmentSectorKey, state.sectorDepartmentMetric),
@@ -1047,12 +1143,9 @@
           }))
           .filter((department) => department.metricValue != null)
           .sort((left, right) => right.metricValue - left.metricValue)
-          .forEach((department) => {
-            const article = document.createElement("article");
-            article.className = "ranking-item";
-            article.replaceChildren(...rankingArticle(department.name, departmentMetricFormatter(state.sectorDepartmentMetric, department.metricValue), scopeLabel(), `Glissement annuel : ${formatPercent(department.yoyValue)}`).childNodes);
-            ranking.appendChild(article);
-          });
+          .map((department) => rankingArticle(department.name, departmentMetricFormatter(state.sectorDepartmentMetric, department.metricValue), scopeLabel(), `Glissement annuel : ${formatPercent(department.yoyValue)}`));
+        ranking.replaceChildren(...articles);
+        if (!geometryChanged) refreshSectorDepartmentTooltip();
         syncDepartmentRankingHeight(mapGrid);
       }
 

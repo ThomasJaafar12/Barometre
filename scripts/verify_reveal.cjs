@@ -4,7 +4,10 @@ const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { chromium } = require('playwright');
 
-const url = pathToFileURL(path.resolve(__dirname, '../dist/barometre_details.html')).href;
+const siteOption = process.argv.indexOf('--site-dir');
+const siteDirectory = siteOption < 0 ? 'dist' : process.argv[siteOption + 1];
+if (!siteDirectory) throw new Error('--site-dir nécessite un dossier.');
+const url = pathToFileURL(path.resolve(__dirname, '..', siteDirectory, 'barometre_details.html')).href;
 
 async function checkReveal(browser, viewport, reducedMotion) {
   const context = await browser.newContext({ viewport, reducedMotion });

@@ -1,3 +1,7 @@
+      const delaiPointWindows = new WeakMap();
+      const delaiPickerContexts = new WeakMap();
+      const delaiRankingContexts = new WeakMap();
+
       function getDelaiScopeData() {
         if (!DATA.modules.delai) return null;
         return state.phase === "national"
@@ -62,33 +66,50 @@
         const trigger = picker.querySelector(".employment-sector-trigger");
         const triggerValue = document.getElementById("delaiSectorTriggerValue");
         const menu = document.getElementById("delaiSectorMenu");
+        let context = delaiPickerContexts.get(picker);
+        if (!context) {
+          context = { sectors: null, optionKeys: new WeakMap(), onSelect };
+          delaiPickerContexts.set(picker, context);
+          trigger.onclick = (event) => {
+            event.stopPropagation();
+            const isOpen = picker.classList.contains("is-open");
+            closeEmploymentSectorPickers();
+            setDelaiSectorPickerOpen(picker, !isOpen);
+          };
+          menu.addEventListener("click", (event) => {
+            const option = event.target.closest(".employment-sector-option");
+            if (!option || !context.optionKeys.has(option)) return;
+            setDelaiSectorPickerOpen(picker, false);
+            context.onSelect(context.optionKeys.get(option));
+          });
+        }
+        context.onSelect = onSelect;
 
         const selectedOption = sectors.find((s) => s.id === currentSectorKey) || sectors[0];
         if (triggerValue) {
           triggerValue.textContent = selectedOption ? selectedOption.label : "Ensemble des secteurs";
         }
 
-        menu.innerHTML = "";
-        sectors.forEach((sec) => {
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = `employment-sector-option${sec.id === currentSectorKey ? " is-active" : ""}`;
-          btn.setAttribute("role", "option");
-          btn.setAttribute("aria-selected", String(sec.id === currentSectorKey));
-          btn.append(textElement("span", sec.label), textElement("span", "", "employment-sector-option-dot"));
-          btn.addEventListener("click", () => {
-            setDelaiSectorPickerOpen(picker, false);
-            onSelect(sec.id);
+        if (context.sectors !== sectors) {
+          context.sectors = sectors;
+          context.optionKeys = new WeakMap();
+          menu.replaceChildren();
+          sectors.forEach((sec) => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = `employment-sector-option${sec.id === currentSectorKey ? " is-active" : ""}`;
+            btn.setAttribute("role", "option");
+            btn.setAttribute("aria-selected", String(sec.id === currentSectorKey));
+            btn.append(textElement("span", sec.label), textElement("span", "", "employment-sector-option-dot"));
+            context.optionKeys.set(btn, sec.id);
+            menu.appendChild(btn);
           });
-          menu.appendChild(btn);
+        }
+        menu.querySelectorAll(".employment-sector-option").forEach((option) => {
+          const isSelected = context.optionKeys.get(option) === currentSectorKey;
+          option.classList.toggle("is-active", isSelected);
+          option.setAttribute("aria-selected", String(isSelected));
         });
-
-        trigger.onclick = (event) => {
-          event.stopPropagation();
-          const isOpen = picker.classList.contains("is-open");
-          closeEmploymentSectorPickers();
-          setDelaiSectorPickerOpen(picker, !isOpen);
-        };
       }
 
       function updateDelaiTrendElement(elementId, value) {
@@ -114,8 +135,16 @@
       function renderDelaiTopSectorsTable(topSectors, onSectorClick) {
         const container = document.getElementById("delaiTopSectorsTable");
         if (!container) return;
+        let context = delaiRankingContexts.get(container);
+        if (!context) {
+          context = { rows: null, onSectorClick };
+          delaiRankingContexts.set(container, context);
+        }
+        context.onSectorClick = onSectorClick;
+        if (context.rows === topSectors) return;
+        context.rows = topSectors;
         if (!topSectors || !topSectors.length) {
-          container.innerHTML = `<div class="delai-empty-table">Aucune donnée sectorielle disponible.</div>`;
+          container.replaceChildren(textElement("div", "Aucune donnée sectorielle disponible.", "delai-empty-table"));
           return;
         }
 
@@ -144,7 +173,7 @@
           labelCell.append(textElement("span", shortLabel, "delai-sector-name"), textElement("span", `${frNumber(sector.nb, 0)} accords`, "delai-sector-nb mono"));
           row.append(textElement("td", idx + 1, "delai-td-rank"), labelCell, textElement("td", formatDelaiCurrency(sector.mt), "delai-td-mt mono"), textElement("td", yoyText, `delai-td-yoy mono ${yoyClass}`));
           row.addEventListener("click", () => {
-            if (sector.id && onSectorClick) onSectorClick(sector.id);
+            if (sector.id && context.onSectorClick) context.onSectorClick(sector.id);
           });
           body.append(row);
         });
@@ -199,7 +228,12 @@
         });
 
         const modeData = scope.modes[currentMode] || scope.modes["all"] || {};
-        const points = (modeData[currentSectorKey] || modeData["ensemble"] || []).map(normalizeDelaiPoint);
+        const rawPoints = modeData[currentSectorKey] || modeData["ensemble"] || [];
+        let points = delaiPointWindows.get(rawPoints);
+        if (!points) {
+          points = rawPoints.map(normalizeDelaiPoint);
+          delaiPointWindows.set(rawPoints, points);
+        }
 
         const latestPoint = points.length ? points[points.length - 1] : null;
         const currentNbEl = document.getElementById("delaiCurrentNb");

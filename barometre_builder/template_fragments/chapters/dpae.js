@@ -1,10 +1,14 @@
+      const dpaePointWindows = new WeakMap();
+
       function normalizeDpaePoints(rawPoints, displayStartDate) {
+        const cached = dpaePointWindows.get(rawPoints);
+        if (cached && cached.displayStartDate === displayStartDate) return cached.points;
         const history = new Map(rawPoints.map((point) => [point.date, {
           ...point, long: Number.isFinite(point.cdi) && Number.isFinite(point.cddlong) ? point.cdi + point.cddlong : null,
         }]));
         const change = (value, previous) => Number.isFinite(value) && Number.isFinite(previous) && previous !== 0
           ? Math.round((value / previous - 1) * 1000) / 10 : null;
-        return [...history.values()].filter((point) => point.date >= displayStartDate).map((point) => {
+        const points = [...history.values()].filter((point) => point.date >= displayStartDate).map((point) => {
           const year = Number(point.date.slice(0, 4));
           const month = Number(point.date.slice(5, 7));
           const previousYear = history.get(`${year - 1}${point.date.slice(4)}`);
@@ -16,6 +20,8 @@
           });
           return result;
         });
+        dpaePointWindows.set(rawPoints, { displayStartDate, points });
+        return points;
       }
 
       function selectDpaeMode(key) {

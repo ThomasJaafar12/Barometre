@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
+const { createHash } = require('node:crypto');
 const { pathToFileURL } = require('node:url');
 const { execFileSync } = require('node:child_process');
 const { chromium } = require('playwright');
@@ -15,7 +16,10 @@ const option = name => {
 };
 const reference = path.resolve(root, option('--reference-dir') || '.cache/browser-reference');
 const published = path.resolve(root, option('--site-dir') || 'dist');
-const artifacts = path.join(root, '.cache/browser-verification');
+const artifacts = path.resolve(root, option('--artifacts-dir') || '.cache/browser-verification');
+const fingerprint = directory => Object.fromEntries(['site_manifest.json', 'index.html', 'barometre_bref.html',
+  'barometre_details.html', 'assets/js/brief.js', 'assets/js/details.js'].filter(filename => fs.existsSync(path.join(directory, filename)))
+  .map(filename => [filename, createHash('sha256').update(fs.readFileSync(path.join(directory, filename))).digest('hex')]));
 fs.mkdirSync(artifacts, { recursive: true });
 if (!option('--reference-dir')) {
   fs.mkdirSync(reference, { recursive: true });
@@ -32,6 +36,7 @@ for name,renderer in RENDERERS.items():
     fs.cpSync(path.join(root, 'Assets', directory), path.join(reference, 'Assets', directory), { recursive: true });
   }
 }
+const fingerprints = { reference: fingerprint(reference), published: fingerprint(published) };
 
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png',
@@ -64,6 +69,17 @@ function comparePng(before, after, label) {
   return { pixels, total: a.width * a.height, maxDelta };
 }
 
+function firstDifference(before, after, location = '') {
+  if (JSON.stringify(before) === JSON.stringify(after)) return null;
+  if (before && after && typeof before === 'object' && typeof after === 'object') {
+    for (const key of new Set([...Object.keys(before), ...Object.keys(after)])) {
+      const difference = firstDifference(before[key], after[key], `${location}/${key}`);
+      if (difference) return difference;
+    }
+  }
+  return `${location}: ${JSON.stringify(before)?.slice(0, 160)} → ${JSON.stringify(after)?.slice(0, 160)}`;
+}
+
 async function settle(page) {
   await page.bringToFront();
   await page.evaluate(async () => {
@@ -79,16 +95,50 @@ async function settle(page) {
 }
 
 const results = [];
-async function snapshot(pair, label, screenshot = false) {
+let contractChecks = 0;
+async function snapshot(pair, label, screenshot = false, screenshotTarget = null) {
   for (const page of pair) await settle(page);
   const text = await Promise.all(pair.map(page => page.locator('body').innerText()));
   assert.equal(text[1], text[0], `Contenu dynamique: ${label}`);
+  // Compare the semantic chart/control contract independently of rasterization.
+  // Ignore whitespace-only text nodes introduced by literal HTML formatting.
+  const contracts = await Promise.all(pair.map(page => page.evaluate(() => {
+    const visit = node => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent.replace(/\s+/g, ' ').trim();
+        return text || null;
+      }
+      if (node.nodeType !== Node.ELEMENT_NODE) return null;
+      const attrs = [...node.attributes].filter(attr => attr.name !== 'style')
+        .map(attr => [attr.name, attr.value]).sort(([a], [b]) => a.localeCompare(b));
+      return [node.localName, node.namespaceURI, attrs, [...node.childNodes].map(visit).filter(Boolean)];
+    };
+    const ids = ['employmentEffectifsChartSvg', 'employmentPayrollChartSvg', 'employmentTreemapSvg',
+      'employmentDeptMapSvg', 'employmentDeptMapShell', 'autoMapSvg', 'autoMapPanel', 'dpaeChartSvg', 'pcolChartSvg', 'delaiChartSvg',
+      'employmentDeptRanking', 'autoRanking', 'employmentEffectifsTopSectorsTable', 'employmentPayrollTopSectorsTable',
+      'dpaeContractsTable', 'pcolTopSectorsTable', 'delaiTopSectorsTable', 'dpaeModeSwitch', 'pcolModeSwitch', 'delaiModeSwitch',
+      'employmentTreemapMetricSwitch', 'employmentDeptMetricSwitch', 'autoMetricSwitch',
+      'employmentEffectifsSeriesPicker', 'employmentPayrollSeriesPicker', 'employmentDeptSectorPicker',
+      'autoSectorPicker', 'pcolSectorPicker', 'delaiSectorPicker'];
+    return Object.fromEntries(ids.map(id => [id, document.getElementById(id)]).filter(([, node]) => node)
+      .map(([id, node]) => [id, visit(node)]));
+  })));
+  fs.writeFileSync(path.join(artifacts, `${label.replace(/[^\p{L}\p{N}_-]/gu, '_')}-contract.json`),
+    JSON.stringify(contracts[0]));
+  const difference = firstDifference(contracts[0], contracts[1]);
+  if (difference) {
+    fs.writeFileSync(path.join(artifacts, `${label.replace(/[^\p{L}\p{N}_-]/gu, '_')}-candidate-contract.json`),
+      JSON.stringify(contracts[1]));
+    assert.fail(`Contrat DOM/SVG: ${label}: ${difference}`);
+  }
+  contractChecks++;
   if (screenshot) {
     const captures = [];
     for (let i = 0; i < pair.length; i++) {
       await pair[i].bringToFront();
       await settle(pair[i]);
-      captures.push(await pair[i].screenshot({ path: path.join(artifacts, `${label}-${i ? 'after' : 'before'}.png`), animations: 'disabled' }));
+      const target = screenshotTarget ? pair[i].locator(screenshotTarget) : pair[i];
+      captures.push(await target.screenshot({ path: path.join(artifacts, `${label}-${i ? 'after' : 'before'}.png`), animations: 'disabled' }));
     }
     const diff = comparePng(captures[0], captures[1], label);
     results.push({ label, ...diff });
@@ -138,7 +188,7 @@ async function checkPair(browser, transport, viewport, filename, origin) {
       }
     }
   } else if (filename === 'barometre_bref.html') {
-    for (const code of ['national', '11', '04', '06']) {
+    for (const code of ['national', '11', '28', '04', '06']) {
       await forBoth(pair, page => page.locator('#regionSelect').selectOption(code));
       await snapshot(pair, `${label}-${code}`, code === '06');
       await forBoth(pair, async page => {
@@ -148,7 +198,7 @@ async function checkPair(browser, transport, viewport, filename, origin) {
       await snapshot(pair, `${label}-${code}-tables`);
     }
   } else {
-    for (const region of ['France entière', 'Île-de-France', 'La Réunion', 'Mayotte']) {
+    for (const region of ['France entière', 'Île-de-France', 'Normandie', 'La Réunion', 'Mayotte']) {
       await forBoth(pair, async page => {
         await page.locator('#geoTrigger').click();
         await page.locator('#geoMenu button[role="option"]').filter({ hasText: region }).click();
@@ -174,6 +224,12 @@ async function checkPair(browser, transport, viewport, filename, origin) {
         });
       }
     }
+    // Exercise filters on a populated territory rather than the final empty scope.
+    await forBoth(pair, async page => {
+      await page.locator('#geoTrigger').click();
+      await page.locator('#geoMenu button[role="option"]').filter({ hasText: 'France entière' }).click();
+      await page.waitForFunction(() => document.querySelector('#dpaeModeSwitch button'));
+    });
     // Every option of each metric switch; compare each resulting visible value.
     for (const id of ['dpaeModeSwitch', 'pcolModeSwitch', 'delaiModeSwitch',
                       'employmentTreemapMetricSwitch', 'employmentDeptMetricSwitch', 'autoMetricSwitch']) {
@@ -198,6 +254,19 @@ async function checkPair(browser, transport, viewport, filename, origin) {
       await page.locator('#employmentEffectifsChartSvg').scrollIntoViewIfNeeded();
     });
     await snapshot(pair, `${label}-chart`, true);
+    if (transport === 'http') {
+      // The employment department map requires a selected region. Select a
+      // populated region before cropping the two department maps.
+      await forBoth(pair, async page => {
+        await page.locator('#geoTrigger').click({ force: true });
+        await page.locator('#geoMenu button[role="option"]').filter({ hasText: 'Île-de-France' }).click({ force: true });
+      });
+      for (const id of ['employmentPayrollChartSvg', 'employmentTreemapSvg', 'employmentDeptMapSvg',
+                        'autoMapSvg', 'dpaeChartSvg', 'pcolChartSvg', 'delaiChartSvg']) {
+        await forBoth(pair, page => page.locator(`#${id}`).scrollIntoViewIfNeeded());
+        await snapshot(pair, `${label}-${id}-visual`, true, `#${id}`);
+      }
+    }
     await forBoth(pair, async page => {
       await page.locator('#geoTrigger').click();
       await page.locator('.geo-return-button').click();
@@ -216,15 +285,21 @@ async function checkPair(browser, transport, viewport, filename, origin) {
   const browser = await chromium.launch({ channel: option('--channel') || (process.platform === 'win32' ? 'msedge' : undefined), headless: true,
     args: ['--force-color-profile=srgb', '--disable-gpu'] });
   try {
-    for (const transport of ['file', 'http']) {
+    const transports = option('--transports')?.split(',') || ['file', 'http'];
+    const filenames = option('--files')?.split(',') || ['index.html', 'barometre_bref.html', 'barometre_details.html'];
+    assert.ok(transports.every(value => ['file', 'http'].includes(value)));
+    assert.ok(filenames.every(value => ['index.html', 'barometre_bref.html', 'barometre_details.html'].includes(value)));
+    for (const transport of transports) {
       for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
-        for (const filename of ['index.html', 'barometre_bref.html', 'barometre_details.html']) {
+        for (const filename of filenames) {
           await checkPair(browser, transport, viewport, filename, origin);
         }
       }
     }
-    fs.writeFileSync(path.join(artifacts, 'report.json'), JSON.stringify({ browser: browser.version(), results }, null, 2));
-    console.log(`${results.length} comparaisons visuelles conformes (tolérance limitée à l’anticrénelage) ; interactions vérifiées en file:// et HTTP.`);
+    fs.writeFileSync(path.join(artifacts, 'report.json'), JSON.stringify({ browser: browser.version(),
+      capturedAt: new Date().toISOString(), reference, published, fingerprints,
+      transports, filenames, viewports: [1440, 390], contractChecks, results }, null, 2));
+    console.log(`${results.length} comparaisons visuelles conformes (tolérance limitée à l’anticrénelage) ; ${contractChecks} contrats DOM/SVG ; transports ${transports.join(', ')}.`);
   } finally {
     await browser.close();
     server.close();

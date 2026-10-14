@@ -1,5 +1,8 @@
-      let autoDepartmentByCode = null;
-      let autoDepartmentFeaturesByRegion = null;
+      const autoDepartmentIndexes = new WeakMap();
+      const autoScopeDepartments = new WeakMap();
+      let autoDepartmentGeometry = null;
+      let autoMapScope = null;
+      let autoDepartmentHover = null;
 
       const AUTO_SECTOR_GROUPS = [
         {
@@ -30,23 +33,54 @@
       }
 
       function getAutoDepartmentIndex() {
-        if (!autoDepartmentByCode) {
-          autoDepartmentByCode = new Map(DATA.modules.auto.departments.map((department) => [department.code, department]));
+        const departments = DATA.modules.auto.departments;
+        let index = autoDepartmentIndexes.get(departments);
+        if (!index) {
+          index = new Map(departments.map((department) => [department.code, department]));
+          autoDepartmentIndexes.set(departments, index);
         }
-        return autoDepartmentByCode;
+        return index;
       }
 
       function getAutoDepartmentFeaturesByRegion() {
-        if (!autoDepartmentFeaturesByRegion) {
-          autoDepartmentFeaturesByRegion = new Map();
-          DATA.geography.departments.features.forEach((feature) => {
-            const regionCode = feature.properties.region;
-            const features = autoDepartmentFeaturesByRegion.get(regionCode) || [];
-            features.push(feature);
-            autoDepartmentFeaturesByRegion.set(regionCode, features);
-          });
+        return geographyIndex(DATA.geography).departmentsByRegion;
+      }
+
+      function getAutoScopeDepartments() {
+        const data = DATA.modules.auto;
+        if (state.phase === "national") return data.departments;
+        const scope = data.regions[state.selectedRegion];
+        if (!scope) return [];
+        let cached = autoScopeDepartments.get(scope);
+        if (!cached || cached.source !== data.departments) {
+          const codes = new Set(scope.departmentCodes || []);
+          cached = { source: data.departments, departments: data.departments.filter((department) => codes.has(department.code)) };
+          autoScopeDepartments.set(scope, cached);
         }
-        return autoDepartmentFeaturesByRegion;
+        return cached.departments;
+      }
+
+      function showAutoDepartmentTooltip(event, feature) {
+        autoDepartmentHover = { element: event.currentTarget, feature, clientX: event.clientX, clientY: event.clientY };
+        updateAutoDepartmentTooltip(event, feature);
+      }
+
+      function updateAutoDepartmentTooltip(event, feature) {
+        const department = getAutoDepartmentIndex().get(feature.properties.code);
+        const value = department ? metricValueForDepartment(department, state.autoSector, state.autoMetric) : null;
+        showTooltip(event, department ? department.name : feature.properties.nom, state.autoMetric === "turnover" ? formatCurrency(value) : formatCount(value));
+      }
+
+      function hideAutoDepartmentTooltip() {
+        autoDepartmentHover = null;
+        hideTooltip();
+      }
+
+      function refreshAutoDepartmentTooltip() {
+        const hovered = autoDepartmentHover;
+        if (hovered?.element.isConnected && hovered.element.matches(":hover") && tooltip.classList.contains("is-visible")) {
+          updateAutoDepartmentTooltip(hovered, hovered.element.__data__);
+        }
       }
 
       function renderAutoModule() {
@@ -56,10 +90,7 @@
         const mapGrid = document.querySelector(".auto-department-card .department-map-grid");
         const departmentIndex = getAutoDepartmentIndex();
         const featuresByRegion = getAutoDepartmentFeaturesByRegion();
-        const scopeDepartmentCodes = state.phase === "national"
-          ? new Set(DATA.modules.auto.departments.map((department) => department.code))
-          : new Set((DATA.modules.auto.regions[state.selectedRegion] && DATA.modules.auto.regions[state.selectedRegion].departmentCodes) || []);
-        const departments = DATA.modules.auto.departments.filter((department) => scopeDepartmentCodes.has(department.code));
+        const departments = getAutoScopeDepartments();
 
         renderMetricSwitch("autoMetricSwitch", DATA.modules.auto.metrics, state.autoMetric, (key) => {
           state.autoMetric = key;
@@ -75,17 +106,19 @@
         );
 
         if (!departments.length) {
+          autoDepartmentHover = null;
           mapMeta.textContent = `${scopeLabel()} / données indisponibles`;
           rankingMeta.textContent = "Données indisponibles";
           document.getElementById("autoLegend").replaceChildren();
           const emptySvg = d3.select("#autoMapSvg");
           emptySvg.selectAll("*").remove();
+          autoMapScope = null;
           emptySvg.append("text")
             .attr("x", 450).attr("y", 310).attr("text-anchor", "middle")
             .attr("fill", paletteToken("employment-chart-muted", "#64748B"))
             .style("font-size", "18px")
             .text("Aucune donnée disponible pour ce territoire.");
-          autoRanking.innerHTML = "";
+          autoRanking.replaceChildren();
           syncDepartmentRankingHeight(mapGrid);
           return;
         }
@@ -101,7 +134,12 @@
           ? buildScale(d3.extent(values), [paletteToken("chart-auto-low", "#BFE8CF"), paletteToken("chart-auto-high", "#16A34A")])
           : () => paletteToken("chart-auto-low", "#BFE8CF");
         const svg = d3.select("#autoMapSvg");
-        svg.selectAll("*").remove();
+        const nextMapScope = state.phase === "national" ? "national" : state.selectedRegion;
+        if (autoMapScope !== nextMapScope) {
+          autoDepartmentHover = null;
+          svg.selectAll("*").remove();
+        }
+        autoMapScope = nextMapScope;
 
         if (state.phase === "national") {
           drawCompositeMap(svg, DATA.geography.departments, {
@@ -122,46 +160,39 @@
           });
         } else {
           const features = featuresByRegion.get(state.selectedRegion) || [];
-          const projection = d3.geoMercator().fitExtent([[32, 32], [868, 588]], { type: "FeatureCollection", features });
-          const path = d3.geoPath(projection);
-          const root = svg.append("g");
-          root.selectAll("path")
-            .data(features)
-            .join("path")
+          const geometryChanged = !autoDepartmentGeometry || autoDepartmentGeometry.features !== features;
+          if (geometryChanged) {
+            autoDepartmentGeometry = departmentMapGeometry(features);
+          }
+          let root = svg.select("g");
+          if (root.empty()) root = svg.append("g");
+          const paths = root.selectAll("path")
+            .data(features, (feature) => feature.properties.code)
+            .join((enter) => enter.append("path")
+              .attr("d", (feature) => autoDepartmentGeometry.paths.get(feature.properties.code))
+              .on("mouseenter", showAutoDepartmentTooltip)
+              .on("mousemove", showAutoDepartmentTooltip)
+              .on("mouseleave", hideAutoDepartmentTooltip));
+          if (geometryChanged) paths.attr("d", (feature) => autoDepartmentGeometry.paths.get(feature.properties.code));
+          paths
             .attr("class", (feature) => `path-department${departmentIndex.has(feature.properties.code) ? "" : " is-unavailable"}`)
-            .attr("d", path)
             .attr("fill", (feature) => {
               const department = departmentIndex.get(feature.properties.code);
               const value = department ? metricValueForDepartment(department, state.autoSector, state.autoMetric) : null;
               return value != null ? scale(value) : paletteToken("map-empty", "rgba(255,255,255,0.05)");
-            })
-            .on("mouseenter", (event, feature) => {
-              const department = departmentIndex.get(feature.properties.code);
-              const value = department ? metricValueForDepartment(department, state.autoSector, state.autoMetric) : null;
-              showTooltip(event, department ? department.name : feature.properties.nom, state.autoMetric === "turnover" ? formatCurrency(value) : formatCount(value));
-            })
-            .on("mousemove", (event, feature) => {
-              const department = departmentIndex.get(feature.properties.code);
-              const value = department ? metricValueForDepartment(department, state.autoSector, state.autoMetric) : null;
-              showTooltip(event, department ? department.name : feature.properties.nom, state.autoMetric === "turnover" ? formatCurrency(value) : formatCount(value));
-            })
-            .on("mouseleave", hideTooltip);
+            });
         }
 
         const domain = d3.extent(values);
         const legend = document.getElementById("autoLegend");
         rangeLegend(legend, state.autoMetric === "turnover" ? formatCurrency(domain[0]) : formatCount(domain[0]), state.autoMetric === "turnover" ? formatCurrency(domain[1]) : formatCount(domain[1]));
-        autoRanking.innerHTML = "";
-        departments
+        const articles = departments
           .map((department) => ({ ...department, metric: metricValueForDepartment(department, state.autoSector, state.autoMetric) }))
           .filter((department) => department.metric != null)
           .sort((a, b) => b.metric - a.metric)
           .slice(0, 10)
-          .forEach((department) => {
-            const article = document.createElement("article");
-            article.className = "ranking-item";
-            article.replaceChildren(...rankingArticle(department.name, state.autoMetric === "turnover" ? formatCurrency(department.metric) : formatCount(department.metric), regionsByCode.get(department.regionCode).name).childNodes);
-            autoRanking.appendChild(article);
-          });
+          .map((department) => rankingArticle(department.name, state.autoMetric === "turnover" ? formatCurrency(department.metric) : formatCount(department.metric), regionsByCode.get(department.regionCode).name));
+        autoRanking.replaceChildren(...articles);
+        if (state.phase !== "national") refreshAutoDepartmentTooltip();
         syncDepartmentRankingHeight(mapGrid);
       }

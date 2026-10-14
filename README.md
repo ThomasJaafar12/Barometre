@@ -73,6 +73,8 @@ Les agrégats des modules et des DPAE sont également conservés dans ce dossier
 
 Les templates et les métadonnées de publication sont relus à chaque lancement, et les politiques CSP sont recalculées après le rendu. Dans la synthèse, les tableaux de valeurs sont construits à leur première ouverture et les formateurs français sont réutilisés lors des changements de région.
 
+Dans la version détaillée, chaque filtre ne met à jour que son bloc. Les contrôles et les lignes de classement sont réutilisés ; les cartes départementales conservent leurs chemins lorsque la géographie reste identique. Les séries normalisées, fenêtres temporelles et index géographiques sont mis en cache par identité des sources. Les caches de données ne conservent pas de nœuds DOM ni d’objets D3 mutables. Les formateurs français sont partagés. Les tâches de rendu sont regroupées, et une demande différée devenue obsolète ne peut pas mettre à jour un ancien territoire ni l’accueil.
+
 ## Ouverture et diffusion
 
 Ouvrir `dist/index.html` directement dans un navigateur récent, ou servir le site :
@@ -106,6 +108,8 @@ Relancer `python builder.py` avant l’export pour actualiser le site. Ne pas mo
 Chaque page contient une CSP calculée à partir des scripts assemblés. Les scripts et feuilles de style locaux sont autorisés depuis le site ; les scripts externes ne sont plus nécessaires. Le validateur contrôle la liste explicite et l’ordre des scripts locaux. Les textes dynamiques utilisent des insertions DOM sûres. La politique interdit les scripts inline non autorisés, `eval`, les plugins, les cadres, les formulaires et les connexions de données externes. Les styles inline restent autorisés pour conserver les graphiques et animations existants. Google Fonts est limité à ses domaines dédiés ; ses feuilles de style variables ne peuvent pas utiliser une empreinte SRI fixe.
 
 L’encodage suit les [recommandations OWASP sur les injections de scripts](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html). Les autorisations par empreinte reposent sur la [directive CSP `script-src` documentée par MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/script-src).
+
+Le code applicatif construit ses éléments avec les API DOM natives et affiche les libellés comme du texte. Une garde de maintenance contrôle les sources dans les tests et les scripts assemblés à la génération : elle refuse les insertions HTML et les interpréteurs de code. Les bibliothèques tierces, dont les octets restent vérifiés séparément, sont exclues de cette garde. Ce contrôle conservateur complète l’encodage et la CSP ; il ne constitue pas une analyse exhaustive de toutes les possibilités d’injection.
 
 Sur un hébergement HTTP, ajouter les en-têtes suivants. La directive `frame-ancestors` doit être envoyée comme en-tête HTTP, car une balise meta ne peut pas l’appliquer :
 
@@ -141,3 +145,22 @@ node scripts/verify_browser.cjs
 ```
 
 Il génère une référence inline depuis les mêmes données, vérifie les interactions et les captures sur ordinateur et mobile, en `file://` et HTTP, et refuse les erreurs JavaScript/CSP, les ressources manquantes ou les requêtes de données. Les captures et le rapport sont placés dans `.cache/browser-verification/`. Le profil de couleur sRGB et le rendu logiciel sont imposés aux deux versions pour des comparaisons reproductibles. La tolérance visuelle est limitée à 0,02 % des pixels avec une amplitude maximale de 32/255 pour l’anticrénelage ; la comparaison du contenu, du CSS, des scripts et des médias est exacte. `--reference-dir .cache/migration-reference` compare aux pages sauvegardées avant cette migration ; `--site-dir CHEMIN` contrôle un paquet déplacé ou extrait.
+
+### Vérification d’une migration DOM
+
+Avant de modifier les scripts, conserver un paquet publié complet et ses empreintes. Pour la migration DOM d’octobre 2026, la référence est `.cache/dom-migration-20261014-before/site`, avec captures, contrats DOM/SVG et mesures initiales dans son dossier parent. Toujours transmettre cette référence explicitement : une référence générée depuis les sources déjà modifiées ne détecterait pas une régression commune aux deux rendus.
+
+```powershell
+python scripts/verify_dom_assets.py --reference-dir .cache/dom-migration-20261014-before/site
+node scripts/verify_browser.cjs --reference-dir .cache/dom-migration-20261014-before/site --artifacts-dir .cache/dom-migration-optimized/browser
+python scripts/make_dom_security_fixture.py
+node scripts/verify_dom_migration.cjs --fixture-dir .cache/dom-security-fixture --tooltip-reference-dir .cache/dom-migration-20261014-before/site
+node scripts/verify_reveal.cjs
+node scripts/benchmark_dom.cjs --before .cache/dom-migration-20261014-before/site --after dist
+```
+
+Le contrôle des octets autorise uniquement le changement du script détaillé et du manifeste ; HTML, données, CSS, synthèse, médias et bibliothèques doivent rester identiques. Le contrôle navigateur compare aussi les contrats DOM/SVG, les filtres sur des territoires documentés et les composants graphiques. Le contrôle ciblé couvre clavier, focus, infobulles, zoom, courses de chargement et cinquante cycles de changements. Il vérifie aussi qu’une infobulle visible change de valeur lors d’une sélection au clavier, sans déplacement de la souris sur un chemin réutilisé. La publication hostile est réservée à `.cache/` : ses libellés doivent rester du texte, et ses zéros et valeurs absentes conserver leur distinction.
+
+Le benchmark alterne les deux versions sur la même machine : dix démarrages et trente observations par interaction, ordinateur et mobile simulé avec CPU ×4. Les polices externes sont remplacées par le même repli système et les vidéos sont figées à leur première image pendant les mesures. La première sélection inclut le décodage Base64, la décompression gzip et la lecture JSON, en bloquant la précharge préalable. Le redimensionnement est mesuré par événement puis par changement réel de la fenêtre. Son rapport JSON conserve les échantillons, médianes, p95, temps JavaScript/layout, tâches longues, mutations DOM, listeners et mémoire après collecte. Il échoue si les budgets relatifs sont dépassés : médiane + `max(5 %, 5 ms)`, p95 + `max(10 %, 10 ms)`, mémoire stabilisée + `max(5 %, 5 Mio)`. Le ralentissement CPU simule un appareil moins puissant ; il ne remplace pas une mesure sur téléphone réel. Les animations normales sont vérifiées séparément.
+
+`verify_publication.py` reste le contrôle exact du générateur courant contre son paquet. Sa comparaison intégrale avec une ancienne référence échouera volontairement lorsque le JavaScript change ; la migration utilise les contrôles d’octets, de contrats et de rendu ci-dessus. Les rapports sont conservés sous `.cache/` et les fichiers de `dist/` sont régénérés seulement après validation du candidat.

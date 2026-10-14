@@ -1,21 +1,8 @@
       function renderQuarterlyModeSwitch(containerId, modes, currentMode, onSelect) {
         const container = document.getElementById(containerId);
         if (!container) return;
-        container.innerHTML = "";
-        modes.forEach((mode) => {
-          const btn = document.createElement("button");
-          btn.type = "button";
-          const isActive = mode.id === currentMode;
-          btn.className = `metric-button${isActive ? " is-active" : ""}`;
-          btn.setAttribute("aria-pressed", String(isActive));
-          btn.textContent = mode.label;
-          btn.addEventListener("click", () => {
-            if (mode.id !== currentMode) {
-              onSelect(mode.id);
-            }
-          });
-          container.appendChild(btn);
-        });
+        renderButtonOptions(container, modes.map((mode) => ({ key: mode.id, label: mode.label })), currentMode, onSelect,
+          { ariaPressed: true, skipActive: true });
       }
 
       const quarterlyChartConfigs = new Map();

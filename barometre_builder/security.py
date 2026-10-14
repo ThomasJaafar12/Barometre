@@ -12,6 +12,25 @@ from .dependencies import PAGE_DEPENDENCIES, SCRIPTS
 from .utils import dump_json
 
 
+APPLICATION_HTML_PARSERS = re.compile(
+    r"(?:\.\s*(?:innerHTML|outerHTML)\b|\[\s*['\"](?:innerHTML|outerHTML)['\"]\s*\]"
+    r"|\b(?:insertAdjacentHTML|createContextualFragment|parseFromString|setHTMLUnsafe|setHTML)\s*\("
+    r"|\bDOMParser\b|\bdocument\s*\.\s*(?:write|writeln)\s*\("
+    r"|\.\s*html\s*\(|\beval\s*\(|\bnew\s+Function\s*\()"
+)
+
+
+def validate_application_script(script: str) -> None:
+    """Garde de maintenance sur le code applicatif, jamais sur les bibliothèques.
+
+    Ce contrôle volontairement conservateur ne remplace pas une analyse XSS.
+    Les données et les noms des attributs restent soumis à leur propre encodage.
+    """
+    match = APPLICATION_HTML_PARSERS.search(script)
+    if match:
+        raise ValueError(f"Un interpréteur HTML ou JavaScript est interdit dans le code applicatif : {match[0]}.")
+
+
 def script_json(value: object) -> str:
     return (dump_json(value).replace("&", "\\u0026").replace("<", "\\u003c")
             .replace(">", "\\u003e").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029"))

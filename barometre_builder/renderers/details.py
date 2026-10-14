@@ -30,6 +30,10 @@ def render_details_payloads(boot: dict, deferred: dict) -> str:
         "__DETAILS_DOM_SCRIPT__": (PAGE_TEMPLATES_DIR / "details-dom.js").read_text(encoding="utf-8"),
         "__DETAILS_PUBLICATION__": escape(f'{boot["meta"]["publicationDateLabel"]} – N°{boot["meta"]["publicationIssueNumber"]}'),
     }
+    values["__DETAILS_CSS__"] = (PAGE_TEMPLATES_DIR / "details.css").read_text(encoding="utf-8")
+    values["__DETAILS_SCRIPT__"] = render_template(
+        (PAGE_TEMPLATES_DIR / "details.js").read_text(encoding="utf-8"), values
+    )
     return secure_html(render_template(template, values), "barometre_details.html")
 
 

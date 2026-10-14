@@ -24,18 +24,20 @@ from barometre_builder.renderers import RENDERERS
 from barometre_builder.renderers.common import render_template
 from barometre_builder.security import local_asset_url, script_json, validate_html
 from barometre_builder.utils import gzip_base64_json, relative_asset
-from scripts import build_mail_pack
+from scripts import export_package
+from barometre_builder.publication import assemble_publication, read_publication
+from barometre_builder.publishing import publish_files
 
 
 class FrenchCommandTests(unittest.TestCase):
     def test_help_and_argument_errors_are_french(self):
         cases = [(["--help"], 0, "Afficher cette aide"), (["--inconnu"], 2, "Arguments inconnus"),
-                 (["--html"], 2, "nécessite une valeur"), (["--zip=oui"], 2, "n’accepte pas de valeur")]
+                 (["--output-dir"], 2, "nécessite une valeur"), (["--zip=oui"], 2, "n’accepte pas de valeur")]
         for arguments, code, expected in cases:
             with self.subTest(arguments=arguments):
                 output = StringIO()
-                with mock.patch("sys.argv", ["build_mail_pack.py", *arguments]), redirect_stdout(output), redirect_stderr(output), self.assertRaises(SystemExit) as result:
-                    build_mail_pack.parse_args()
+                with mock.patch("sys.argv", ["export_package.py", *arguments]), redirect_stdout(output), redirect_stderr(output), self.assertRaises(SystemExit) as result:
+                    export_package.parse_args()
                 self.assertEqual(result.exception.code, code)
                 self.assertIn(expected, output.getvalue())
                 self.assertIn("Utilisation :", output.getvalue())
@@ -246,7 +248,7 @@ class OrchestrationTests(unittest.TestCase):
         self.assertEqual(result.brief["scopes"]["national"]["dpae"]["points"][-1]["value"], module["national"]["points"][-1]["value"])
 
     def test_build_writes_three_validated_outputs(self):
-        with tempfile.TemporaryDirectory() as directory, mock.patch.object(page, "ROOT", Path(directory)), mock.patch.object(page, "build_context", return_value=example_context()):
+        with tempfile.TemporaryDirectory() as directory, mock.patch.object(page, "OUTPUT_DIR", Path(directory)), mock.patch.object(page, "build_context", return_value=example_context()):
             result = page.build_pages()
             self.assertEqual(set(result), set(RENDERERS))
             for name, html in result.items():
@@ -254,10 +256,10 @@ class OrchestrationTests(unittest.TestCase):
             self.assertFalse(list(Path(directory).glob("*.tmp")))
 
     def test_invalid_render_does_not_replace_existing_outputs(self):
-        with tempfile.TemporaryDirectory() as directory, mock.patch.object(page, "ROOT", Path(directory)), mock.patch.object(page, "build_context", return_value=example_context()):
+        with tempfile.TemporaryDirectory() as directory, mock.patch.object(page, "OUTPUT_DIR", Path(directory)), mock.patch.object(page, "build_context", return_value=example_context()):
             index = Path(directory) / "index.html"
             index.write_text("version précédente", encoding="utf-8")
-            with mock.patch.object(page, "validate_html", side_effect=ValueError("Rendu invalide")), self.assertRaises(ValueError):
+            with mock.patch("barometre_builder.publication.validate_html", side_effect=ValueError("Rendu invalide")), self.assertRaises(ValueError):
                 page.build_pages()
             self.assertEqual(index.read_text(encoding="utf-8"), "version précédente")
 
@@ -266,41 +268,35 @@ class OrchestrationTests(unittest.TestCase):
             self.assertEqual(page.build_page(), "détails")
 
 
-class MailPackSecurityTests(unittest.TestCase):
-    def test_pack_includes_linked_pages_and_assets(self):
-        with tempfile.TemporaryDirectory() as directory, mock.patch.object(build_mail_pack, "ROOT", Path(directory)):
+class ExportSecurityTests(unittest.TestCase):
+    def test_pack_includes_all_pages_resources_and_zip(self):
+        with tempfile.TemporaryDirectory() as directory, mock.patch.object(export_package, "ROOT", Path(directory)):
             root = Path(directory)
-            (root / "Assets/logo").mkdir(parents=True)
-            (root / "Assets/logo/logo.png").write_bytes(b"logo")
-            (root / "index.html").write_text('<a href="barometre_bref.html">Bref</a><a href="barometre_details.html">Détails</a>', encoding="utf-8")
-            (root / "barometre_bref.html").write_text('<img src="Assets/logo/logo.png">')
-            (root / "barometre_details.html").write_text('<a href="index.html">Accueil</a>')
-            output = root / "dist/mail_pack"
-            copied, missing = build_mail_pack.copy_pack(root / "index.html", output, None)
-            self.assertFalse(missing)
-            self.assertTrue(all((output / name).is_file() for name in RENDERERS))
-            self.assertIn(Path("Assets/logo/logo.png"), copied)
-            self.assertTrue(build_mail_pack.create_zip(output).is_file())
+            source = root / "dist"
+            publication = assemble_publication(example_context())
+            publish_files(publication.files, source)
+            output = export_package.export_site(Path("exports/paquet avec espaces"), source_dir=source)
+            self.assertEqual(read_publication(output), publication.files)
+            self.assertTrue(export_package.create_zip(output).is_file())
 
-    def test_output_must_be_below_dist(self):
-        for value in [build_mail_pack.ROOT, build_mail_pack.ROOT / "dist", build_mail_pack.ROOT / "dist/../../outside", Path(tempfile.gettempdir()) / "mail_pack"]:
+    def test_output_must_be_below_exports(self):
+        for value in [export_package.ROOT, export_package.ROOT / "exports", export_package.ROOT / "dist/publication",
+                      export_package.ROOT / "exports/../../outside", Path(tempfile.gettempdir()) / "mail_pack"]:
             with self.subTest(value=value), self.assertRaises(ValueError):
-                build_mail_pack.checked_output_dir(value)
+                export_package.checked_output_dir(value)
 
-    def test_asset_traversal_is_rejected(self):
-        with self.assertRaises(ValueError):
-            build_mail_pack.extract_local_assets('<img src="Assets/../../secret">')
-
-    def test_missing_assets_do_not_delete_existing_pack(self):
-        with tempfile.TemporaryDirectory() as directory, mock.patch.object(build_mail_pack, "ROOT", Path(directory)):
+    def test_missing_source_preserves_existing_pack(self):
+        with tempfile.TemporaryDirectory() as directory, mock.patch.object(export_package, "ROOT", Path(directory)):
             root = Path(directory)
-            (root / "index.html").write_text('<img src="Assets/missing.png">')
-            output = root / "dist/mail_pack"
-            output.mkdir(parents=True)
-            (output / "previous.txt").write_text("préservé", encoding="utf-8")
-            with self.assertRaises(ValueError):
-                build_mail_pack.copy_pack(root / "index.html", output, None)
-            self.assertTrue((output / "previous.txt").exists())
+            publication = assemble_publication(example_context())
+            source = root / "dist"
+            output = root / "exports/package"
+            publish_files(publication.files, source)
+            publish_files(publication.files, output)
+            (source / "assets/vendor/d3.min.js").unlink()
+            with self.assertRaises(FileNotFoundError):
+                export_package.export_site(output, source_dir=source)
+            self.assertEqual(read_publication(output), publication.files)
 
 
 if __name__ == "__main__":

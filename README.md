@@ -11,7 +11,7 @@ python -m pip install -r requirements.txt
 python builder.py
 ```
 
-La commande produit, à la racine :
+La commande produit uniquement dans `dist/` :
 
 - `index.html` : accueil et choix de lecture ;
 - `barometre_bref.html` : quatre indicateurs expliqués simplement, pour la France et ses régions ;
@@ -35,10 +35,27 @@ Les trois pages partagent ces métadonnées. Les fichiers HTML générés sont d
 - `payloads.py`, les modules métier et `dpae.py` préparent les données. `context.py` les construit une seule fois pour les trois rendus.
 - `brief.py` projette uniquement les séries nécessaires à la synthèse.
 - `renderers/` contient un moteur sans écriture de fichier pour chaque page, ainsi que les fonctions communes de rendu.
-- `templates/` contient les nouveaux templates, leur feuille de style et leurs scripts. La version détaillée conserve `barometre.template.html` et les fragments de `template_fragments/chapters/`.
-- `security.py` centralise l’encodage, la validation et la politique CSP ; `dependencies.py` centralise les versions et empreintes des scripts CDN.
+- `templates/` contient les styles et scripts sources, dont `details.css` et `details.js`. La version détaillée conserve son squelette `barometre.template.html` et les fragments de `template_fragments/chapters/`.
+- `security.py` centralise l’encodage, la validation et la politique CSP ; `dependencies.py` centralise les versions et empreintes des bibliothèques. Leurs fichiers et mentions de licence sont conservés dans `barometre_builder/vendor/`.
+- `publication.py` assemble les rendus pour la diffusion : styles et scripts applicatifs externes, bibliothèques locales, copie des médias et manifeste SHA-256. `publishing.py` prépare les fichiers sur disque puis les publie avec restauration en cas d’échec. Les autres sous-dossiers présents dans `dist/` sont préservés.
 
-`build_pages() -> dict[str, str]` construit et valide tous les rendus avant de remplacer atomiquement chaque sortie. `build_page()` génère aussi les trois pages et retourne le HTML détaillé, pour conserver l’interface historique. `build_payloads()` et `render_html()` restent accessibles dans `barometre_builder.page` et conservent le contrat de données de la version détaillée.
+`build_pages() -> dict[str, str]` construit et valide le site complet avant sa publication dans `dist/`. `build_page()` génère aussi les trois pages et retourne le HTML détaillé. `build_payloads()` et `render_html()` restent accessibles dans `barometre_builder.page` ; `render_html()` conserve le rendu historique inline, sans écriture de fichier.
+
+```text
+dist/
+├── index.html
+├── barometre_bref.html
+├── barometre_details.html
+├── site_manifest.json
+└── assets/
+    ├── css/
+    ├── js/
+    ├── images/
+    ├── videos/
+    └── vendor/
+```
+
+Les données restent intégrées aux pages. La publication adapte uniquement les URLs des médias dans une copie de présentation ; le contexte d’ingestion et les données différées compressées restent inchangés. Aucun `fetch()`, JSON externe, module ES ou téléchargement de bibliothèque n’est ajouté à la lecture ou à la génération.
 
 ## Lecture des indicateurs
 
@@ -58,25 +75,35 @@ Les templates et les métadonnées de publication sont relus à chaque lancement
 
 ## Ouverture et diffusion
 
-Ouvrir `index.html` directement dans un navigateur récent, ou servir le dossier :
+Ouvrir `dist/index.html` directement dans un navigateur récent, ou servir le site :
 
 ```powershell
-python -m http.server 8000 --bind 127.0.0.1
+python -m http.server 8000 --directory dist --bind 127.0.0.1
 ```
 
-Les données sont intégrées au HTML. Les scripts et Google Fonts nécessitent Internet : D3 7.9.0 pour la synthèse, D3 7.9.0, GSAP et ScrollTrigger 3.12.5 pour les détails. Les scripts sont protégés par des empreintes SRI et la CSP ; aucune dépendance n’est téléchargée pendant une génération normale.
+Les données, D3 7.9.0, GSAP et ScrollTrigger 3.12.5 sont disponibles localement. Seules les polices Google nécessitent Internet ; leur absence conserve les polices de repli existantes. Les scripts classiques sont chargés dans leur ordre historique, sans `async` ni `defer`. Les empreintes des bibliothèques locales sont contrôlées à chaque génération ; les scripts inline restent autorisés par leur empreinte CSP.
 
-Créer un paquet avec les trois pages liées, le logo et les vidéos référencées :
+Après une génération, exporter le site complet et créer une archive :
 
 ```powershell
-python scripts/build_mail_pack.py --zip
+.\scripts\export_package.ps1 -Zip
 ```
 
-Le résultat est placé dans `dist/mail_pack/`, avec `dist/mail_pack.zip` et un manifeste. `--html` permet de choisir la page de départ. `--output-dir` doit désigner un sous-dossier de `dist` ; le dossier `dist` lui-même, les sorties hors de ce dossier et les ressources qui sortent de `Assets` sont refusés. Les sources sont vérifiées avant le remplacement d’un ancien paquet.
+Cette commande fonctionne sous Windows PowerShell 5.1 ou PowerShell 7, depuis n’importe quel dossier de travail. Elle crée `exports/export_package/` et `exports/export_package.zip`. Les trois pages, les styles, scripts, bibliothèques, images et vidéos sont copiés sans modification, après vérification du manifeste et des empreintes. L’archive contient `index.html` à sa racine ; la décompresser puis ouvrir cette page. Omettre `-Zip` pour créer uniquement le dossier.
+
+Utiliser `-OutputDirectory 'exports/publication avec espaces'` pour choisir un autre sous-dossier de `exports`, et `-PythonExecutable 'C:\chemin\vers\python.exe'` pour choisir l’interpréteur. Les sorties hors de `exports` et les liens symboliques sortants sont refusés. Un échec de validation ou de publication préserve la version précédente du paquet. La création du ZIP est préparée dans un fichier temporaire avant remplacement de l’archive précédente.
+
+L’exporteur Python est également utilisable directement :
+
+```powershell
+python scripts/export_package.py --zip
+```
+
+Relancer `python builder.py` avant l’export pour actualiser le site. Ne pas modifier directement les fichiers de `dist/` : le manifeste vérifie leur intégrité.
 
 ## Sécurité de l’hébergement
 
-Chaque page contient une CSP calculée à partir des scripts assemblés. Les textes dynamiques utilisent des insertions DOM sûres. La politique interdit les scripts inline non autorisés, `eval`, les plugins, les cadres, les formulaires et les connexions de données externes. Les styles inline restent autorisés pour conserver les graphiques et animations existants. Google Fonts est limité à ses domaines dédiés ; ses feuilles de style variables ne peuvent pas utiliser une empreinte SRI fixe.
+Chaque page contient une CSP calculée à partir des scripts assemblés. Les scripts et feuilles de style locaux sont autorisés depuis le site ; les scripts externes ne sont plus nécessaires. Le validateur contrôle la liste explicite et l’ordre des scripts locaux. Les textes dynamiques utilisent des insertions DOM sûres. La politique interdit les scripts inline non autorisés, `eval`, les plugins, les cadres, les formulaires et les connexions de données externes. Les styles inline restent autorisés pour conserver les graphiques et animations existants. Google Fonts est limité à ses domaines dédiés ; ses feuilles de style variables ne peuvent pas utiliser une empreinte SRI fixe.
 
 L’encodage suit les [recommandations OWASP sur les injections de scripts](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html). Les autorisations par empreinte reposent sur la [directive CSP `script-src` documentée par MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/script-src).
 
@@ -97,4 +124,20 @@ Servir les pages en HTTPS. Activer `Strict-Transport-Security` uniquement lorsqu
 python -m unittest discover -v
 ```
 
-Les tests couvrent les contrats historiques, les DPAE, les comparaisons annuelles, l’assemblage des trois pages, l’encodage et la CSP, ainsi que les chemins du paquet de diffusion. Le budget historique de 4 Mo de HTML et 3 Mo de données compressées est conservé. La compression gzip utilise la stratégie `Z_FILTERED`, sans perte de données.
+Les tests couvrent les contrats historiques, les DPAE, les comparaisons annuelles, l’assemblage des trois pages, l’encodage, la CSP, les empreintes, les chemins de diffusion et la restauration après échec de remplacement. Ils réintègrent les styles et scripts externalisés et comparent tout le contenu aux rendus historiques : seuls les chemins des médias, les références aux bibliothèques et les métadonnées de sécurité peuvent changer. Les octets des médias et le payload différé restent identiques. Le budget de 4 Mo pour le HTML détaillé et ses ressources applicatives, ainsi que les 3 Mo de données encodées compressées, est conservé. La compression gzip utilise la stratégie `Z_FILTERED`, sans perte de données.
+
+Vérifier également le site réellement écrit sur disque :
+
+```powershell
+python scripts/verify_publication.py
+```
+
+Pour comparer à des HTML sauvegardés avant une migration, ajouter `--reference-dir CHEMIN`. La référence locale de cette migration est conservée dans `.cache/migration-reference/`, avec les empreintes des HTML et des médias.
+
+Le contrôle navigateur facultatif nécessite Node.js, Playwright et `pngjs` disponibles dans l’environnement Node. Il utilise Edge sous Windows, ou Chromium ailleurs ; `--channel chrome` permet de choisir Chrome :
+
+```powershell
+node scripts/verify_browser.cjs
+```
+
+Il génère une référence inline depuis les mêmes données, vérifie les interactions et les captures sur ordinateur et mobile, en `file://` et HTTP, et refuse les erreurs JavaScript/CSP, les ressources manquantes ou les requêtes de données. Les captures et le rapport sont placés dans `.cache/browser-verification/`. Le profil de couleur sRGB et le rendu logiciel sont imposés aux deux versions pour des comparaisons reproductibles. La tolérance visuelle est limitée à 0,02 % des pixels avec une amplitude maximale de 32/255 pour l’anticrénelage ; la comparaison du contenu, du CSS, des scripts et des médias est exacte. `--reference-dir .cache/migration-reference` compare aux pages sauvegardées avant cette migration ; `--site-dir CHEMIN` contrôle un paquet déplacé ou extrait.

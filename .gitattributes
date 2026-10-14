@@ -1,0 +1,2 @@
+# Conserver les octets des bibliothèques vérifiées, y compris sous Windows.
+barometre_builder/vendor/*.js -text

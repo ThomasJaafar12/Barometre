@@ -22,7 +22,7 @@ def local_asset_url(value: str) -> str:
     parsed = urlsplit(decoded)
     parts = decoded.split("/")
     if (parsed.scheme or parsed.netloc or parsed.query or parsed.fragment or "\\" in decoded
-            or not decoded.startswith("Assets/") or any(part in {"", ".", ".."} for part in parts)
+            or not decoded.startswith(("Assets/", "assets/")) or any(part in {"", ".", ".."} for part in parts)
             or any(char in decoded for char in "<>\"'`%")
             or any(ord(char) < 32 for char in decoded)):
         raise ValueError("Le chemin d’une ressource locale est invalide.")
@@ -45,19 +45,22 @@ def dependency_guard(names: tuple[str, ...]) -> str:
 ERROR_NOTICE = '<p id="dependencyError" role="alert" hidden>Les graphiques ne peuvent pas être chargés. Vérifiez votre connexion puis rechargez la page.</p>'
 
 
-def secure_html(html: str, page_name: str) -> str:
+def secure_html(html: str, page_name: str, *, local_scripts: bool = False) -> str:
     """Calculer les empreintes sur les octets finaux, avant toute écriture."""
     hashes = []
     for match in re.finditer(r"<script\b([^>]*)>(.*?)</script\s*>", html, flags=re.S | re.I):
         if not re.search(r"\bsrc\s*=", match[1], re.I):
             digest = base64.b64encode(hashlib.sha256(match[2].encode("utf-8")).digest()).decode("ascii")
             hashes.append(f"'sha256-{digest}'")
-    hashes.extend(f"'{SCRIPTS[name].integrity}'" for name in PAGE_DEPENDENCIES[page_name])
+    if local_scripts:
+        hashes.insert(0, "'self'")
+    else:
+        hashes.extend(f"'{SCRIPTS[name].integrity}'" for name in PAGE_DEPENDENCIES[page_name])
     policy = "; ".join([
         "default-src 'none'",
         "script-src " + (" ".join(hashes) if hashes else "'none'"),
         "script-src-attr 'none'",
-        "style-src 'unsafe-inline' https://fonts.googleapis.com",
+        "style-src " + ("'self' " if local_scripts else "") + "'unsafe-inline' https://fonts.googleapis.com",
         "font-src https://fonts.gstatic.com",
         "img-src 'self' data:",
         "media-src 'self'",
@@ -72,12 +75,13 @@ def secure_html(html: str, page_name: str) -> str:
 
 
 class PageValidator(HTMLParser):
-    def __init__(self, page_name: str):
+    def __init__(self, page_name: str, local_scripts: tuple[str, ...] | None = None):
         super().__init__()
         self.page_name = page_name
         self.scripts: list[str] = []
         self.has_policy = False
         self.is_french = False
+        self.local_scripts = local_scripts
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         fields = dict(attrs)
@@ -89,11 +93,17 @@ class PageValidator(HTMLParser):
             self.has_policy = True
         for field in ("src", "href"):
             value = fields.get(field)
-            if value and value.startswith("Assets/"):
+            if value and value.startswith(("Assets/", "assets/")):
                 local_asset_url(value)
             if value and urlsplit(value).scheme.lower() in {"javascript", "vbscript"}:
                 raise ValueError("Une URL exécutable non autorisée a été trouvée.")
         if tag == "script" and fields.get("src"):
+            if self.local_scripts is not None:
+                source = local_asset_url(fields["src"])
+                if source not in self.local_scripts or any(key in fields for key in ("async", "defer", "type", "crossorigin", "integrity")):
+                    raise ValueError("Un script local n’a pas été vérifié ou son mode de chargement a changé.")
+                self.scripts.append(source)
+                return
             expected = {SCRIPTS[name].url: SCRIPTS[name] for name in PAGE_DEPENDENCIES[self.page_name]}
             dependency = expected.get(fields["src"])
             if not dependency or fields.get("integrity") != dependency.integrity or fields.get("crossorigin") != "anonymous":
@@ -101,13 +111,13 @@ class PageValidator(HTMLParser):
             self.scripts.append(fields["src"])
 
 
-def validate_html(html: str, page_name: str) -> None:
-    validator = PageValidator(page_name)
+def validate_html(html: str, page_name: str, *, local_scripts: tuple[str, ...] | None = None) -> None:
+    validator = PageValidator(page_name, local_scripts)
     validator.feed(html)
     if not validator.is_french or not validator.has_policy:
         raise ValueError(f"La page {page_name} doit être en français et posséder une politique de sécurité.")
     if re.search(r"__[A-Z][A-Z0-9_]*__", html):
         raise ValueError(f"La page {page_name} contient un emplacement non remplacé.")
-    expected = [SCRIPTS[name].url for name in PAGE_DEPENDENCIES[page_name]]
+    expected = list(local_scripts) if local_scripts is not None else [SCRIPTS[name].url for name in PAGE_DEPENDENCIES[page_name]]
     if validator.scripts != expected:
         raise ValueError(f"Les dépendances de la page {page_name} sont incomplètes.")

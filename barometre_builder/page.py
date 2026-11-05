@@ -1,4 +1,4 @@
-"""Orchestration et écriture atomique des trois pages du baromètre."""
+"""Orchestration et écriture atomique des pages du baromètre."""
 from __future__ import annotations
 
 import sys
@@ -9,11 +9,12 @@ from .payloads import build_payloads
 from .renderers.details import render_details_payloads
 from .publication import assemble_publication
 from .publishing import publish_files
+from .topics import get_topic
 
 
-def render_html(boot_payload: dict, deferred_payload: dict) -> str:
-    """Interface historique : retourner le rendu détaillé."""
-    return render_details_payloads(boot_payload, deferred_payload)
+def render_html(boot_payload: dict, deferred_payload: dict, *, topic: str = "emploi") -> str:
+    """Retourner le rendu détaillé du thème, sans écriture."""
+    return render_details_payloads(boot_payload, deferred_payload, topic=topic)
 
 
 def build_pages() -> dict[str, str]:
@@ -23,9 +24,10 @@ def build_pages() -> dict[str, str]:
     return publication.pages
 
 
-def build_page() -> str:
-    """Interface historique : générer les pages et retourner la version détaillée."""
-    return build_pages()["barometre_details.html"]
+def build_page(*, topic: str = "emploi") -> str:
+    """Générer toutes les pages et retourner le détail du thème demandé."""
+    name = get_topic(topic).page_name
+    return build_pages()[name]
 
 
 def main() -> None:

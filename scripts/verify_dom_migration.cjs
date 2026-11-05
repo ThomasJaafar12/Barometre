@@ -46,11 +46,11 @@ async function choose(page, name, wait = true) {
   await page.locator('#geoTrigger').click({ force: true });
   await page.locator('#geoMenu button[role="option"]').filter({ hasText: name }).click({ force: true });
   if (wait) {
-    await page.waitForFunction(() => document.querySelector('#dpaeModeSwitch button'));
+    await page.waitForFunction(() => document.body.dataset.topic === 'emploi' ? document.querySelector('#autoMetricSwitch button') : document.querySelector('#dpaeModeSwitch button'));
     await frames(page);
   }
 }
-async function open(browser, viewport, directory, gated = false) {
+async function open(browser, viewport, directory, gated = false, topic = 'emploi') {
   const context = await browser.newContext({ viewport, locale: 'fr-FR', reducedMotion: 'reduce' });
   await context.addInitScript(instrument);
   if (gated) await context.addInitScript(() => {
@@ -63,7 +63,7 @@ async function open(browser, viewport, directory, gated = false) {
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto(pathToFileURL(path.join(directory, 'barometre_details.html')).href, { waitUntil: 'load' });
+  await page.goto(pathToFileURL(path.join(directory, fs.existsSync(path.join(directory, `barometre_${topic}.html`)) ? `barometre_${topic}.html` : 'barometre_details.html')).href, { waitUntil: 'load' });
   return { page, context, errors };
 }
 async function controls(browser, viewport) {
@@ -144,7 +144,7 @@ async function controls(browser, viewport) {
 
     // A → B → A: compare text and chart coordinates after caches have been reused.
     const semantic = () => page.evaluate(() => {
-      const ids = ['employmentEffectifsChartSvg', 'employmentPayrollChartSvg', 'employmentDeptMapSvg', 'employmentDeptRanking', 'dpaeChartSvg'];
+      const ids = ['employmentEffectifsChartSvg', 'employmentPayrollChartSvg', 'employmentDeptMapSvg', 'employmentDeptRanking'];
       return ids.map(id => {
         const node = document.getElementById(id);
         return { id, text: node.textContent.replace(/\s+/g, ' ').trim(),
@@ -164,7 +164,7 @@ async function controls(browser, viewport) {
         const options = [...picker.querySelectorAll('button[role="option"]')];
         options[cycle % 2].click();
         document.querySelector('#employmentDeptMetricSwitch button:not(.is-active)').click();
-        document.querySelector('#dpaeModeSwitch button:not(.is-active)').click();
+        document.querySelector('#autoMetricSwitch button:not(.is-active)').click();
       }, cycle);
       await frames(page);
       if ([9, 29, 49].includes(cycle)) {
@@ -187,8 +187,8 @@ async function controls(browser, viewport) {
     console.log(`OK DOM invariants ${viewport.width}px`);
   } finally { await context.close(); }
 }
-async function race(browser, viewport, destination) {
-  const { page, context, errors } = await open(browser, viewport, site, true);
+async function race(browser, viewport, destination, topic) {
+  const { page, context, errors } = await open(browser, viewport, site, true, topic);
   try {
     await choose(page, 'France entière', false);
     await choose(page, 'Normandie', false);
@@ -203,17 +203,18 @@ async function race(browser, viewport, destination) {
       assert.equal(await page.locator('#stageShell').getAttribute('data-phase'), 'landing');
       assert.equal(await page.locator('#story').isVisible(), false, 'Pending data must not reveal landing story');
     } else {
-      await page.waitForFunction(() => document.querySelector('#dpaeModeSwitch button'));
+      await page.waitForFunction(() => document.body.dataset.topic === 'emploi' ? document.querySelector('#autoMetricSwitch button') : document.querySelector('#dpaeModeSwitch button'));
       assert.ok((await page.locator('#geoTrigger').getAttribute('aria-label')).includes('Mayotte'));
-      assert.ok((await page.locator('#employmentTreemapMeta').textContent()).includes('Mayotte'));
+      assert.equal(await page.locator('#heroTitle').innerText(), 'Mayotte');
+      assert.ok((await page.locator(topic === 'emploi' ? '#employmentTreemapMeta' : '#dpaeScope').textContent()).includes('Mayotte'));
     }
     assert.deepEqual(errors, []);
-    results.push({ scenario: `pending-data-latest-${destination}`, viewport });
-    console.log(`OK async latest ${destination} ${viewport.width}px`);
+    results.push({ scenario: `pending-data-${topic}-latest-${destination}`, viewport });
+    console.log(`OK async ${topic} latest ${destination} ${viewport.width}px`);
   } finally { await context.close(); }
 }
 async function securityFixture(browser) {
-  const { page, context, errors } = await open(browser, { width: 1440, height: 900 }, fixture);
+  const { page, context, errors } = await open(browser, { width: 1440, height: 900 }, fixture, false, 'entreprises');
   try {
     await choose(page, 'Île-de-France');
     await frames(page, 5);
@@ -297,8 +298,10 @@ async function retainedTooltip(browser) {
   try {
     if (!process.argv.includes('--tooltip-only')) for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
       await controls(browser, viewport);
-      await race(browser, viewport, 'Mayotte');
-      await race(browser, viewport, 'landing');
+      for (const topic of ['emploi', 'entreprises']) {
+        await race(browser, viewport, 'Mayotte', topic);
+        await race(browser, viewport, 'landing', topic);
+      }
     }
     if (tooltipReference) await retainedTooltip(browser);
     if (fixture) await securityFixture(browser);

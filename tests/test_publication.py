@@ -54,7 +54,7 @@ class PublicationEquivalenceTests(unittest.TestCase):
                 self.assertNotIn("fetch(", self.publication.files[app].decode("utf-8"))
 
     def test_combined_html_and_application_assets_keep_historical_budget(self):
-        name = "barometre_details.html"
+        name = "barometre_emploi.html"
         total = sum(len(self.publication.files[path]) for path in (name, STYLES[name], APP_SCRIPTS[name]))
         self.assertLessEqual(total, 4_000_000)
 
@@ -102,7 +102,7 @@ class PublicationTransactionTests(unittest.TestCase):
         original_replace = os.replace
 
         def fail_during_commit(source, target):
-            if ".barometre-stage-" in str(source) and "backup" not in str(source) and Path(target).name == "barometre_details.html":
+            if ".barometre-stage-" in str(source) and "backup" not in str(source) and Path(target).name == "barometre_emploi.html":
                 raise OSError("Échec simulé de publication")
             return original_replace(source, target)
 
@@ -123,7 +123,7 @@ class PublicationTransactionTests(unittest.TestCase):
             output = Path(directory) / "dist"
             publish_files(self.old, output)
             files = dict(self.new)
-            files["assets/js/details.js"] = b"invalid"
+            files["assets/js/emploi.js"] = b"invalid"
             with self.assertRaises(ValueError):
                 publish_files(files, output)
             self.assertEqual(read_publication(output), self.old)

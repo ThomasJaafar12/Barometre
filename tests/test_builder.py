@@ -184,8 +184,8 @@ class GeneratedPayloadTests(unittest.TestCase):
     def test_chapter_headers_use_the_swiss_title_contract(self) -> None:
         html = render_html(self.boot, self.deferred)
 
-        self.assertEqual(html.count('class="section-kicker-label">Chapitre</span>'), 2)
-        self.assertEqual(html.count('class="section-title-content">'), 2)
+        self.assertEqual(html.count('class="section-kicker-label">Chapitre</span>'), 1)
+        self.assertEqual(html.count('class="section-title-content">'), 1)
         self.assertIn('sectionTitlePrefix: "Conjoncture de l\\u2019"', html)
         self.assertIn('sectionTitleHighlight: "emploi"', html)
         self.assertIn('className = "chapter-title-highlight"', html)

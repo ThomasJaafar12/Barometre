@@ -20,9 +20,18 @@ from .security import local_asset_url, secure_html, validate_html, validate_appl
 MANIFEST_NAME = "site_manifest.json"
 VENDOR_DIR = Path(__file__).resolve().parent / "vendor"
 APP_SCRIPTS = {"index.html": None, "barometre_bref.html": "assets/js/brief.js",
-               "barometre_details.html": "assets/js/details.js"}
+               "barometre_emploi.html": "assets/js/emploi.js",
+               "barometre_entreprises.html": "assets/js/entreprises.js"}
 STYLES = {"index.html": "assets/css/landing.css", "barometre_bref.html": "assets/css/shared.css",
-          "barometre_details.html": "assets/css/details.css"}
+          "barometre_emploi.html": "assets/css/details.css",
+          "barometre_entreprises.html": "assets/css/details.css"}
+# Ancien format accepté uniquement lors du remplacement d’une publication existante.
+LEGACY_PAGES = ("index.html", "barometre_bref.html", "barometre_details.html")
+LEGACY_APP_SCRIPTS = {"index.html": None, "barometre_bref.html": "assets/js/brief.js",
+                      "barometre_details.html": "assets/js/details.js"}
+LEGACY_STYLES = {"index.html": "assets/css/landing.css", "barometre_bref.html": "assets/css/shared.css",
+                 "barometre_details.html": "assets/css/details.css"}
+PAGE_LINK_PATTERN = re.compile(r'\bhref="([^"/#?]+\.html)(?:#[^"]*)?"')
 SECURITY_METADATA = re.compile(
     r'\n  <meta http-equiv="Content-Security-Policy" content="[^"]+">\n  <meta name="referrer" content="no-referrer">'
 )
@@ -34,9 +43,10 @@ def vendor_path(name: str) -> str:
     return "assets/vendor/" + SCRIPTS[name].url.rsplit("/", 1)[-1]
 
 
-def expected_scripts(page_name: str) -> tuple[str, ...]:
-    app = APP_SCRIPTS[page_name]
-    return tuple(vendor_path(name) for name in PAGE_DEPENDENCIES[page_name]) + ((app,) if app else ())
+def expected_scripts(page_name: str, *, legacy: bool = False) -> tuple[str, ...]:
+    app = (LEGACY_APP_SCRIPTS if legacy else APP_SCRIPTS)[page_name]
+    dependencies = ("d3", "gsap", "scroll_trigger") if legacy and page_name == "barometre_details.html" else PAGE_DEPENDENCIES[page_name]
+    return tuple(vendor_path(name) for name in dependencies) + ((app,) if app else ())
 
 
 def asset_destination(source: str) -> str:
@@ -159,8 +169,8 @@ def assemble_publication(context: BuildContext, source_root: Path = ROOT) -> Pub
     return Publication(pages, files)
 
 
-def publication_path(value: str) -> str:
-    if value in OUTPUT_PAGES or value == MANIFEST_NAME:
+def publication_path(value: str, *, allow_legacy: bool = False) -> str:
+    if value in OUTPUT_PAGES or value == MANIFEST_NAME or (allow_legacy and value == "barometre_details.html"):
         return value
     value = local_asset_url(value)
     if not value.startswith("assets/"):
@@ -168,18 +178,25 @@ def publication_path(value: str) -> str:
     return value
 
 
-def validate_publication(files: dict[str, bytes]) -> dict:
+def validate_publication(files: dict[str, bytes], *, allow_legacy: bool = False) -> dict:
     """Valider le manifeste, les octets, les scripts et toutes les références locales."""
     manifest = json.loads(files[MANIFEST_NAME])
-    if manifest.get("version") != 1 or manifest.get("pages") != list(OUTPUT_PAGES):
+    legacy = allow_legacy and manifest.get("pages") == list(LEGACY_PAGES)
+    pages = LEGACY_PAGES if legacy else OUTPUT_PAGES
+    styles = LEGACY_STYLES if legacy else STYLES
+    if manifest.get("version") != 1 or manifest.get("pages") != list(pages):
         raise ValueError("Le manifeste de publication est invalide.")
+    if manifest.get("styles") != styles or manifest.get("scripts") != {name: list(expected_scripts(name, legacy=legacy)) for name in pages}:
+        raise ValueError("Le manifeste contient des scripts ou styles inattendus.")
     records = manifest["files"]
     if len({name.casefold() for name in records}) != len(records):
         raise ValueError("Deux fichiers publiés diffèrent seulement par leur casse.")
     if set(files) != {*records, MANIFEST_NAME}:
         raise ValueError("Le manifeste et les fichiers publiés ne correspondent pas.")
     for name, record in records.items():
-        publication_path(name)
+        publication_path(name, allow_legacy=legacy)
+        if name not in pages and not name.startswith("assets/"):
+            raise ValueError("Une page inattendue est présente dans la publication.")
         data = files[name]
         if record != {"sha256": hashlib.sha256(data).hexdigest(), "size": len(data)}:
             raise ValueError(f"La ressource {name} est absente ou altérée.")
@@ -187,10 +204,8 @@ def validate_publication(files: dict[str, bytes]) -> dict:
         actual = "sha384-" + base64.b64encode(hashlib.sha384(files[vendor_path(name)]).digest()).decode("ascii")
         if actual != dependency.integrity:
             raise ValueError(f"La bibliothèque {name} a été altérée.")
-    for page_name in OUTPUT_PAGES:
-        expected = expected_scripts(page_name)
-        if manifest["scripts"].get(page_name) != list(expected) or manifest["styles"].get(page_name) != STYLES[page_name]:
-            raise ValueError("Le manifeste contient des scripts ou styles inattendus.")
+    for page_name in pages:
+        expected = expected_scripts(page_name, legacy=legacy)
         html = files[page_name].decode("utf-8")
         validate_html(html, page_name, local_scripts=expected)
         if secure_html(strip_security_metadata(html), page_name, local_scripts=True) != html:
@@ -201,7 +216,10 @@ def validate_publication(files: dict[str, bytes]) -> dict:
         for script in expected:
             if script not in records:
                 raise ValueError("Un script local est absent du manifeste.")
-        if STYLES[page_name] not in records:
+        for match in PAGE_LINK_PATTERN.finditer(html):
+            if match[1] not in pages:
+                raise ValueError("Un lien pointe vers une page absente de la publication.")
+        if styles[page_name] not in records:
             raise ValueError("Une feuille de style est absente du manifeste.")
     for source, destination in manifest["media"].items():
         if asset_destination(source) != destination or destination not in records:
@@ -209,7 +227,7 @@ def validate_publication(files: dict[str, bytes]) -> dict:
     return manifest
 
 
-def read_publication(directory: Path) -> dict[str, bytes]:
+def read_publication(directory: Path, *, allow_legacy: bool = False) -> dict[str, bytes]:
     if directory.is_symlink():
         raise ValueError("Le site ne doit pas être un lien symbolique.")
     manifest_path = directory / MANIFEST_NAME
@@ -219,10 +237,10 @@ def read_publication(directory: Path) -> dict[str, bytes]:
     manifest = json.loads(manifest_data)
     files = {MANIFEST_NAME: manifest_data}
     for name in manifest["files"]:
-        publication_path(name)
+        publication_path(name, allow_legacy=allow_legacy)
         path = directory / name
         if path.is_symlink() or not path.resolve().is_relative_to(directory.resolve()):
             raise ValueError("Une ressource sort du site publié.")
         files[name] = path.read_bytes()
-    validate_publication(files)
+    validate_publication(files, allow_legacy=allow_legacy)
     return files

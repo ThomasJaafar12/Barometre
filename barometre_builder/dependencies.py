@@ -30,7 +30,8 @@ SCRIPTS = {
 PAGE_DEPENDENCIES = {
     "index.html": (),
     "barometre_bref.html": ("d3",),
-    "barometre_details.html": ("d3", "gsap", "scroll_trigger"),
+    "barometre_emploi.html": ("d3", "gsap", "scroll_trigger"),
+    "barometre_entreprises.html": ("d3", "gsap", "scroll_trigger"),
 }
 
 

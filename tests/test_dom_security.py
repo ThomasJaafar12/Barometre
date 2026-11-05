@@ -43,10 +43,10 @@ class ApplicationDomGuardTests(unittest.TestCase):
                 validate_application_script(path.read_text(encoding="utf-8"))
 
     def test_generator_refuses_an_application_html_interpreter(self):
-        renderer = RENDERERS["barometre_details.html"]
+        renderer = RENDERERS["barometre_emploi.html"]
         def unsafe(context):
             return renderer(context).replace("(() => {", '(() => {\nnode.innerHTML = label;', 1)
-        with mock.patch.dict(RENDERERS, {"barometre_details.html": unsafe}):
+        with mock.patch.dict(RENDERERS, {"barometre_emploi.html": unsafe}):
             with self.assertRaisesRegex(ValueError, "interpr"):
                 assemble_publication(example_context())
 

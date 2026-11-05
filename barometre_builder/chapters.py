@@ -4,6 +4,8 @@ from dataclasses import dataclass
 import json
 from pathlib import Path
 
+from .topics import get_topic
+
 
 FRAGMENTS_DIR = Path(__file__).resolve().parent / "template_fragments" / "chapters"
 
@@ -14,8 +16,6 @@ class ChapterFragment:
     section_id: str
     number: str
     label: str
-    nav_label: str
-    rail_meta: str
     section_title_prefix: str
     section_title_highlight: str
     section_title_suffix: str
@@ -32,8 +32,6 @@ CHAPTERS: tuple[ChapterFragment, ...] = (
         section_id="module-sector",
         number="01",
         label="Conjoncture de l'emploi",
-        nav_label="Conjoncture",
-        rail_meta="emploi, masse salariale, lecture territoriale",
         section_title_prefix="Conjoncture de l’",
         section_title_highlight="emploi",
         section_title_suffix="",
@@ -48,8 +46,6 @@ CHAPTERS: tuple[ChapterFragment, ...] = (
         section_id="module-payroll",
         number="02",
         label="Santé des entreprises",
-        nav_label="Santé",
-        rail_meta="procédures collectives, embauches, délais de paiement",
         section_title_prefix="Santé des ",
         section_title_highlight="entreprises",
         section_title_suffix="",
@@ -62,23 +58,23 @@ CHAPTERS: tuple[ChapterFragment, ...] = (
 )
 
 
-SUPPORTING_SCRIPTS: tuple[str, ...] = ("auto.js", "quarterly.js", "ranking.js", "delai.js", "pcol.js", "dpae.js")
+SHARED_SCRIPTS: tuple[str, ...] = ("shared.js", "ranking.js")
 
 
 def _fragment(name: str) -> str:
     return (FRAGMENTS_DIR / name).read_text(encoding="utf-8").rstrip()
 
 
-def build_chapter_fragments() -> dict[str, str]:
+def build_chapter_fragments(*, topic: str = "emploi") -> dict[str, str]:
+    config = get_topic(topic)
+    chapters = tuple(chapter for chapter in CHAPTERS if chapter.key == config.chapter_key)
     registry_lines = ["      const chapterRegistry = ["]
-    for chapter in CHAPTERS:
+    for chapter in chapters:
         payload = {
             "key": chapter.key,
             "id": chapter.section_id,
             "number": chapter.number,
             "label": chapter.label,
-            "navLabel": chapter.nav_label,
-            "railMeta": chapter.rail_meta,
             "sectionKicker": chapter.number,
             "sectionTitlePrefix": chapter.section_title_prefix,
             "sectionTitleHighlight": chapter.section_title_highlight,
@@ -95,10 +91,11 @@ def build_chapter_fragments() -> dict[str, str]:
     registry_lines.append("      ];")
 
     return {
-        "sections_html": "\n\n".join(_fragment(chapter.html_fragment) for chapter in CHAPTERS),
+        "sections_html": "\n\n".join(_fragment(chapter.html_fragment) for chapter in chapters),
         "registry_script": "\n".join(registry_lines),
         "chapter_scripts": "\n\n".join(
-            [_fragment(chapter.script_fragment) for chapter in CHAPTERS]
-            + [_fragment(script) for script in SUPPORTING_SCRIPTS]
+            [_fragment(script) for script in SHARED_SCRIPTS]
+            + [_fragment(chapter.script_fragment) for chapter in chapters]
+            + [_fragment(script) for script in config.scripts]
         ),
     }

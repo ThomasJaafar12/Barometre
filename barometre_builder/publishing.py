@@ -14,10 +14,10 @@ def publish_files(files: dict[str, bytes], output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     root = output_dir.resolve()
     # Seuls les fichiers de notre précédent manifeste peuvent être retirés.
-    previous = read_publication(output_dir) if (output_dir / MANIFEST_NAME).exists() else {}
+    previous = read_publication(output_dir, allow_legacy=True) if (output_dir / MANIFEST_NAME).exists() else {}
     owned = set(files) | set(previous)
     for name in owned:
-        publication_path(name)
+        publication_path(name, allow_legacy=True)
         target = output_dir / name
         if target.is_symlink() or not target.resolve().is_relative_to(root) or target.is_dir():
             raise ValueError("Un chemin de publication est invalide.")

@@ -7,9 +7,11 @@ const { chromium } = require('playwright');
 const siteOption = process.argv.indexOf('--site-dir');
 const siteDirectory = siteOption < 0 ? 'dist' : process.argv[siteOption + 1];
 if (!siteDirectory) throw new Error('--site-dir nécessite un dossier.');
-const url = pathToFileURL(path.resolve(__dirname, '..', siteDirectory, 'barometre_details.html')).href;
 
-async function checkReveal(browser, viewport, reducedMotion) {
+
+async function checkReveal(browser, viewport, reducedMotion, topic) {
+  const url = pathToFileURL(path.resolve(__dirname, '..', siteDirectory, `barometre_${topic}.html`)).href;
+  const chapterId = topic === 'emploi' ? 'module-sector' : 'module-payroll';
   const context = await browser.newContext({ viewport, reducedMotion });
   // Hold decompression until the story is visible to reproduce slow data loading.
   await context.addInitScript(() => {
@@ -39,13 +41,13 @@ async function checkReveal(browser, viewport, reducedMotion) {
 
     // Reveal a chapter while data is still pending. Completing the data load
     // must never send its opacity back to zero.
-    await page.locator('#module-sector').evaluate(element => {
+    await page.locator(`#${chapterId}`).evaluate(element => {
       window.scrollTo({ top: element.getBoundingClientRect().top + window.scrollY - innerHeight * 0.3, behavior: 'instant' });
     });
-    await page.waitForFunction(() => Number(getComputedStyle(document.querySelector('#module-sector')).opacity) === 1);
-    const minimumOpacity = await page.evaluate(async () => {
+    await page.waitForFunction(id => Number(getComputedStyle(document.getElementById(id)).opacity) === 1, chapterId);
+    const minimumOpacity = await page.evaluate(async id => {
       window.releaseDeferredData();
-      const chapter = document.querySelector('#module-sector');
+      const chapter = document.getElementById(id);
       let minimum = 1;
       const deadline = performance.now() + 1200;
       do {
@@ -53,9 +55,9 @@ async function checkReveal(browser, viewport, reducedMotion) {
         minimum = Math.min(minimum, Number(getComputedStyle(chapter).opacity));
       } while (performance.now() < deadline);
       return minimum;
-    });
+    }, chapterId);
     assert.equal(minimumOpacity, 1, 'Loading chart data must not hide an already revealed chapter');
-    await page.waitForFunction(() => document.querySelector('#dpaeModeSwitch button'));
+    await page.waitForFunction(() => document.body.dataset.topic === 'emploi' ? document.querySelector('#autoMetricSwitch button') : document.querySelector('#dpaeModeSwitch button'));
 
     // Scrolling reveals the remaining cards, including their parent chapter.
     await lastCard.evaluate(element => {
@@ -76,10 +78,10 @@ async function checkReveal(browser, viewport, reducedMotion) {
     await page.waitForFunction(() => document.querySelector('#stageShell').dataset.phase === 'landing');
     assert.equal(await page.locator('#story').isVisible(), false);
     assert.deepEqual(errors, []);
-    console.log(`OK reveal ${viewport.width}px, ${reducedMotion}`);
+    console.log(`OK reveal ${topic}, ${viewport.width}px, ${reducedMotion}`);
   } catch (error) {
     console.error(await page.evaluate(() => [...document.querySelectorAll('.section-card, .snap-card')].map(element => ({
-      label: element.id || element.dataset.snapLabel,
+      label: element.id || element.getAttribute('aria-label'),
       top: element.getBoundingClientRect().top,
       opacity: getComputedStyle(element).opacity,
       pending: element.classList.contains('is-scroll-revealing'),
@@ -94,7 +96,9 @@ async function checkReveal(browser, viewport, reducedMotion) {
   const browser = await chromium.launch({ channel: process.platform === 'win32' ? 'msedge' : undefined, headless: true });
   try {
     for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
-      for (const motion of ['no-preference', 'reduce']) await checkReveal(browser, viewport, motion);
+      for (const topic of ['emploi', 'entreprises']) {
+        for (const motion of ['no-preference', 'reduce']) await checkReveal(browser, viewport, motion, topic);
+      }
     }
   } finally {
     await browser.close();

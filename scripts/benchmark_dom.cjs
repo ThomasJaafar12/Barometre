@@ -26,13 +26,15 @@ assert.ok(selectedProfiles.length, 'At least one known profile is required');
 let diagnosticRewrite;
 let diagnosticRoutedResponses = 0;
 if (promiseFitDiagnostic) {
-  const source = fs.readFileSync(path.join(after, 'assets/js/details.js'), 'utf8');
+  const source = fs.readFileSync(path.join(after, fs.existsSync(path.join(after, 'assets/js/emploi.js')) ? 'assets/js/emploi.js' : 'assets/js/details.js'), 'utf8');
   const from = 'queueMicrotask(fitCurrentSectorTreemapLabels)';
   const to = 'Promise.resolve().then(fitCurrentSectorTreemapLabels)';
   assert.equal(source.split(from).length - 1, 1, 'Diagnostic must replace exactly one fitter scheduler');
   diagnosticRewrite = { from, to, sourceSha256: createHash('sha256').update(source).digest('hex'),
     servedSha256: createHash('sha256').update(source.replace(from, to)).digest('hex'), body: source.replace(from, to) };
 }
+const detailPage = directory => fs.existsSync(path.join(directory, 'barometre_emploi.html')) ? 'barometre_emploi.html' : 'barometre_details.html';
+const detailScript = directory => detailPage(directory) === 'barometre_emploi.html' ? 'assets/js/emploi.js' : 'assets/js/details.js';
 const samples = [];
 const runnerSha256 = createHash('sha256').update(fs.readFileSync(__filename)).digest('hex');
 const server = http.createServer((request, response) => {
@@ -112,7 +114,7 @@ function instrument(options = {}) {
       const stack = new Error().stack || '';
       let id;
       id = request.call(window, time => { pending.delete(id); return callback(time); });
-      if (stack.includes('/assets/js/details.js')) pending.set(id, { name: callback.name, source: String(callback).slice(0, 240), stack });
+      if (/\/assets\/js\/(?:details|emploi)\.js/.test(stack)) pending.set(id, { name: callback.name, source: String(callback).slice(0, 240), stack });
       return id;
     };
     window.cancelAnimationFrame = id => { pending.delete(id); return cancel.call(window, id); };
@@ -122,7 +124,7 @@ function instrument(options = {}) {
 
 async function open(browser, profile, side, origin, traceRaf = false) {
   const context = await browser.newContext({ viewport: profile.viewport, reducedMotion: 'reduce', locale: 'fr-FR' });
-  if (diagnosticRewrite && side === 'after') await context.route(/\/after\/assets\/js\/details\.js(?:[?#]|$)/,
+  if (diagnosticRewrite && side === 'after') await context.route(/\/after\/assets\/js\/(?:details|emploi)\.js(?:[?#]|$)/,
     route => { diagnosticRoutedResponses++; return route.fulfill({ status: 200,
       contentType: 'application/javascript; charset=utf-8', body: diagnosticRewrite.body }); });
   // Use a fixed system font for all measurements; do not include external network latency.
@@ -134,7 +136,7 @@ async function open(browser, profile, side, origin, traceRaf = false) {
   const session = await context.newCDPSession(page);
   await session.send('Performance.enable');
   await session.send('Emulation.setCPUThrottlingRate', { rate: profile.cpu });
-  await page.goto(`${origin}/${side}/barometre_details.html`, { waitUntil: 'load' });
+  await page.goto(`${origin}/${side}/${detailPage(side === 'before' ? before : after)}`, { waitUntil: 'load' });
   return { context, page, session, errors, profile, side };
 }
 
@@ -183,10 +185,10 @@ async function measure(target, action, iteration, operation) {
       document.querySelector('#geoTrigger').click();
       [...document.querySelectorAll('#geoMenu button[role="option"]')].find(button => button.textContent.includes(action.value)).click();
       window.__releaseBenchmarkData();
-      if (!document.querySelector('#dpaeModeSwitch button')) {
+      if (!document.querySelector('#autoMetricSwitch button')) {
         await new Promise(resolve => {
           const observer = new MutationObserver(() => {
-            if (document.querySelector('#dpaeModeSwitch button')) { observer.disconnect(); resolve(); }
+            if (document.querySelector('#autoMetricSwitch button')) { observer.disconnect(); resolve(); }
           });
           observer.observe(document.querySelector('#story'), { childList: true, subtree: true });
         });
@@ -253,7 +255,7 @@ function report(browserVersion) {
         limit: value + Math.max(value * .05, 5 * 1024 * 1024), pass: next <= value + Math.max(value * .05, 5 * 1024 * 1024) });
     }
   }
-  const applicationHash = directory => Object.fromEntries(['site_manifest.json', 'barometre_details.html', 'assets/js/details.js']
+  const applicationHash = directory => Object.fromEntries(['site_manifest.json', detailPage(directory), detailScript(directory)]
     .map(filename => [filename, createHash('sha256').update(fs.readFileSync(path.join(directory, filename))).digest('hex')]));
   return { capturedAt: new Date().toISOString(), browser: browserVersion, runnerSha256, before, after: captureOnly ? null : after,
     application: { before: applicationHash(before), after: captureOnly ? null : applicationHash(after) },
@@ -299,7 +301,7 @@ function mergeColdReport() {
   merged.settings.startupCount = cold.settings.startupCount;
   merged.settings.interactionCount = warm.settings.interactionCount;
   const hash = filename => createHash('sha256').update(fs.readFileSync(filename)).digest('hex');
-  const hashes = directory => Object.fromEntries(['site_manifest.json', 'assets/js/details.js', 'barometre_details.html']
+  const hashes = directory => Object.fromEntries(['site_manifest.json', detailScript(directory), detailPage(directory)]
     .map(filename => [filename, hash(path.join(directory, filename))]));
   merged.provenance = {
     warm: { file: warmPath, sha256: hash(warmPath), measuredAt: warm.capturedAt,
@@ -356,7 +358,7 @@ async function profileTransitions(browser, origin) {
           for (let current = id; current; current = parents.get(current)) inclusive.set(current, (inclusive.get(current) || 0) + duration);
         });
         const top = [...inclusive].map(([id, ms]) => ({ id, ms, ownMs: own.get(id) || 0,
-          ...nodes.get(id).callFrame })).filter(frame => frame.url.includes('/assets/js/details.js') || frame.functionName.includes('fitSector'))
+          ...nodes.get(id).callFrame })).filter(frame => /\/assets\/js\/(?:details|emploi)\.js/.test(frame.url) || frame.functionName.includes('fitSector'))
           .sort((a, b) => b.ms - a.ms).slice(0, 30);
         results.push({ side, operation, sample, beforeState, immediate, afterState, profile: filename, top });
         console.log(JSON.stringify({ side, operation, scriptMs: sample.scriptMs, pending: immediate.pending.length,
@@ -416,7 +418,7 @@ async function profileTransitions(browser, origin) {
         ['payroll-sector', { kind: 'sector', id: 'employmentPayrollSeriesPicker' }],
         ['department-metric', { kind: 'switch', id: 'employmentDeptMetricSwitch' }],
         ['department-sector', { kind: 'sector', id: 'employmentDeptSectorPicker' }],
-        ['dpae-mode', { kind: 'switch', id: 'dpaeModeSwitch' }],
+        ['auto-metric', { kind: 'switch', id: 'autoMetricSwitch' }],
         ['resize-event', { kind: 'resize' }],
         ['viewport-resize', { kind: 'viewport' }],
         ['warm-national-selection', { kind: 'region', value: 'France entière' }],

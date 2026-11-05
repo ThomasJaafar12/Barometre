@@ -5,19 +5,24 @@ from ..config import TEMPLATE_PATH, PAGE_TEMPLATES_DIR
 from ..dependencies import PAGE_DEPENDENCIES, script_tags
 from ..security import ERROR_NOTICE, dependency_guard, local_asset_url, script_json, secure_html
 from ..utils import gzip_base64_json
+from ..topics import get_topic, project_details_payloads
 from .common import render_template
 
 
-def render_details_payloads(boot: dict, deferred: dict) -> str:
+def render_details_payloads(boot: dict, deferred: dict, *, topic: str = "emploi") -> str:
+    config = get_topic(topic)
+    boot, deferred = project_details_payloads(boot, deferred, topic=topic)
     try:
         template = TEMPLATE_PATH.read_text(encoding="utf-8")
     except OSError as error:
         raise RuntimeError("Le template de la version détaillée ne peut pas être lu.") from error
     for video in [boot["assets"]["videos"]["placeholder"], *boot["assets"]["videos"]["byRegion"].values()]:
         local_asset_url(video)
-    chapters = build_chapter_fragments()
-    names = PAGE_DEPENDENCIES["barometre_details.html"]
+    chapters = build_chapter_fragments(topic=topic)
+    names = PAGE_DEPENDENCIES[config.page_name]
     values = {
+        "__DETAILS_TOPIC__": escape(topic),
+        "__DETAILS_TOPIC_LABEL__": escape(config.label),
         "__BOOT_JSON__": script_json(boot),
         "__DEFERRED_B64__": gzip_base64_json(deferred),
         "__LOGO_PATH__": escape(local_asset_url(boot["assets"]["logo"]), quote=True),
@@ -34,8 +39,8 @@ def render_details_payloads(boot: dict, deferred: dict) -> str:
     values["__DETAILS_SCRIPT__"] = render_template(
         (PAGE_TEMPLATES_DIR / "details.js").read_text(encoding="utf-8"), values
     )
-    return secure_html(render_template(template, values), "barometre_details.html")
+    return secure_html(render_template(template, values), config.page_name)
 
 
-def render_details(context) -> str:
-    return render_details_payloads(context.boot, context.deferred)
+def render_details(context, *, topic: str = "emploi") -> str:
+    return render_details_payloads(context.boot, context.deferred, topic=topic)

@@ -141,3 +141,5 @@ main { padding: 48px 36px; }
   .brief-section .brief-end .button-link { max-width: 100%; gap: 12px; padding: 12px 14px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }
+
+.brief-section .brief-end { flex-wrap: wrap; }

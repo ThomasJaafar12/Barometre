@@ -44,10 +44,13 @@ def compare_publication(reference: dict[str, str], files: dict[str, bytes]) -> N
             offset = next((i for i, (a, b) in enumerate(zip(actual, expected)) if a != b),
                           min(len(actual), len(expected)))
             raise ValueError(f"Le contenu de {name} a changé à la position {offset}.")
-    before = re.search(r'window\.BAROMETRE_DEFERRED_GZIP = "([^"]+)"', reference["barometre_details.html"])[1]
-    after = re.search(r'window\.BAROMETRE_DEFERRED_GZIP = "([^"]+)"', files["barometre_details.html"].decode("utf-8"))[1]
-    if before != after or gzip.decompress(base64.b64decode(before)) != gzip.decompress(base64.b64decode(after)):
-        raise ValueError("Les données différées ont changé.")
+    for name in OUTPUT_PAGES:
+        if APP_SCRIPTS[name] not in ("assets/js/emploi.js", "assets/js/entreprises.js"):
+            continue
+        before = re.search(r'window\.BAROMETRE_DEFERRED_GZIP = "([^"]+)"', reference[name])[1]
+        after = re.search(r'window\.BAROMETRE_DEFERRED_GZIP = "([^"]+)"', files[name].decode("utf-8"))[1]
+        if before != after or gzip.decompress(base64.b64decode(before)) != gzip.decompress(base64.b64decode(after)):
+            raise ValueError(f"Les données différées de {name} ont changé.")
 
 
 def main() -> None:
@@ -63,7 +66,7 @@ def main() -> None:
         context = build_context()
         reference = {name: RENDERERS[name](context) for name in OUTPUT_PAGES}
     compare_publication(reference, read_publication(args.site_dir))
-    print("Les trois pages, leurs styles, scripts et données sont équivalents aux rendus historiques.")
+    print("Les quatre pages, leurs styles, scripts et données sont équivalents aux rendus historiques.")
 
 
 if __name__ == "__main__":

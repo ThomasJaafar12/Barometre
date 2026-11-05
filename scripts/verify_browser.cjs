@@ -18,7 +18,7 @@ const reference = path.resolve(root, option('--reference-dir') || '.cache/browse
 const published = path.resolve(root, option('--site-dir') || 'dist');
 const artifacts = path.resolve(root, option('--artifacts-dir') || '.cache/browser-verification');
 const fingerprint = directory => Object.fromEntries(['site_manifest.json', 'index.html', 'barometre_bref.html',
-  'barometre_details.html', 'assets/js/brief.js', 'assets/js/details.js'].filter(filename => fs.existsSync(path.join(directory, filename)))
+  'barometre_emploi.html', 'barometre_entreprises.html', 'assets/js/brief.js', 'assets/js/emploi.js', 'assets/js/entreprises.js'].filter(filename => fs.existsSync(path.join(directory, filename)))
   .map(filename => [filename, createHash('sha256').update(fs.readFileSync(path.join(directory, filename))).digest('hex')]));
 fs.mkdirSync(artifacts, { recursive: true });
 if (!option('--reference-dir')) {
@@ -85,10 +85,15 @@ async function settle(page) {
   await page.evaluate(async () => {
     await document.fonts.ready;
     await Promise.all([...document.images].map(image => image.decode().catch(() => {})));
-    for (const video of document.querySelectorAll('video')) {
+    await Promise.all([...document.querySelectorAll('video')].map(async video => {
       video.pause();
-      if (video.readyState > 0) video.currentTime = 0;
-    }
+      if (video.readyState > 0) {
+        await new Promise(resolve => {
+          video.addEventListener('seeked', resolve, { once: true });
+          video.currentTime = 0;
+        });
+      }
+    }));
   });
   await page.waitForTimeout(400);
   await page.mouse.move(0, 0);
@@ -158,6 +163,8 @@ async function forBoth(pair, action) {
 
 async function checkPair(browser, transport, viewport, filename, origin) {
   const context = await browser.newContext({ viewport, reducedMotion: 'reduce', locale: 'fr-FR' });
+  // Avoid network-dependent font races; both pages use the same system fallback.
+  await context.route('https://fonts.googleapis.com/**', route => route.fulfill({ contentType: 'text/css', body: '' }));
   // Same exact vendor bytes for the historic CDN scripts; only the published page uses local URLs.
   await context.route('https://cdn.jsdelivr.net/npm/**', route => {
     const filename = new URL(route.request().url()).pathname.split('/').pop();
@@ -181,7 +188,7 @@ async function checkPair(browser, transport, viewport, filename, origin) {
   await snapshot(pair, label, true);
   if (filename === 'index.html') {
     for (const page of pair) {
-      for (const target of ['barometre_bref.html', 'barometre_details.html']) {
+      for (const target of ['barometre_bref.html', 'barometre_emploi.html', 'barometre_entreprises.html']) {
         await page.locator(`a[href="${target}"]`).first().click();
         await page.waitForURL(url => url.pathname.endsWith(target));
         await page.goBack({ waitUntil: 'load' });
@@ -198,24 +205,39 @@ async function checkPair(browser, transport, viewport, filename, origin) {
       await snapshot(pair, `${label}-${code}-tables`);
     }
   } else {
-    for (const region of ['France entière', 'Île-de-France', 'Normandie', 'La Réunion', 'Mayotte']) {
+    const employment = filename === 'barometre_emploi.html';
+    const heroKeys = employment ? ['headcount', 'payroll', 'auto'] : ['pcol', 'jobs', 'dpae', 'delai'];
+    for (const page of pair) {
+      assert.equal(await page.locator('#stageShell').getAttribute('data-phase'), 'landing');
+      assert.equal(await page.locator('#story').isVisible(), false);
+      assert.equal(await page.locator('.chapter-section').count(), 1);
+      assert.equal(await page.locator(employment ? '#module-payroll' : '#module-sector').count(), 0);
+      assert.deepEqual(await page.locator('#heroKpis .kpi-card').evaluateAll(cards => cards.map(card => card.dataset.indicator)), heroKeys);
+    }
+    for (const region of ['France entière', 'Île-de-France', 'Nouvelle-Aquitaine', 'La Réunion', 'Mayotte']) {
       await forBoth(pair, async page => {
         await page.locator('#geoTrigger').click();
         await page.locator('#geoMenu button[role="option"]').filter({ hasText: region }).click();
-        await page.waitForFunction(() => document.querySelector('#dpaeModeSwitch button'));
+        await page.waitForFunction(() => document.querySelector('body').dataset.topic === 'emploi' ? document.querySelector('#autoMetricSwitch button') : document.querySelector('#dpaeModeSwitch button'));
       });
-      await snapshot(pair, `${label}-${region.replace(/[^\p{L}]/gu, '_')}`);
-      for (const chapter of ['sector', 'payroll']) {
-        await forBoth(pair, async page => {
-          await page.evaluate(() => {
-            const hero = document.querySelector('#stageShell');
-            window.scrollTo(0, Math.max(window.scrollY, hero.getBoundingClientRect().bottom + window.scrollY + 40));
-          });
-          await page.waitForFunction(() => document.body.classList.contains('chapter-nav-ready'));
-          await page.locator(`.chapter-tab[data-key="${chapter}"]`).click();
-        });
-        await snapshot(pair, `${label}-${region}-${chapter}`);
+      for (const page of pair) {
+        assert.equal(await page.locator('#heroTitle').innerText(), region);
+        if (region === 'Mayotte' && employment) {
+          assert.equal(await page.locator('#employmentEffectifsCurrentLevel').innerText(), '—');
+          assert.match(await page.locator('#employmentEffectifsChartSvg').textContent(), /Données indisponibles/);
+        }
+        if (region === 'Mayotte' && !employment) {
+          assert.equal(await page.locator('[data-indicator="pcol"] strong').innerText(), '—');
+          assert.notEqual(await page.locator('[data-indicator="delai"] strong').innerText(), '—');
+          assert.match(await page.locator('#heroLead').innerText(), /Certains indicateurs/);
+        }
       }
+      await snapshot(pair, `${label}-${region.replace(/[^\p{L}]/gu, '_')}`);
+      await forBoth(pair, async page => {
+        await page.locator(employment ? '#module-sector' : '#module-payroll').scrollIntoViewIfNeeded();
+        assert.equal(await page.locator('#subjectNav, .chapter-tab, .chapter-subnav').count(), 0);
+      });
+      await snapshot(pair, `${label}-${region}-chapter`);
       if (region === 'Île-de-France') {
         await forBoth(pair, async page => {
           const video = page.locator('#stageVideo');
@@ -228,11 +250,13 @@ async function checkPair(browser, transport, viewport, filename, origin) {
     await forBoth(pair, async page => {
       await page.locator('#geoTrigger').click();
       await page.locator('#geoMenu button[role="option"]').filter({ hasText: 'France entière' }).click();
-      await page.waitForFunction(() => document.querySelector('#dpaeModeSwitch button'));
+      await page.waitForFunction(() => document.querySelector('body').dataset.topic === 'emploi' ? document.querySelector('#autoMetricSwitch button') : document.querySelector('#dpaeModeSwitch button'));
     });
+    const heroesBeforeFilters = await Promise.all(pair.map(page => page.locator('#heroKpis').innerText()));
     // Every option of each metric switch; compare each resulting visible value.
-    for (const id of ['dpaeModeSwitch', 'pcolModeSwitch', 'delaiModeSwitch',
-                      'employmentTreemapMetricSwitch', 'employmentDeptMetricSwitch', 'autoMetricSwitch']) {
+    for (const id of (filename === 'barometre_emploi.html'
+      ? ['employmentTreemapMetricSwitch', 'employmentDeptMetricSwitch', 'autoMetricSwitch']
+      : ['dpaeModeSwitch', 'pcolModeSwitch', 'delaiModeSwitch'])) {
       const count = await pair[0].locator(`#${id} button`).count();
       assert.ok(count > 0, `Filtres absents: ${id}`);
       for (let i = 0; i < count; i++) {
@@ -240,8 +264,9 @@ async function checkPair(browser, transport, viewport, filename, origin) {
         await snapshot(pair, `${label}-${id}-${i}`);
       }
     }
-    for (const id of ['employmentEffectifsSeriesPicker', 'employmentPayrollSeriesPicker',
-                      'employmentDeptSectorPicker', 'autoSectorPicker', 'pcolSectorPicker', 'delaiSectorPicker']) {
+    for (const id of (filename === 'barometre_emploi.html'
+      ? ['employmentEffectifsSeriesPicker', 'employmentPayrollSeriesPicker', 'employmentDeptSectorPicker', 'autoSectorPicker']
+      : ['pcolSectorPicker', 'delaiSectorPicker'])) {
       await forBoth(pair, async page => {
         await page.locator(`#${id} .employment-sector-trigger`).click({ force: true });
         const options = page.locator(`#${id} button[role="option"]`);
@@ -250,10 +275,21 @@ async function checkPair(browser, transport, viewport, filename, origin) {
       });
       await snapshot(pair, `${label}-${id}`);
     }
+    for (let i = 0; i < pair.length; i++) {
+      assert.equal(await pair[i].locator('#heroKpis').innerText(), heroesBeforeFilters[i], 'Local filters must not change the overview');
+      const trigger = pair[i].locator(employment ? '#employmentEffectifsSeriesPicker .employment-sector-trigger' : '#pcolSectorPicker .employment-sector-trigger');
+      await trigger.focus();
+      await trigger.press('ArrowDown');
+      assert.equal(await trigger.getAttribute('aria-expanded'), 'true');
+      await pair[i].waitForFunction(() => document.activeElement?.getAttribute('role') === 'option');
+      await pair[i].keyboard.press('Escape');
+      assert.equal(await trigger.getAttribute('aria-expanded'), 'false');
+      assert.ok(await trigger.evaluate(node => node === document.activeElement));
+    }
     await forBoth(pair, async page => {
-      await page.locator('#employmentEffectifsChartSvg').scrollIntoViewIfNeeded();
+      await page.locator(filename === 'barometre_emploi.html' ? '#employmentEffectifsChartSvg' : '#pcolChartSvg').scrollIntoViewIfNeeded();
     });
-    await snapshot(pair, `${label}-chart`, true);
+    await snapshot(pair, `${label}-chart`, true, employment ? '#employmentEffectifsChartSvg' : '#pcolChartSvg');
     if (transport === 'http') {
       // The employment department map requires a selected region. Select a
       // populated region before cropping the two department maps.
@@ -261,8 +297,9 @@ async function checkPair(browser, transport, viewport, filename, origin) {
         await page.locator('#geoTrigger').click({ force: true });
         await page.locator('#geoMenu button[role="option"]').filter({ hasText: 'Île-de-France' }).click({ force: true });
       });
-      for (const id of ['employmentPayrollChartSvg', 'employmentTreemapSvg', 'employmentDeptMapSvg',
-                        'autoMapSvg', 'dpaeChartSvg', 'pcolChartSvg', 'delaiChartSvg']) {
+      for (const id of (filename === 'barometre_emploi.html'
+        ? ['employmentPayrollChartSvg', 'employmentTreemapSvg', 'employmentDeptMapSvg', 'autoMapSvg']
+        : ['dpaeChartSvg', 'pcolChartSvg', 'delaiChartSvg'])) {
         await forBoth(pair, page => page.locator(`#${id}`).scrollIntoViewIfNeeded());
         await snapshot(pair, `${label}-${id}-visual`, true, `#${id}`);
       }
@@ -283,14 +320,17 @@ async function checkPair(browser, transport, viewport, filename, origin) {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const origin = `http://127.0.0.1:${server.address().port}`;
   const browser = await chromium.launch({ channel: option('--channel') || (process.platform === 'win32' ? 'msedge' : undefined), headless: true,
-    args: ['--force-color-profile=srgb', '--disable-gpu'] });
+    args: ['--force-color-profile=srgb', '--disable-gpu', '--disable-lcd-text'] });
   try {
     const transports = option('--transports')?.split(',') || ['file', 'http'];
-    const filenames = option('--files')?.split(',') || ['index.html', 'barometre_bref.html', 'barometre_details.html'];
+    const filenames = option('--files')?.split(',') || ['index.html', 'barometre_bref.html', 'barometre_emploi.html', 'barometre_entreprises.html'];
     assert.ok(transports.every(value => ['file', 'http'].includes(value)));
-    assert.ok(filenames.every(value => ['index.html', 'barometre_bref.html', 'barometre_details.html'].includes(value)));
+    assert.ok(filenames.every(value => ['index.html', 'barometre_bref.html', 'barometre_emploi.html', 'barometre_entreprises.html'].includes(value)));
+    const viewports = [{ width: 1440, height: 900 }, { width: 390, height: 844 }]
+      .filter(viewport => !option('--viewports') || option('--viewports').split(',').includes(String(viewport.width)));
+    assert.ok(viewports.length, 'Une largeur de vérification connue est requise.');
     for (const transport of transports) {
-      for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+      for (const viewport of viewports) {
         for (const filename of filenames) {
           await checkPair(browser, transport, viewport, filename, origin);
         }
@@ -298,7 +338,7 @@ async function checkPair(browser, transport, viewport, filename, origin) {
     }
     fs.writeFileSync(path.join(artifacts, 'report.json'), JSON.stringify({ browser: browser.version(),
       capturedAt: new Date().toISOString(), reference, published, fingerprints,
-      transports, filenames, viewports: [1440, 390], contractChecks, results }, null, 2));
+      transports, filenames, viewports: viewports.map(viewport => viewport.width), contractChecks, results }, null, 2));
     console.log(`${results.length} comparaisons visuelles conformes (tolérance limitée à l’anticrénelage) ; ${contractChecks} contrats DOM/SVG ; transports ${transports.join(', ')}.`);
   } finally {
     await browser.close();

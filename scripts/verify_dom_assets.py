@@ -12,11 +12,11 @@ from barometre_builder.publication import MANIFEST_NAME, read_publication
 
 
 def compare_assets(before: Path, after: Path) -> None:
-    reference = read_publication(before)
-    actual = read_publication(after)
+    reference = read_publication(before, allow_legacy=True)
+    actual = read_publication(after, allow_legacy=True)
     if reference.keys() != actual.keys():
         raise ValueError("Le périmètre des fichiers publiés a changé.")
-    allowed = {MANIFEST_NAME, "assets/js/details.js"}
+    allowed = {MANIFEST_NAME, "assets/js/details.js", "assets/js/emploi.js", "assets/js/entreprises.js"}
     for name in reference.keys() - allowed:
         if reference[name] != actual[name]:
             raise ValueError(f"Le fichier {name} a changé pendant la migration DOM.")

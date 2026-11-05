@@ -168,7 +168,7 @@ class BriefProjectionTests(unittest.TestCase):
 
 
 class PageSecurityTests(unittest.TestCase):
-    def test_three_renderers_have_expected_dependencies_and_french_metadata(self):
+    def test_four_renderers_have_expected_dependencies_and_french_metadata(self):
         context = example_context()
         for name, renderer in RENDERERS.items():
             html = renderer(context)
@@ -247,7 +247,7 @@ class OrchestrationTests(unittest.TestCase):
         self.assertEqual(result.deferred["modules"]["dpae"], compact_dpae_payload(module))
         self.assertEqual(result.brief["scopes"]["national"]["dpae"]["points"][-1]["value"], module["national"]["points"][-1]["value"])
 
-    def test_build_writes_three_validated_outputs(self):
+    def test_build_writes_four_validated_outputs(self):
         with tempfile.TemporaryDirectory() as directory, mock.patch.object(page, "OUTPUT_DIR", Path(directory)), mock.patch.object(page, "build_context", return_value=example_context()):
             result = page.build_pages()
             self.assertEqual(set(result), set(RENDERERS))
@@ -264,7 +264,7 @@ class OrchestrationTests(unittest.TestCase):
             self.assertEqual(index.read_text(encoding="utf-8"), "version précédente")
 
     def test_compatibility_function_returns_detailed_html(self):
-        with mock.patch.object(page, "build_pages", return_value={"barometre_details.html": "détails"}):
+        with mock.patch.object(page, "build_pages", return_value={"barometre_emploi.html": "détails"}):
             self.assertEqual(page.build_page(), "détails")
 
 

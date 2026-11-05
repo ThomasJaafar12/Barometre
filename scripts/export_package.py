@@ -40,7 +40,7 @@ class FrenchParser(argparse.ArgumentParser):
 
 
 def parse_args() -> argparse.Namespace:
-    parser = FrenchParser(description="Exporter les trois pages et leurs ressources locales.",
+    parser = FrenchParser(description="Exporter les quatre pages et leurs ressources locales.",
                           add_help=False, allow_abbrev=False)
     parser.add_argument("-h", "--help", action="help", help="Afficher cette aide.")
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR,

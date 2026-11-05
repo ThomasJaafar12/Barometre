@@ -3,6 +3,7 @@
       if (!barometreDependenciesAvailable()) return;
 __DETAILS_DOM_SCRIPT__
       const DATA = window.BAROMETRE_BOOT;
+      const detail = DATA.detail;
       let deferredGzip = window.BAROMETRE_DEFERRED_GZIP;
       window.BAROMETRE_BOOT = null;
       window.BAROMETRE_DEFERRED_GZIP = null;
@@ -52,8 +53,6 @@ __DETAILS_DOM_SCRIPT__
       const stageVideo = document.getElementById("stageVideo");
       const mapStage = document.getElementById("mapStage");
       const story = document.getElementById("story");
-      const switchRail = document.getElementById("switchRail");
-      const subjectNav = document.getElementById("subjectNav");
       const publicationMeta = document.getElementById("publicationMeta");
       const geoControl = document.getElementById("geoControl");
       const geoTrigger = document.getElementById("geoTrigger");
@@ -100,7 +99,6 @@ __DETAILS_DOM_SCRIPT__
       };
       let storyRenderHandle = null;
       let storyRenderGeneration = 0;
-      let chapterTrackingFrame = null;
       let scrollRefreshFrame = null;
       let scrollRefresh260 = null;
       let scrollRefresh900 = null;
@@ -110,15 +108,6 @@ __DETAILS_DOM_SCRIPT__
       const compositeMapViews = new WeakMap();
       let deferredDataPromise = null;
       let regionTransitionToken = 0;
-      let chapterObserver = null;
-      let snapCardObserver = null;
-      let snapCardSyncFrame = null;
-      let chapterNavVisibilityFrame = null;
-      let activeChapterKey = null;
-      let chapterScrollLockKey = null;
-      let chapterScrollLockFrame = null;
-      let chapterScrollLockDeadline = 0;
-      let chapterScrollLockTop = 0;
 
       gsap.registerPlugin(ScrollTrigger);
 
@@ -235,99 +224,11 @@ __CHAPTER_REGISTRY_SCRIPT__
         return state.phase === "national" ? "France entière" : currentRegion().name;
       }
 
-      const highlightTerms = [
-        { key: "payroll", pattern: /masse\s+salariale/gi },
-        { key: "headcount", pattern: /effectifs?(?:\s+priv[ée]s?)?|emploi\s+priv[ée]/gi },
-        { key: "independent", pattern: /travailleurs?\s+ind[ée]pendants?|auto-entrepreneurs?(?:\s+actifs?)?/gi },
-        { key: "rar", pattern: /rar(?:\s*\+90\s+jours)?/gi },
-      ];
-
-      function collectHighlightMatches(text) {
-        const matches = [];
-        highlightTerms.forEach((term) => {
-          term.pattern.lastIndex = 0;
-          let match;
-          while ((match = term.pattern.exec(text)) !== null) {
-            matches.push({
-              start: match.index,
-              end: match.index + match[0].length,
-              key: term.key,
-            });
-          }
-        });
-        return matches
-          .sort((left, right) => left.start - right.start || (right.end - right.start) - (left.end - left.start))
-          .reduce((accepted, match) => {
-            const overlaps = accepted.some((item) => match.start < item.end && item.start < match.end);
-            if (!overlaps) accepted.push(match);
-            return accepted;
-          }, []);
-      }
-
-      function highlightTextTerms(root) {
-        if (!root) return;
-        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-          acceptNode(node) {
-            if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
-            if (node.parentElement && node.parentElement.closest(".text-highlight, script, style")) {
-              return NodeFilter.FILTER_REJECT;
-            }
-            return NodeFilter.FILTER_ACCEPT;
-          },
-        });
-        const nodes = [];
-        while (walker.nextNode()) nodes.push(walker.currentNode);
-
-        nodes.forEach((node) => {
-          const text = node.nodeValue;
-          const matches = collectHighlightMatches(text);
-          if (!matches.length) return;
-
-          const fragment = document.createDocumentFragment();
-          let cursor = 0;
-          matches.forEach((match) => {
-            if (match.start > cursor) {
-              fragment.appendChild(document.createTextNode(text.slice(cursor, match.start)));
-            }
-            const span = document.createElement("span");
-            span.className = `text-highlight text-highlight--${match.key}`;
-            span.textContent = text.slice(match.start, match.end);
-            fragment.appendChild(span);
-            cursor = match.end;
-          });
-          if (cursor < text.length) {
-            fragment.appendChild(document.createTextNode(text.slice(cursor)));
-          }
-          node.parentNode.replaceChild(fragment, node);
-        });
-      }
-
-      function highlightHeroKpiLabels(scope) {
-        if (!scope) return;
-        scope.querySelectorAll(".kpi-card .label").forEach(highlightTextTerms);
-      }
-
       function mapRegionValues() {
         if (state.phase === "national") {
-          return new Map(DATA.regions.map((region) => [region.code, region.hero.payroll && region.hero.payroll.value != null ? region.hero.payroll.value : null]));
+          return new Map(DATA.regions.map((region) => [region.code, primaryHeroValue(region)]));
         }
         return new Map();
-      }
-
-      function chapterRailTop() {
-        return Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--chapter-rail-top")) || 18;
-      }
-
-      function chapterActivationLine() {
-        if (window.matchMedia("(max-width: 860px)").matches) {
-          return Math.min(150, Math.max(104, window.innerHeight * 0.22));
-        }
-        return Math.min(320, Math.max(180, window.innerHeight * 0.34));
-      }
-
-      function updateChapterLayoutVars() {
-        const offset = Math.ceil(chapterActivationLine() + chapterRailTop());
-        document.documentElement.style.setProperty("--chapter-scroll-margin", `${offset}px`);
       }
 
       function hydrateChapterSections() {
@@ -357,321 +258,8 @@ __CHAPTER_REGISTRY_SCRIPT__
         });
       }
 
-      function scrollActiveChapterTabIntoView() {
-        if (!subjectNav) return;
-        const activeButton = subjectNav.querySelector(`.chapter-tab[data-key="${activeChapterKey}"]`);
-        if (!activeButton) return;
-        const navRect = subjectNav.getBoundingClientRect();
-        const buttonRect = activeButton.getBoundingClientRect();
-        const isMobileDock = window.matchMedia("(max-width: 860px)").matches;
-        const delta = isMobileDock
-          ? (buttonRect.left + buttonRect.width / 2) - (navRect.left + navRect.width / 2)
-          : (buttonRect.top + buttonRect.height / 2) - (navRect.top + navRect.height / 2);
-        if (Math.abs(delta) < 1) return;
-        if (isMobileDock) {
-          const maxScrollLeft = Math.max(0, subjectNav.scrollWidth - subjectNav.clientWidth);
-          const nextScrollLeft = Math.min(maxScrollLeft, Math.max(0, subjectNav.scrollLeft + delta));
-          subjectNav.scrollTo({
-            left: nextScrollLeft,
-            behavior: REDUCED_MOTION ? "auto" : "smooth",
-          });
-          return;
-        }
-        const maxScrollTop = Math.max(0, subjectNav.scrollHeight - subjectNav.clientHeight);
-        const nextScrollTop = Math.min(maxScrollTop, Math.max(0, subjectNav.scrollTop + delta));
-        subjectNav.scrollTo({
-          top: nextScrollTop,
-          behavior: REDUCED_MOTION ? "auto" : "smooth",
-        });
-      }
-
-      function setActiveChapter(key, options = {}) {
-        if (!key) return;
-        if (!options.force && activeChapterKey === key) return;
-        activeChapterKey = key;
-        subjectNav.querySelectorAll(".chapter-tab").forEach((button) => {
-          const isActive = button.dataset.key === key;
-          button.classList.toggle("is-active", isActive);
-          button.setAttribute("aria-pressed", String(isActive));
-        });
-        subjectNav.querySelectorAll(".chapter-nav-group").forEach((group) => {
-          group.classList.toggle("is-active", group.dataset.key === key);
-        });
-        scrollActiveChapterTabIntoView();
-      }
-
-      function clearChapterScrollLock() {
-        if (chapterScrollLockFrame != null) {
-          cancelAnimationFrame(chapterScrollLockFrame);
-        }
-        chapterScrollLockFrame = null;
-        chapterScrollLockKey = null;
-        chapterScrollLockDeadline = 0;
-        chapterScrollLockTop = 0;
-      }
-
-      function monitorChapterScrollLock() {
-        if (!chapterScrollLockKey) return;
-        const chapter = chapterRegistry.find((entry) => entry.key === chapterScrollLockKey);
-        const target = chapter ? document.getElementById(chapter.id) : null;
-        if (!chapter || !target) {
-          clearChapterScrollLock();
-          return;
-        }
-        const rect = target.getBoundingClientRect();
-        const activationLine = chapterActivationLine();
-        const settledAtTop = Math.abs(window.scrollY - chapterScrollLockTop) <= 6;
-        const settledAtSectionStart = Math.abs(rect.top - activationLine) <= 6;
-        const settled = settledAtTop || settledAtSectionStart;
-        const timedOut = performance.now() >= chapterScrollLockDeadline;
-        if (settled || timedOut) {
-          clearChapterScrollLock();
-          syncActiveChapter({ force: true });
-          syncActiveSnapCard();
-          scheduleScrollTriggerRefresh();
-          return;
-        }
-        chapterScrollLockFrame = requestAnimationFrame(monitorChapterScrollLock);
-      }
-
-      function scrollToChapter(chapter) {
-        const target = document.getElementById(chapter.id);
-        if (!target) return;
-        clearChapterScrollLock();
-        chapterScrollLockKey = chapter.key;
-        chapterScrollLockDeadline = performance.now() + (REDUCED_MOTION ? 0 : 1600);
-        const destination = window.scrollY + target.getBoundingClientRect().top - chapterActivationLine() + 2;
-        chapterScrollLockTop = Math.max(0, destination);
-        window.scrollTo({
-          top: chapterScrollLockTop,
-          behavior: REDUCED_MOTION ? "auto" : "smooth",
-        });
-        if (REDUCED_MOTION) {
-          clearChapterScrollLock();
-          syncActiveChapter({ force: true });
-          syncActiveSnapCard();
-          scheduleScrollTriggerRefresh();
-          return;
-        }
-        chapterScrollLockFrame = requestAnimationFrame(monitorChapterScrollLock);
-        window.setTimeout(() => {
-          if (chapterScrollLockKey === chapter.key) {
-            syncActiveChapter({ force: true });
-            syncActiveSnapCard();
-            scheduleScrollTriggerRefresh();
-          }
-        }, REDUCED_MOTION ? 0 : 720);
-      }
-
-      function detectActiveChapter() {
-        const activationLine = chapterActivationLine();
-        let candidate = null;
-        let fallback = chapterRegistry[0] || null;
-        let bestDistance = Number.POSITIVE_INFINITY;
-        chapterRegistry.forEach((chapter) => {
-          const section = document.getElementById(chapter.id);
-          if (!section) return;
-          const rect = section.getBoundingClientRect();
-          if (rect.top <= activationLine) {
-            fallback = chapter;
-          }
-          if (rect.bottom <= activationLine || rect.top >= window.innerHeight * 0.74) {
-            return;
-          }
-          const distance = Math.abs(rect.top - activationLine);
-          if (distance < bestDistance) {
-            bestDistance = distance;
-            candidate = chapter;
-          }
-        });
-        return candidate || fallback;
-      }
-
-      function syncActiveChapter(options = {}) {
-        if (chapterScrollLockKey && !options.force) {
-          return;
-        }
-        const chapter = detectActiveChapter();
-        if (chapter) setActiveChapter(chapter.key, options);
-      }
-
-      function mountChapterObserver() {
-        if (chapterObserver) {
-          chapterObserver.disconnect();
-        }
-        if (!story.classList.contains("is-visible")) return;
-        updateChapterLayoutVars();
-        const topOffset = Math.ceil(chapterActivationLine());
-        chapterObserver = new IntersectionObserver(
-          () => syncActiveChapter(),
-          {
-            root: null,
-            rootMargin: `-${topOffset}px 0px -52% 0px`,
-            threshold: [0, 0.2, 0.4, 0.6, 0.8, 1],
-          },
-        );
-        chapterRegistry.forEach((chapter) => {
-          const section = document.getElementById(chapter.id);
-          if (section) chapterObserver.observe(section);
-        });
-        syncActiveChapter({ force: true });
-      }
-
-      function clearSnapCardTracking() {
-        if (snapCardObserver) {
-          snapCardObserver.disconnect();
-        }
-        snapCardObserver = null;
-        if (snapCardSyncFrame != null) {
-          cancelAnimationFrame(snapCardSyncFrame);
-        }
-        snapCardSyncFrame = null;
-        story.querySelectorAll("[data-snap-card]").forEach((card) => {
-          card.classList.remove("is-snap-active");
-          card.removeAttribute("aria-current");
-        });
-        syncChapterSubLinks(null);
-      }
-
-      function slugifyForId(value) {
-        return String(value || "")
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-+|-+$/g, "") || "item";
-      }
-
-      function chapterSnapCards(chapter) {
-        const section = document.getElementById(chapter.id);
-        if (!section) return [];
-        return Array.from(section.querySelectorAll("[data-snap-card]"));
-      }
-
-      function ensureSnapCardId(card, chapter, index) {
-        if (!card.id) {
-          card.id = `${chapter.id}-${slugifyForId(card.dataset.snapLabel || `step-${index + 1}`)}`;
-        }
-        card.dataset.chapterKey = chapter.key;
-        return card.id;
-      }
-
-      function syncChapterSubLinks(activeCard) {
-        if (!subjectNav) return;
-        const activeId = activeCard && activeCard.id ? activeCard.id : null;
-        subjectNav.querySelectorAll(".chapter-subnav-link").forEach((link) => {
-          const isActive = activeId != null && link.dataset.targetId === activeId;
-          link.classList.toggle("is-active-sub", isActive);
-          if (isActive) {
-            link.setAttribute("aria-current", "step");
-          } else {
-            link.removeAttribute("aria-current");
-          }
-        });
-      }
-
-      function scrollToSnapCard(card, chapter) {
-        if (!card) return;
-        clearChapterScrollLock();
-        setActiveChapter(chapter.key, { force: true });
-        syncChapterSubLinks(card);
-        const destination = window.scrollY + card.getBoundingClientRect().top - chapterActivationLine() + 2;
-        window.scrollTo({
-          top: Math.max(0, destination),
-          behavior: REDUCED_MOTION ? "auto" : "smooth",
-        });
-        window.setTimeout(() => {
-          syncActiveChapter({ force: true });
-          syncActiveSnapCard();
-          scheduleScrollTriggerRefresh();
-        }, REDUCED_MOTION ? 0 : 640);
-      }
-
-      function releaseChapterNavPointerFocus(event) {
-        if (event.detail > 0 && event.currentTarget && typeof event.currentTarget.blur === "function") {
-          event.currentTarget.blur();
-        }
-      }
-
-      function syncActiveSnapCard() {
-        if (!story.classList.contains("is-visible")) return;
-        const cards = Array.from(story.querySelectorAll("[data-snap-card]"));
-        if (!cards.length) return;
-        const activationLine = chapterActivationLine();
-        const viewportBottom = window.innerHeight;
-        let activeCard = null;
-        let bestScore = Number.NEGATIVE_INFINITY;
-        cards.forEach((card) => {
-          const rect = card.getBoundingClientRect();
-          const visibleTop = Math.max(rect.top, activationLine);
-          const visibleBottom = Math.min(rect.bottom, viewportBottom);
-          const visibleHeight = Math.max(0, visibleBottom - visibleTop);
-          if (!visibleHeight) return;
-          const availableHeight = Math.max(1, viewportBottom - activationLine);
-          const visibleRatio = visibleHeight / Math.min(Math.max(rect.height, 1), availableHeight);
-          const distancePenalty = Math.min(Math.abs(rect.top - activationLine) / Math.max(viewportBottom, 1), 1) * 0.12;
-          const score = visibleRatio - distancePenalty;
-          if (score > bestScore) {
-            bestScore = score;
-            activeCard = card;
-          }
-        });
-        if (!activeCard) return;
-        cards.forEach((card) => {
-          const isActive = card === activeCard;
-          card.classList.toggle("is-snap-active", isActive);
-          if (isActive) {
-            card.setAttribute("aria-current", "step");
-          } else {
-            card.removeAttribute("aria-current");
-          }
-        });
-        syncChapterSubLinks(activeCard);
-      }
-
-      function scheduleSnapCardSync() {
-        if (!snapCardObserver || snapCardSyncFrame != null) return;
-        snapCardSyncFrame = requestAnimationFrame(() => {
-          snapCardSyncFrame = null;
-          syncActiveSnapCard();
-        });
-      }
-
-      function mountSnapCardObserver() {
-        clearSnapCardTracking();
-        if (!story.classList.contains("is-visible")) return;
-        if (document.body.classList.contains("deck-ready")) return;
-        const cards = Array.from(story.querySelectorAll("[data-snap-card]"));
-        if (!cards.length) return;
-        const topOffset = Math.ceil(chapterActivationLine());
-        snapCardObserver = new IntersectionObserver(
-          () => syncActiveSnapCard(),
-          {
-            root: null,
-            rootMargin: `-${topOffset}px 0px -18% 0px`,
-            threshold: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1],
-          },
-        );
-        cards.forEach((card) => snapCardObserver.observe(card));
-        syncActiveSnapCard();
-      }
-
-      function refreshChapterTracking() {
-        if (chapterTrackingFrame != null) return;
-        chapterTrackingFrame = requestAnimationFrame(() => {
-          chapterTrackingFrame = null;
-          updateChapterLayoutVars();
-          mountChapterObserver();
-          mountSnapCardObserver();
-          syncActiveChapter({ force: true });
-        });
-      }
-
       function refreshScrollTriggers() {
-        updateChapterLayoutVars();
         ScrollTrigger.refresh();
-        syncActiveChapter({ force: true });
-        syncActiveSnapCard();
       }
 
       function scheduleScrollTriggerRefresh() {
@@ -702,72 +290,6 @@ __CHAPTER_REGISTRY_SCRIPT__
           scrollRefreshFontsBound = true;
           onFontsReady(refreshScrollTriggers);
         }
-      }
-
-      function renderSubjectNav() {
-        subjectNav.replaceChildren();
-        const initialKey = activeChapterKey || (chapterRegistry[0] ? chapterRegistry[0].key : null);
-        chapterRegistry.forEach((chapter, index) => {
-          const isActive = initialKey ? initialKey === chapter.key : index === 0;
-          const displayLabel = chapter.navLabel || chapter.label;
-          const group = document.createElement("div");
-          group.className = `chapter-nav-group${isActive ? " is-active" : ""}`;
-          group.dataset.key = chapter.key;
-          group.dataset.tone = chapter.tone;
-
-          const button = document.createElement("button");
-          button.type = "button";
-          button.className = `chapter-tab${isActive ? " is-active" : ""}`;
-          button.dataset.key = chapter.key;
-          button.dataset.tone = chapter.tone;
-          button.setAttribute("aria-controls", chapter.id);
-          button.setAttribute("aria-pressed", String(isActive));
-          button.setAttribute("aria-label", `${chapter.number}. ${chapter.label}`);
-          const shape = document.createElement("span");
-          shape.className = "chapter-tab__shape";
-          shape.append(textElement("span", chapter.number, "chapter-tab__index"), textElement("span", displayLabel, "chapter-tab__label"), textElement("span", chapter.railMeta, "chapter-tab__meta"));
-          button.append(shape);
-          button.addEventListener("click", (event) => {
-            setActiveChapter(chapter.key, { force: true });
-            scrollToChapter(chapter);
-            releaseChapterNavPointerFocus(event);
-          });
-
-          const subnav = document.createElement("ul");
-          subnav.className = "chapter-subnav";
-          subnav.setAttribute("aria-label", `${chapter.label} - sections`);
-          chapterSnapCards(chapter).forEach((card, cardIndex) => {
-            const cardId = ensureSnapCardId(card, chapter, cardIndex);
-            const label = card.dataset.snapNavLabel || card.dataset.snapLabel || `${chapter.label} ${cardIndex + 1}`;
-            const ariaLabel = card.dataset.snapLabel || label;
-            const item = document.createElement("li");
-            const link = document.createElement("a");
-            link.className = "chapter-subnav-link";
-            link.href = `#${cardId}`;
-            link.dataset.targetId = cardId;
-            link.setAttribute("aria-label", ariaLabel);
-            link.append(textElement("span", label));
-            link.addEventListener("click", (event) => {
-              event.preventDefault();
-              scrollToSnapCard(card, chapter);
-              releaseChapterNavPointerFocus(event);
-            });
-            item.appendChild(link);
-            subnav.appendChild(item);
-          });
-
-          group.appendChild(button);
-          if (subnav.children.length) {
-            group.appendChild(subnav);
-          }
-          subjectNav.appendChild(group);
-        });
-        activeChapterKey = initialKey;
-        updateChapterLayoutVars();
-      }
-
-      function renderSwitchRail() {
-        renderGeographySelector();
       }
 
       function renderHeaderActions() {
@@ -962,60 +484,40 @@ __CHAPTER_REGISTRY_SCRIPT__
         const lead = document.getElementById("heroLead");
         const heroDates = document.getElementById("heroDates");
         const heroKpis = document.getElementById("heroKpis");
+        const national = state.phase === "national";
         const heroData = heroPayloadForScope();
-        if (state.phase === "national") {
-          eyebrow.textContent = "France entière";
-          title.textContent = "France entière";
-          lead.textContent = "Rythme national, gradients régionaux, départements à explorer.";
-        } else {
-          eyebrow.textContent = currentRegion().group === "dom" ? "Outre-mer" : "Région";
-          title.textContent = currentRegion().name;
-          lead.textContent = currentRegion().hasData
-            ? `Suivez l’évolution de l’emploi privé en ${currentRegion().name}.`
-            : "Territoire visible, données partielles ou absentes dans les CSV fournis.";
-        }
+        eyebrow.textContent = national ? "France entière" : currentRegion().group === "dom" ? "Outre-mer" : "Région";
+        title.textContent = national ? "France entière" : currentRegion().name;
+        const available = detail.indicators.filter((indicator) => heroData[indicator.key]?.value != null).length;
+        const introduction = `${detail.label} · ${national ? "France entière" : currentRegion().name}.`;
+        lead.textContent = available === 0
+          ? `${introduction} Données indisponibles pour ce territoire.`
+          : available < detail.indicators.length
+          ? `${introduction} Certains indicateurs ne sont pas disponibles pour ce territoire.`
+          : introduction;
 
         heroDates.replaceChildren();
-        [
-          heroData.payroll ? `Masse ${dateLabel(heroData.payroll.date)}` : null,
-          heroData.headcount ? `Emploi ${quarterLabel(heroData.headcount.date)}` : null,
-          heroData.auto ? `Auto ${quarterLabel(heroData.auto.date)}` : null,
-          state.phase === "national"
-            ? heroData.risk
-              ? `RAR ${monthLabel(heroData.risk.date)}`
-              : null
-            : heroData.rar90
-            ? `RAR ${monthLabel(heroData.rar90.date)}`
-            : null,
-        ].filter(Boolean).forEach((label) => {
-          const chip = document.createElement("span");
-          chip.className = "hero-chip";
-          chip.textContent = label;
-          heroDates.appendChild(chip);
-        });
-
-        const cards = state.phase === "national"
-          ? [
-              { label: "Masse salariale", value: formatCurrency(heroData.payroll && heroData.payroll.value), meta: dateLabel(heroData.payroll && heroData.payroll.date) },
-              { label: "Effectifs privés", value: formatCount(heroData.headcount && heroData.headcount.value), meta: quarterLabel(heroData.headcount && heroData.headcount.date) },
-              { label: "Auto-entrepreneurs actifs", value: formatCount(heroData.auto && heroData.auto.value), meta: quarterLabel(heroData.auto && heroData.auto.date) },
-              { label: "RAR +90 jours", value: heroData.risk ? heroData.risk.region : "—", meta: heroData.risk ? formatPercent(heroData.risk.value) : "Donnée absente", textual: true },
-            ]
-          : [
-              { label: "Masse salariale", value: formatCurrency(heroData.payroll && heroData.payroll.value), meta: dateLabel(heroData.payroll && heroData.payroll.date) },
-              { label: "Effectifs privés", value: formatCount(heroData.headcount && heroData.headcount.value), meta: quarterLabel(heroData.headcount && heroData.headcount.date) },
-              { label: "Auto-entrepreneurs actifs", value: formatCount(heroData.auto && heroData.auto.value), meta: quarterLabel(heroData.auto && heroData.auto.date) },
-              { label: "RAR +90 jours", value: formatPercent(heroData.rar90 && heroData.rar90.value), meta: monthLabel(heroData.rar90 && heroData.rar90.date) },
-            ];
-
         heroKpis.replaceChildren();
-        cards.forEach((card) => {
+        detail.indicators.forEach((indicator) => {
+          const point = heroData[indicator.key];
+          const period = indicator.frequency === "quarter" ? quarterLabel(point?.date) : monthLabel(point?.date);
+          if (point?.date) {
+            heroDates.appendChild(textElement("span", `${indicator.dateLabel} · ${period}`, "hero-chip"));
+          }
           const article = document.createElement("article");
           article.className = "kpi-card";
-          article.append(textElement("span", card.label, "label"), textElement("strong", card.value, card.textual ? "is-textual" : ""), textElement("span", card.meta, "meta"));
+          article.dataset.indicator = indicator.key;
+          const label = textElement("span", "", "label");
+          label.appendChild(textElement("span", indicator.label, `text-highlight text-highlight--${indicator.key}`));
+          const value = indicator.format === "currency" ? formatCurrency(point?.value) : formatCount(point?.value);
+          article.append(label, textElement("strong", value),
+            textElement("span", point?.value == null ? `Donnée indisponible${point?.date ? ` · ${period}` : ""}` : period, "meta"));
           heroKpis.appendChild(article);
         });
-        highlightHeroKpiLabels(document.getElementById("heroPanel"));
+      }
+
+      function primaryHeroValue(region) {
+        return region.hero[detail.primaryIndicator]?.value ?? null;
       }
 
       function buildScale(domain, colors) {
@@ -1396,8 +898,8 @@ __CHAPTER_REGISTRY_SCRIPT__
           },
           tooltipResolver: (feature) => {
             const region = regionsByCode.get(feature.properties.code);
-            if (state.phase === "national" && region.hero.payroll && region.hero.payroll.value != null) {
-              return { label: region.name, value: formatCurrency(region.hero.payroll.value) };
+            if (state.phase === "national" && primaryHeroValue(region) != null) {
+              return { label: region.name, value: formatCount(primaryHeroValue(region)) };
             }
             if (!region.hasData) return { label: region.name, value: "Données indisponibles" };
             return { label: region.name, value: "Entrer" };
@@ -1589,10 +1091,12 @@ __CHAPTER_REGISTRY_SCRIPT__
         deferredDataPromise ??= parseDeferredData().then((deferred) => {
           DATA.geography = { ...DATA.geography, ...deferred.geography };
           DATA.modules = deferred.modules;
-          state.sectorEffectifsSeriesKey ??= DATA.modules.sector.regional.national.defaultSeriesKey;
-          state.sectorPayrollSeriesKey ??= DATA.modules.sector.regional.national.defaultSeriesKey;
-          state.sectorDepartmentSectorKey ??= DATA.modules.sector.departmental.defaultSectorKey;
-          state.autoSector ??= DATA.modules.auto.defaultSector;
+          if (DATA.modules.sector) {
+            state.sectorEffectifsSeriesKey ??= DATA.modules.sector.regional.national.defaultSeriesKey;
+            state.sectorPayrollSeriesKey ??= DATA.modules.sector.regional.national.defaultSeriesKey;
+            state.sectorDepartmentSectorKey ??= DATA.modules.sector.departmental.defaultSectorKey;
+          }
+          if (DATA.modules.auto) state.autoSector ??= DATA.modules.auto.defaultSector;
           return DATA;
         });
         return deferredDataPromise;
@@ -1637,20 +1141,6 @@ __CHAPTER_REGISTRY_SCRIPT__
         gsap.set(mapStage, { opacity: 0 });
       }
 
-      function syncChapterNavVisibility() {
-        const heroIsFullyAboveViewport = stageShell.getBoundingClientRect().bottom <= 0;
-        const shouldShow = story.classList.contains("is-visible") && state.phase !== "landing" && heroIsFullyAboveViewport;
-        document.body.classList.toggle("chapter-nav-ready", shouldShow);
-      }
-
-      function scheduleChapterNavVisibility() {
-        if (chapterNavVisibilityFrame != null) return;
-        chapterNavVisibilityFrame = requestAnimationFrame(() => {
-          chapterNavVisibilityFrame = null;
-          syncChapterNavVisibility();
-        });
-      }
-
       function scheduleStoryRender() {
         const generation = ++storyRenderGeneration;
         const transitionToken = regionTransitionToken;
@@ -1662,9 +1152,7 @@ __CHAPTER_REGISTRY_SCRIPT__
               if (generation !== storyRenderGeneration || transitionToken !== regionTransitionToken || state.phase === "landing") return;
               renderStoryModules();
               hydrateChapterSections();
-              refreshChapterTracking();
               scheduleScrollTriggerRefresh();
-              scheduleChapterNavVisibility();
             })
             .catch((error) => console.error("Deferred payload error", error));
         });
@@ -1674,9 +1162,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         story.classList.add("is-visible");
         // Set initial animation styles before the browser can paint the story.
         mountScrollReveal();
-        refreshChapterTracking();
         scheduleScrollTriggerRefresh();
-        scheduleChapterNavVisibility();
       }
 
       function applyPhase(phase) {
@@ -1689,27 +1175,18 @@ __CHAPTER_REGISTRY_SCRIPT__
           storyRenderHandle = null;
         }
         stageShell.classList.toggle("is-map-hover-locked", state.mapHoverLocked);
-        clearChapterScrollLock();
         renderHeaderActions();
         if (phase === "landing") {
-          document.body.classList.remove("chapter-nav-ready");
           story.classList.remove("is-visible");
-          if (chapterObserver) {
-            chapterObserver.disconnect();
-          }
-          clearSnapCardTracking();
           setMapStageMode("landing");
         } else if (phase === "national") {
           setMapStageMode("national");
-          scheduleChapterNavVisibility();
-        } else {
-          scheduleChapterNavVisibility();
         }
       }
 
       function animateFranceRipple() {
         const transitionToken = regionTransitionToken;
-        const values = DATA.regions.map((region) => region.hero.payroll && region.hero.payroll.value).filter((value) => value != null);
+        const values = DATA.regions.map((region) => primaryHeroValue(region)).filter((value) => value != null);
         const scale = buildScale(
           d3.extent(values),
           [paletteToken("map-national-low", "rgba(255,255,255,0.08)"), paletteToken("map-national-high", "rgba(120,236,203,0.92)")],
@@ -1720,7 +1197,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         timeline.to(ring.node(), { attr: { r: 760 }, opacity: 0, duration: REDUCED_MOTION ? 0.01 : 1.8, ease: "power2.out" });
         chartRefs.regionMap.pathByCode.forEach((selection, code) => {
           const region = regionsByCode.get(code);
-          const value = region.hero.payroll && region.hero.payroll.value;
+          const value = primaryHeroValue(region);
           const box = selection.node().getBBox();
           const dx = center.x - (box.x + box.width / 2);
           const dy = center.y - (box.y + box.height / 2);
@@ -1922,19 +1399,6 @@ __CHAPTER_MODULES_SCRIPT__
         });
       }
 
-      function initChapterNavigation() {
-        hydrateChapterSections();
-        renderSubjectNav();
-        window.addEventListener("scroll", () => {
-          scheduleSnapCardSync();
-          scheduleChapterNavVisibility();
-        }, { passive: true });
-        window.addEventListener("resize", () => {
-          refreshChapterTracking();
-          scheduleChapterNavVisibility();
-        }, { passive: true });
-      }
-
       function mountScrollReveal() {
         if (REDUCED_MOTION) return;
         const revealItems = gsap.utils.toArray(".section-card, .snap-card")
@@ -1961,7 +1425,8 @@ __CHAPTER_MODULES_SCRIPT__
       function boot() {
         applyColorTokens();
         setTheme(null);
-        initChapterNavigation();
+        hydrateChapterSections();
+        window.addEventListener("resize", scheduleScrollTriggerRefresh, { passive: true });
         initGeographySelector();
         renderLandingMap();
         renderHero();

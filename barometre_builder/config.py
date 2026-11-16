@@ -18,12 +18,19 @@ DERIVED_CACHE_DIR = ROOT / ".cache" / "barometre"
 GEOGRAPHY_CACHE_PATH = DERIVED_CACHE_DIR / "geographies.json"
 MODULE_DATA_CACHE_PATH = DERIVED_CACHE_DIR / "modules.json"
 DPAE_CACHE_PATH = DERIVED_CACHE_DIR / "dpae.json"
+TRAR_CACHE_PATH = DERIVED_CACHE_DIR / "trar.json"
 OUTPUT_DIR = ROOT / "dist"
 OUTPUT_HTML_PATH = OUTPUT_DIR / "index.html"
 OUTPUT_PAGES = ("index.html", "barometre_bref.html", "barometre_emploi.html", "barometre_entreprises.html")
 TEMPLATE_PATH = ROOT / "barometre.template.html"
 PAGE_TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 DPAE_EXCEL_PATH = DATA_DIR / "donnees_dpae_regions.xlsx"
+TRAR_EXCEL_PATHS = {
+    "national": DATA_DIR / "DATAVIZ_TRAR_NACE88.xlsx",
+    "regional": DATA_DIR / "DATAVIZ_TRAR_NV_REGION_NACE28.xlsx",
+    "departmental": DATA_DIR / "DATAVIZ_TRAR_DEP_NACE5.xlsx",
+}
+TRAR_NACE88_LABELS_PATH = DATA_DIR / "nace88-insee-naf-rev2.csv"
 DPAE_DISPLAY_START_DATE = "2014-01-01"
 PUBLICATION_DATE_LABEL = os.getenv("BAROMETRE_PUBLICATION_DATE", "24 juin 2026")
 PUBLICATION_ISSUE_NUMBER = os.getenv("BAROMETRE_ISSUE_NUMBER", "189")

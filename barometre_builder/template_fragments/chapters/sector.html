@@ -197,7 +197,7 @@
                 <div class="viz-panel map-card employment-map-panel">
                   <div class="employment-map-head">
                     <div class="viz-title">
-                      <strong>Carte départementale des effectifs privés et de la masse salariale</strong>
+                      <strong id="employmentDeptMapTitle">Carte départementale des effectifs privés et de la masse salariale</strong>
                       <span id="employmentDeptMapMeta"></span>
                     </div>
                     <div class="employment-map-controls employment-map-controls--sector">
@@ -212,7 +212,7 @@
                     </div>
                   </div>
                   <div class="employment-map-shell" id="employmentDeptMapShell">
-                    <svg id="employmentDeptMapSvg" viewBox="0 0 900 620"></svg>
+                    <svg id="employmentDeptMapSvg" viewBox="0 0 900 620" role="group" aria-labelledby="employmentDeptMapTitle employmentDeptMapMeta"></svg>
                   </div>
                   <div class="map-legend" id="employmentDeptLegend"></div>
                 </div>
@@ -241,10 +241,10 @@
               <div class="section-grid department-map-grid">
                 <div class="viz-panel map-card" id="autoMapPanel">
                   <div class="viz-title">
-                    <strong>Carte départementale des travailleurs indépendants</strong>
+                    <strong id="autoMapTitle">Carte départementale des travailleurs indépendants</strong>
                     <span id="autoMapMeta"></span>
                   </div>
-                  <svg id="autoMapSvg" viewBox="0 0 900 620"></svg>
+                  <svg id="autoMapSvg" viewBox="0 0 900 620" role="group" aria-labelledby="autoMapTitle autoMapMeta"></svg>
                   <div class="map-legend" id="autoLegend"></div>
                 </div>
                 <div class="viz-panel department-ranking-panel">

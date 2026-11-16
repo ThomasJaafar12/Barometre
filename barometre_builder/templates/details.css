@@ -1030,7 +1030,7 @@
     .employment-treemap-tile rect {
       transition: stroke 150ms ease, stroke-width 150ms ease;
     }
-    .employment-treemap-tile.is-hovered rect,
+    .employment-treemap-tile.is-viz-tooltip-active rect,
     .employment-treemap-tile:focus-visible rect {
       stroke: #17243A;
       stroke-width: 1.8px;
@@ -3146,6 +3146,12 @@
       stroke-width: 2px;
     }
 
+    #employmentDeptMapSvg .path-department:focus-visible,
+    #autoMapSvg .path-department:focus-visible {
+      stroke: var(--product-ink);
+      stroke-width: 2.8px;
+    }
+
     .map-region-label,
     .inset-label,
     .focus-city-label {
@@ -5194,3 +5200,107 @@
     body[data-topic="emploi"] .hero-kpis > .kpi-card:last-child {
       grid-column: 1 / -1;
     }
+
+    .payroll-trar-block {
+      display: grid;
+      gap: 28px;
+      margin-top: 32px;
+    }
+    .payroll-trar-block[hidden],
+    .payroll-trar-block [hidden] { display: none; }
+    .trar-panel-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .trar-panel-head .viz-title { flex: 1 1 230px; }
+    .payroll-trar-block .employment-title :is(h3, h4, h5) {
+      margin: 0;
+      color: #0B1E36;
+      font-size: clamp(1.15rem, 2vw, 1.45rem);
+      line-height: 1.3;
+    }
+    .payroll-trar-block .trar-select {
+      flex: 0 1 310px;
+      width: min(100%, 310px);
+      min-width: 0;
+    }
+    .trar-select select { appearance: auto; }
+    .trar-select select:focus-visible { outline-color: #004B9B; }
+    .trar-main .trar-select select { appearance: none; }
+    .trar-panel-head .metric-switch { flex-wrap: wrap; }
+    .trar-line-sample { width: 24px; border-top-width: 3px; }
+    :is(#trarChartTooltip, #trarDepartmentChartTooltip) .tooltip-row strong { margin-inline-start: 0.3em; }
+    .trar-dashboard-panel .employment-dashboard-context span { white-space: normal; }
+    .trar-latest { margin-inline: 0; margin-bottom: 0; }
+    .trar-latest-value { margin: 0; }
+    .trar-rate-level {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 4px 12px;
+    }
+    .trar-rate-level .delai-level-value { line-height: 1.1; }
+    .trar-rate-level time { color: var(--dashboard-muted); font-size: 0.78rem; font-weight: 600; }
+    .trar-dashboard-panel .employment-dashboard-trend.is-positive,
+    .trar-top-table .delai-td-yoy.trend-up { color: var(--dashboard-red); }
+    .trar-dashboard-panel .employment-dashboard-trend.is-negative,
+    .trar-top-table .delai-td-yoy.trend-down { color: var(--dashboard-green); }
+    .trar-sector-ranking .delai-top-sectors-head { flex-wrap: wrap; gap: 6px 12px; }
+    .trar-sector-ranking .delai-top-sectors-title { margin: 0; }
+    .trar-ranking-horizon { width: min(100%, 310px); margin: 0 0 8px; }
+    .trar-ranking-horizon .employment-select-label { color: var(--dashboard-muted); }
+    .trar-ranking-horizon select:focus-visible { outline-color: #004B9B; }
+    .trar-top-table { --ranking-value-width: 67px; }
+    .trar-top-table .delai-th-yoy { width: 74px; }
+    .trar-top-table .sector-ranking-link { white-space: normal; overflow-wrap: anywhere; }
+    .trar-top-table .delai-top-row.is-active { background-color: rgba(0, 75, 155, 0.06); }
+    @media (min-width: 960px) and (max-width: 1240px) {
+      .trar-latest { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 560px) {
+      .story .employment-side.trar-dashboard-panel { padding: clamp(14px, 4vw, 24px); }
+    }
+    .trar-map-shell {
+      min-height: 0;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 14px;
+    }
+    .trar-map-shell svg { width: min(100%, 750px); height: auto; margin: 0 auto; }
+    .trar-treemap-shell svg { cursor: default; touch-action: auto; }
+    .trar-region-group > rect { fill: #EDF3F8; stroke: #C8D5E2; }
+    .trar-region-text { fill: #263C53; font: 700 12px Inter, sans-serif; pointer-events: none; }
+    .trar-department-tile { cursor: pointer; outline: none; }
+    .trar-department-tile rect { stroke: #FFFFFF; stroke-width: 1px; }
+    .trar-department-tile text {
+      pointer-events: none;
+      text-anchor: middle;
+      dominant-baseline: central;
+      font: 650 12px Inter, sans-serif;
+    }
+    .trar-department-tile .trar-tile-rate { font-size: 10px; font-weight: 550; }
+    .trar-department-tile:is(:hover, :focus-visible, .is-viz-tooltip-active, .is-selected) rect,
+    .trar-map-department:is(:hover, :focus-visible, .is-viz-tooltip-active, .is-selected) {
+      stroke: #10223A;
+      stroke-width: 2px;
+      vector-effect: non-scaling-stroke;
+      filter: none;
+    }
+    .trar-department-tile[aria-disabled="true"], .trar-map-department[aria-disabled="true"] { cursor: default; }
+    .trar-snapshot-legend { align-items: center; flex-wrap: wrap; gap: 7px 14px; color: #354C64; font-size: 0.8rem; }
+    .trar-color-key { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .trar-color-key i {
+      width: 12px;
+      height: 12px;
+      border: 1px solid #A9BDD0;
+      border-radius: 3px;
+    }
+    .trar-missing-swatch { background: #E2E8F0; }
+    .trar-note { margin: 0; color: #495C73; font: 0.78rem/1.5 Inter, sans-serif; }
+    .trar-detail-controls { display: flex; padding-top: 14px; border-top: 1px solid #E2E8F0; }
+    #trarDepartmentDetail:not([hidden]) { display: grid; gap: 14px; }
+    #trarDepartmentDetail .employment-chart-shell { padding: 0; box-shadow: none; }

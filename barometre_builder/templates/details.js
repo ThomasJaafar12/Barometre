@@ -572,9 +572,21 @@ __CHAPTER_REGISTRY_SCRIPT__
       let tooltipMoveFrame = null;
       let tooltipClientX = 0;
       let tooltipClientY = 0;
+      let tooltipFitsViewport = false;
+      let tooltipWidth = 0;
+      let tooltipHeight = 0;
 
       function applyTooltipPosition() {
         tooltipMoveFrame = null;
+        if (tooltipFitsViewport) {
+          const right = document.documentElement.clientWidth - tooltipWidth - 8;
+          const bottom = window.innerHeight - tooltipHeight - 8;
+          const left = Math.max(8, Math.min(tooltipClientX - tooltipWidth / 2, right));
+          const above = tooltipClientY - tooltipHeight - 10;
+          const top = Math.max(8, Math.min(above >= 8 ? above : tooltipClientY + 10, bottom));
+          tooltip.style.transform = `translate3d(${left}px, ${top}px, 0)`;
+          return;
+        }
         tooltip.style.transform = `translate3d(${tooltipClientX}px, ${tooltipClientY}px, 0) translate(-50%, calc(-100% - 10px))`;
       }
 
@@ -585,16 +597,23 @@ __CHAPTER_REGISTRY_SCRIPT__
         tooltipMoveFrame = requestAnimationFrame(applyTooltipPosition);
       }
 
-      function showTooltip(event, label, value) {
+      function showTooltip(event, label, value, fitViewport = false) {
         if (tooltipMoveFrame != null) {
           cancelAnimationFrame(tooltipMoveFrame);
           tooltipMoveFrame = null;
         }
         tooltipClientX = event.clientX;
         tooltipClientY = event.clientY;
+        const labelChanged = tooltipLabel.textContent !== label;
+        const valueChanged = tooltipValue.textContent !== value;
+        if (labelChanged) tooltipLabel.textContent = label;
+        if (valueChanged) tooltipValue.textContent = value;
+        if (fitViewport && (!tooltipFitsViewport || labelChanged || valueChanged)) {
+          tooltipWidth = tooltip.offsetWidth;
+          tooltipHeight = tooltip.offsetHeight;
+        }
+        tooltipFitsViewport = fitViewport;
         applyTooltipPosition();
-        if (tooltipLabel.textContent !== label) tooltipLabel.textContent = label;
-        if (tooltipValue.textContent !== value) tooltipValue.textContent = value;
         tooltip.classList.add("is-visible");
       }
 
@@ -649,13 +668,6 @@ __CHAPTER_REGISTRY_SCRIPT__
         const labelByCode = new Map();
         const pathGeneratorByCode = new Map();
         let hoveredElement = null;
-        let activeTooltipDatum = null;
-        let activeTooltipEvent = null;
-        const clearPathTooltip = () => {
-          activeTooltipDatum = null;
-          activeTooltipEvent = null;
-          hideTooltip();
-        };
         const clearHoverShadow = () => {
           hoverEffectPaths.forEach((effectPath) => effectPath.attr("display", "none").attr("d", null));
         };
@@ -696,6 +708,7 @@ __CHAPTER_REGISTRY_SCRIPT__
           if (hoveredElement === element) clearPathHover();
         };
         const bindPathInteractions = (element, key, pathGenerator) => {
+          if (!config.clickable) return;
           element
             .on("mouseenter", (event, datum) => {
               if (!canUseHoverEffect()) {
@@ -704,35 +717,29 @@ __CHAPTER_REGISTRY_SCRIPT__
                 setPathHover(element, datum, pathGenerator, true);
               }
               if (!canShowPathTooltip()) {
-                clearPathTooltip();
+                hideTooltip();
                 return;
               }
-              activeTooltipDatum = datum;
-              activeTooltipEvent = event;
               const tooltipText = config.tooltipResolver(datum);
               showTooltip(event, tooltipText.label, tooltipText.value);
             })
-            .on("mousemove", (event, datum) => {
+            .on("mousemove", (event) => {
               if (!canUseHoverEffect()) clearPathHover();
               if (!canShowPathTooltip()) {
-                clearPathTooltip();
+                hideTooltip();
                 return;
               }
-              activeTooltipDatum = datum;
-              activeTooltipEvent = event;
               moveTooltip(event);
             })
             .on("mouseleave", (event, datum) => {
               setPathHover(element, datum, pathGenerator, false);
-              clearPathTooltip();
-            });
-          if (config.clickable) {
-            element.on("click", () => {
+              hideTooltip();
+            })
+            .on("click", () => {
               clearPathHover();
-              clearPathTooltip();
+              hideTooltip();
               config.onClick(key);
             });
-          }
         };
 
         if (staticShadowLayer) {
@@ -843,22 +850,15 @@ __CHAPTER_REGISTRY_SCRIPT__
         // La carte interactive d'accueil conserve sa reconstruction et ses animations.
         // Ce registre ne sert qu'aux vues départementales : les événements lisent le contexte courant.
         if (!config.clickable) {
+          const paths = featureLayer.selectAll("path.path-department");
+          bindDepartmentTooltip(paths, config.tooltipResolver);
           compositeMapViews.set(viewKey, { featureCollection, geometryKey, refs, update(nextConfig) {
-            clearPathHover();
             config = nextConfig;
             pathByCode.forEach((element) => {
               const feature = element.datum();
               element.attr("class", config.className(feature)).attr("fill", config.fillResolver(feature));
             });
-            if (activeTooltipDatum && activeTooltipEvent && tooltip.classList.contains("is-visible")) {
-              const activePath = pathByCode.get(config.keyResolver(activeTooltipDatum));
-              if (activePath?.node().isConnected && activePath.node().matches(":hover") && canShowPathTooltip()) {
-                const tooltipText = config.tooltipResolver(activeTooltipDatum);
-                showTooltip(activeTooltipEvent, tooltipText.label, tooltipText.value);
-              } else {
-                clearPathTooltip();
-              }
-            }
+            bindDepartmentTooltip(paths, config.tooltipResolver);
           } });
         }
         return refs;
@@ -1284,6 +1284,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         state.mapHoverLocked = true;
         stageShell.classList.add("is-map-hover-locked");
         chartRefs.regionMap.pathByCode.forEach((element) => element.classed("is-hovered", false));
+        dismissVizTooltip();
         hideTooltip();
         state.selectedRegion = regionCode;
         setTheme(regionCode);
@@ -1392,7 +1393,7 @@ __CHAPTER_MODULES_SCRIPT__
           }
         });
         document.addEventListener("keydown", (event) => {
-          if (event.key === "Escape") {
+          if (event.key === "Escape" && geoControl.classList.contains("is-open")) {
             setGeoMenuOpen(false);
             geoTrigger.focus();
           }

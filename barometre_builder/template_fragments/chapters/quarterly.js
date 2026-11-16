@@ -54,30 +54,39 @@
 
         const dates = points.map((point) => point.date);
         const x = d3.scalePoint().domain(dates).range([0, width]).padding(0.3);
-        const sharedMaximum = sharedScale ? d3.max(series, (item) => d3.max(points, (point) => point[item.key])) : null;
+        const seriesExtent = (items) => {
+          const maximum = d3.max(items, (item) => d3.max(points, (point) => point[item.key]));
+          if (!config.scaleDomain) return [0, Math.max(10, maximum || 0) * 1.12];
+          const minimum = d3.min(items, (item) => d3.min(points, (point) => point[item.key]));
+          return config.scaleDomain(minimum, maximum);
+        };
+        const sharedDomain = sharedScale ? seriesExtent(series) : null;
         const yScales = series.map((item) => d3.scaleLinear()
-          .domain([0, Math.max(10, (sharedScale ? sharedMaximum : d3.max(points, (point) => point[item.key])) || 0) * 1.12]).nice().range([height, 0]));
+          .domain(sharedDomain || seriesExtent([item])).nice().range([height, 0]));
         g.append("g").call(d3.axisLeft(yScales[0]).ticks(compact ? 4 : 6).tickSize(-width).tickFormat(""))
           .call((axis) => {
             axis.select(".domain").remove();
             axis.selectAll("line").attr("stroke", gridColor).attr("stroke-dasharray", "3 3");
           });
 
-        const defs = svg.append("defs");
+        const defs = config.area === false ? null : svg.append("defs");
         const markers = [];
         series.forEach((item, index) => {
           const y = yScales[index];
-          const gradientId = `${svgId}-area-${index}`;
-          const gradient = defs.append("linearGradient").attr("id", gradientId)
-            .attr("x1", "0%").attr("x2", "0%").attr("y1", "0%").attr("y2", "100%");
-          gradient.append("stop").attr("offset", "0%").attr("stop-color", item.color).attr("stop-opacity", 0.2);
-          gradient.append("stop").attr("offset", "100%").attr("stop-color", item.color).attr("stop-opacity", 0);
           const defined = (point) => Number.isFinite(point[item.key]);
-          const area = d3.area().defined(defined).x((point) => x(point.date)).y0(height).y1((point) => y(point[item.key])).curve(d3.curveMonotoneX);
+          if (defs) {
+            const gradientId = `${svgId}-area-${index}`;
+            const gradient = defs.append("linearGradient").attr("id", gradientId)
+              .attr("x1", "0%").attr("x2", "0%").attr("y1", "0%").attr("y2", "100%");
+            gradient.append("stop").attr("offset", "0%").attr("stop-color", item.color).attr("stop-opacity", 0.2);
+            gradient.append("stop").attr("offset", "100%").attr("stop-color", item.color).attr("stop-opacity", 0);
+            const area = d3.area().defined(defined).x((point) => x(point.date)).y0(height).y1((point) => y(point[item.key])).curve(d3.curveMonotoneX);
+            g.append("path").attr("d", area(points)).attr("fill", `url(#${gradientId})`);
+          }
           const line = d3.line().defined(defined).x((point) => x(point.date)).y((point) => y(point[item.key])).curve(d3.curveMonotoneX);
-          g.append("path").attr("d", area(points)).attr("fill", `url(#${gradientId})`);
           g.append("path").attr("class", "quarterly-series").attr("data-metric", item.key)
             .attr("d", line(points)).attr("fill", "none").attr("stroke", item.color)
+            .attr("stroke-dasharray", item.dash || null)
             .attr("stroke-width", compact ? 2.4 : 3.2).attr("stroke-linecap", "round");
           g.append("g").selectAll("circle").data(points.filter(defined)).join("circle")
             .attr("cx", (point) => x(point.date)).attr("cy", (point) => y(point[item.key]))

@@ -1,0 +1,23 @@
+BAROMÈTRE URSSAF · INDICATEURS
+France et régions sauf mention contraire. CVS = corrigé des variations saisonnières.
+
+Indicateur                                   │ Période │ Ventilation
+──────────────────────────────────────────── │ ─────── │ ────────────────────────────────────────────────────────
+01  LES CHIFFRES DU MOIS · EN BREF
+Masse salariale et effectifs privés (CVS)    │ Trim.   │ Tous secteurs
+Procédures collectives                       │ Trim.   │ Toutes procédures et tous secteurs
+Déclarations préalables à l’embauche (DPAE)  │ Mois    │ Tous contrats
+02  SANTÉ DES ENTREPRISES
+Procédures et emplois menacés ou détruits    │ Trim.   │ NACE 17 × sauvegardes, redressements, liquidations
+DPAE                                         │ Mois    │ CDI, CDD longs, CDD courts, total et CDI + CDD longs
+Délais de paiement des indépendants          │ Trim.   │ NACE 17 × proactifs ou sur demande
+  Nombre d’accords et montant accordé
+Taux d’impayés                               │ Mois    │ Régions × NACE 28
+  Fin du mois d’échéance, fin du mois        │         │ Départements (France) × 5 grands secteurs
+  suivant, 90 jours après l’échéance         │         │ France entière × NACE 88
+03  CONJONCTURE DE L’EMPLOI
+Effectifs et masse salariale du privé (CVS)  │ Trim.   │ France/régions × secteurs NA28i
+                                             │         │ Départements de la région × grands secteurs
+Auto-entrepreneurs actifs économiquement     │ Trim.   │ Départements × secteurs d’activité
+Indépendants actifs administrativement       │ Trim.   │ Départements × secteurs d’activité
+Chiffre d’affaires déclaré                   │ Trim.   │ Départements × secteurs d’activité

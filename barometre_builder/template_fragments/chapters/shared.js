@@ -1,5 +1,176 @@
       const employmentPickerContexts = new WeakMap();
 
+      const departmentMapGeometries = new WeakMap();
+
+      function departmentMapGeometry(features) {
+        let geometry = departmentMapGeometries.get(features);
+        if (!geometry) {
+          const paths = new Map();
+          if (features.length) {
+            const projection = d3.geoMercator().fitExtent([[32, 32], [868, 588]], { type: "FeatureCollection", features });
+            const path = d3.geoPath(projection);
+            features.forEach((feature) => paths.set(feature.properties.code, path(feature)));
+          }
+          geometry = { features, paths };
+          departmentMapGeometries.set(features, geometry);
+        }
+        return geometry;
+      }
+
+      function renderDepartmentMapPaths(svg, features) {
+        let layer = svg.select("g.department-map-paths");
+        if (layer.empty()) layer = svg.append("g").attr("class", "department-map-paths");
+        const shapes = layer.selectAll("path")
+          .data(features, (feature) => feature.properties.code)
+          .join("path");
+        if (layer.datum() !== features) {
+          const { paths } = departmentMapGeometry(features);
+          shapes.attr("d", (feature) => paths.get(feature.properties.code));
+          layer.datum(features);
+        }
+        return shapes;
+      }
+
+      const vizTooltipMarks = new WeakMap();
+      const vizTooltipViews = new WeakMap();
+      let activeVizTooltip = null;
+      let vizTooltipFrame = null;
+
+      function dismissVizTooltip(svg = null) {
+        if (!activeVizTooltip || (svg && activeVizTooltip.view.svg !== svg)) return;
+        const { element, view } = activeVizTooltip;
+        activeVizTooltip = null;
+        if (vizTooltipFrame != null) cancelAnimationFrame(vizTooltipFrame);
+        vizTooltipFrame = null;
+        element.classList.remove("is-viz-tooltip-active");
+        view.options.hide?.();
+      }
+
+      function paintVizTooltip() {
+        vizTooltipFrame = null;
+        if (!activeVizTooltip) return;
+        const { element, view, position } = activeVizTooltip;
+        if (!element.isConnected || view.options.enabled?.() === false) {
+          dismissVizTooltip();
+          return;
+        }
+        const bounds = position ? null : element.getBoundingClientRect();
+        view.options.show(position || { clientX: bounds.left + bounds.width / 2, clientY: bounds.top + bounds.height / 2 }, element.__data__, element);
+      }
+
+      function openVizTooltip(element, mode, position = null) {
+        const view = vizTooltipMarks.get(element);
+        if (view.options.enabled?.() === false) return;
+        if (activeVizTooltip?.element !== element) dismissVizTooltip();
+        if (vizTooltipFrame != null) cancelAnimationFrame(vizTooltipFrame);
+        element.classList.add("is-viz-tooltip-active");
+        activeVizTooltip = { element, view, mode, position };
+        paintVizTooltip();
+      }
+
+      function markVizTabStop(view, element) {
+        if (view.options.arrowNavigation && view.current !== element) {
+          view.current?.setAttribute("tabindex", "-1");
+          element.setAttribute("tabindex", "0");
+          view.current = element;
+        }
+      }
+
+      function activateVizMark(element, position = null) {
+        const view = vizTooltipMarks.get(element);
+        if (view.options.enabled?.() === false) return;
+        markVizTabStop(view, element);
+        openVizTooltip(element, "activation", position);
+        if (element.getAttribute("aria-disabled") !== "true") view.options.activate?.(element.__data__, element);
+      }
+
+      function onVizMarkKeyDown(event) {
+        if (event.ctrlKey || event.metaKey || event.altKey) return;
+        const view = vizTooltipMarks.get(this);
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          if (!event.repeat) activateVizMark(this);
+          return;
+        }
+        if (!view.options.arrowNavigation) return;
+        const index = view.elements.indexOf(this);
+        const offsets = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 };
+        const lastIndex = view.elements.length - 1;
+        const next = event.key === "Home" ? 0 : event.key === "End" ? lastIndex : index + offsets[event.key];
+        if (Number.isNaN(next)) return;
+        event.preventDefault();
+        view.elements[Math.max(0, Math.min(next, lastIndex))].focus({ preventScroll: true });
+      }
+
+      function bindVizTooltip(selection, options) {
+        const elements = selection.nodes();
+        if (!elements.length) return;
+        const svg = elements[0].ownerSVGElement;
+        let view = vizTooltipViews.get(svg);
+        if (!view) {
+          view = { svg };
+          vizTooltipViews.set(svg, view);
+        }
+        const newMarks = selection.filter(function() { return !vizTooltipMarks.has(this); });
+        view.options = options;
+        view.elements = elements;
+        if (!elements.includes(view.current)) view.current = elements[0];
+        selection.each(function() { vizTooltipMarks.set(this, view); })
+          .attr("tabindex", function() { return !options.arrowNavigation || this === view.current ? 0 : -1; })
+          .attr("role", options.activate ? "button" : "img")
+          .attr("aria-label", options.label);
+        newMarks
+          .on("pointerenter.vizTooltip", function(event) {
+            if (event.pointerType !== "touch") openVizTooltip(this, "hover", event);
+          })
+          .on("pointermove.vizTooltip", function(event) {
+            if (activeVizTooltip?.element !== this || activeVizTooltip.mode !== "hover") return;
+            activeVizTooltip.position = event;
+            if (vizTooltipFrame == null) vizTooltipFrame = requestAnimationFrame(paintVizTooltip);
+          })
+          .on("pointerleave.vizTooltip", function() {
+            if (activeVizTooltip?.element === this && activeVizTooltip.mode === "hover") dismissVizTooltip();
+          })
+          .on("focus.vizTooltip", function() {
+            markVizTabStop(vizTooltipMarks.get(this), this);
+            openVizTooltip(this, "focus");
+          })
+          .on("blur.vizTooltip", function() {
+            if (activeVizTooltip?.element === this) dismissVizTooltip();
+          })
+          .on("click.vizTooltip", function(event) {
+            activateVizMark(this, event.detail ? event : null);
+          })
+          .on("keydown.vizTooltip", onVizMarkKeyDown);
+        if (activeVizTooltip?.view === view) {
+          if (elements.includes(activeVizTooltip.element)) {
+            if (vizTooltipFrame == null) paintVizTooltip();
+          } else dismissVizTooltip();
+        }
+      }
+
+      function bindDepartmentTooltip(paths, getContent) {
+        bindVizTooltip(paths, {
+          label: (feature) => {
+            const { label, value } = getContent(feature);
+            return `${label} · ${value === "—" ? "Données indisponibles" : value}`;
+          },
+          show: (position, feature) => {
+            const { label, value } = getContent(feature);
+            showTooltip(position, label, value, true);
+          },
+          hide: hideTooltip,
+          arrowNavigation: true,
+        });
+      }
+
+      document.addEventListener("pointerdown", (event) => {
+        if (activeVizTooltip && !activeVizTooltip.element.contains(event.target)) dismissVizTooltip();
+      }, true);
+      document.addEventListener("keydown", (event) => {
+        if (activeVizTooltip && event.key === "Escape") dismissVizTooltip();
+      });
+
       function employmentSectorCode(option) {
         return option.label.trim().split(/\s+/, 1)[0];
       }

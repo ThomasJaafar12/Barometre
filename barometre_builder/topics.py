@@ -27,8 +27,8 @@ TOPICS = {
          ("auto", "Auto-entrepreneurs économiquement actifs", "count", "quarter", "Auto")),
     ),
     "entreprises": DetailTopic(
-        "entreprises", "Santé des entreprises", "payroll", ("pcol", "dpae", "delai"),
-        ("quarterly.js", "delai.js", "pcol.js", "dpae.js"),
+        "entreprises", "Santé des entreprises", "payroll", ("pcol", "dpae", "delai", "trar"),
+        ("quarterly.js", "delai.js", "pcol.js", "dpae.js", "trar.js"),
         (("pcol", "Procédures collectives", "count", "quarter", "Procédures"),
          ("jobs", "Emplois menacés ou détruits", "count", "quarter", "Emplois menacés"),
          ("dpae", "DPAE · Tous contrats", "count", "month", "DPAE"),

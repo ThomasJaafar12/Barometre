@@ -1,8 +1,6 @@
       const autoDepartmentIndexes = new WeakMap();
       const autoScopeDepartments = new WeakMap();
-      let autoDepartmentGeometry = null;
       let autoMapScope = null;
-      let autoDepartmentHover = null;
 
       const AUTO_SECTOR_GROUPS = [
         {
@@ -60,29 +58,6 @@
         return cached.departments;
       }
 
-      function showAutoDepartmentTooltip(event, feature) {
-        autoDepartmentHover = { element: event.currentTarget, feature, clientX: event.clientX, clientY: event.clientY };
-        updateAutoDepartmentTooltip(event, feature);
-      }
-
-      function updateAutoDepartmentTooltip(event, feature) {
-        const department = getAutoDepartmentIndex().get(feature.properties.code);
-        const value = department ? metricValueForDepartment(department, state.autoSector, state.autoMetric) : null;
-        showTooltip(event, department ? department.name : feature.properties.nom, state.autoMetric === "turnover" ? formatCurrency(value) : formatCount(value));
-      }
-
-      function hideAutoDepartmentTooltip() {
-        autoDepartmentHover = null;
-        hideTooltip();
-      }
-
-      function refreshAutoDepartmentTooltip() {
-        const hovered = autoDepartmentHover;
-        if (hovered?.element.isConnected && hovered.element.matches(":hover") && tooltip.classList.contains("is-visible")) {
-          updateAutoDepartmentTooltip(hovered, hovered.element.__data__);
-        }
-      }
-
       function renderAutoModule() {
         const mapMeta = document.getElementById("autoMapMeta");
         const rankingMeta = document.getElementById("autoRankingMeta");
@@ -106,11 +81,11 @@
         );
 
         if (!departments.length) {
-          autoDepartmentHover = null;
           mapMeta.textContent = `${scopeLabel()} / données indisponibles`;
           rankingMeta.textContent = "Données indisponibles";
           document.getElementById("autoLegend").replaceChildren();
           const emptySvg = d3.select("#autoMapSvg");
+          dismissVizTooltip(emptySvg.node());
           emptySvg.selectAll("*").remove();
           autoMapScope = null;
           emptySvg.append("text")
@@ -136,51 +111,36 @@
         const svg = d3.select("#autoMapSvg");
         const nextMapScope = state.phase === "national" ? "national" : state.selectedRegion;
         if (autoMapScope !== nextMapScope) {
-          autoDepartmentHover = null;
+          dismissVizTooltip(svg.node());
           svg.selectAll("*").remove();
         }
         autoMapScope = nextMapScope;
+        const formatValue = state.autoMetric === "turnover" ? formatCurrency : formatCount;
+        const tooltipResolver = (feature) => {
+          const department = departmentIndex.get(feature.properties.code);
+          const value = department ? metricValueForDepartment(department, state.autoSector, state.autoMetric) : null;
+          return { label: department ? department.name : feature.properties.nom, value: formatValue(value) };
+        };
+        const className = (feature) => `path-department${departmentIndex.has(feature.properties.code) ? "" : " is-unavailable"}`;
+        const fillResolver = (feature) => {
+          const department = departmentIndex.get(feature.properties.code);
+          const value = department ? metricValueForDepartment(department, state.autoSector, state.autoMetric) : null;
+          return value != null ? scale(value) : paletteToken("map-empty", "rgba(255,255,255,0.05)");
+        };
 
         if (state.phase === "national") {
           drawCompositeMap(svg, DATA.geography.departments, {
             clickable: false,
             keyResolver: (feature) => feature.properties.code,
             regionResolver: (feature) => feature.properties.region,
-            className: (feature) => `path-department${departmentIndex.has(feature.properties.code) ? "" : " is-unavailable"}`,
-            fillResolver: (feature) => {
-              const department = departmentIndex.get(feature.properties.code);
-              const value = department ? metricValueForDepartment(department, state.autoSector, state.autoMetric) : null;
-              return value != null ? scale(value) : paletteToken("map-empty", "rgba(255,255,255,0.05)");
-            },
-            tooltipResolver: (feature) => {
-              const department = departmentIndex.get(feature.properties.code);
-              const value = department ? metricValueForDepartment(department, state.autoSector, state.autoMetric) : null;
-              return { label: department ? department.name : feature.properties.nom, value: state.autoMetric === "turnover" ? formatCurrency(value) : formatCount(value) };
-            },
+            className,
+            fillResolver,
+            tooltipResolver,
           });
         } else {
           const features = featuresByRegion.get(state.selectedRegion) || [];
-          const geometryChanged = !autoDepartmentGeometry || autoDepartmentGeometry.features !== features;
-          if (geometryChanged) {
-            autoDepartmentGeometry = departmentMapGeometry(features);
-          }
-          let root = svg.select("g");
-          if (root.empty()) root = svg.append("g");
-          const paths = root.selectAll("path")
-            .data(features, (feature) => feature.properties.code)
-            .join((enter) => enter.append("path")
-              .attr("d", (feature) => autoDepartmentGeometry.paths.get(feature.properties.code))
-              .on("mouseenter", showAutoDepartmentTooltip)
-              .on("mousemove", showAutoDepartmentTooltip)
-              .on("mouseleave", hideAutoDepartmentTooltip));
-          if (geometryChanged) paths.attr("d", (feature) => autoDepartmentGeometry.paths.get(feature.properties.code));
-          paths
-            .attr("class", (feature) => `path-department${departmentIndex.has(feature.properties.code) ? "" : " is-unavailable"}`)
-            .attr("fill", (feature) => {
-              const department = departmentIndex.get(feature.properties.code);
-              const value = department ? metricValueForDepartment(department, state.autoSector, state.autoMetric) : null;
-              return value != null ? scale(value) : paletteToken("map-empty", "rgba(255,255,255,0.05)");
-            });
+          const paths = renderDepartmentMapPaths(svg, features).attr("class", className).attr("fill", fillResolver);
+          bindDepartmentTooltip(paths, tooltipResolver);
         }
 
         const domain = d3.extent(values);
@@ -193,6 +153,5 @@
           .slice(0, 10)
           .map((department) => rankingArticle(department.name, state.autoMetric === "turnover" ? formatCurrency(department.metric) : formatCount(department.metric), regionsByCode.get(department.regionCode).name));
         autoRanking.replaceChildren(...articles);
-        if (state.phase !== "national") refreshAutoDepartmentTooltip();
         syncDepartmentRankingHeight(mapGrid);
       }

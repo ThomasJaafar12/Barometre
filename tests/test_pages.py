@@ -233,18 +233,24 @@ class OrchestrationTests(unittest.TestCase):
         brief.assert_called_once_with(context.boot, context.deferred, context.deferred["modules"]["dpae"])
         self.assertIs(result.deferred["modules"]["dpae"], context.deferred["modules"]["dpae"])
 
-    def test_dpae_workbook_is_read_once_for_both_readings(self):
+    def test_workbooks_are_prepared_once_in_the_shared_context(self):
         context = example_context()
         module = context.deferred["modules"]["dpae"]
         regions = {region["code"]: region for region in context.boot["regions"]}
+        departments = {"features": [{"properties": {"code": "75", "nom": "Paris"}}]}
         bundle = {"videos": context.boot["assets"]["videos"], "modules": context.deferred["modules"]}
         hero = {"regions": context.boot["regions"], "national": {}}
-        with mock.patch("barometre_builder.payloads.build_geographies", return_value=({}, {}, regions)), \
+        trar = {"dates": []}
+        with mock.patch("barometre_builder.payloads.build_geographies", return_value=({}, departments, regions)), \
              mock.patch("barometre_builder.payloads.build_modules", return_value=(bundle, hero)), \
-             mock.patch("barometre_builder.payloads.build_dpae_module", return_value=module) as prepare:
+             mock.patch("barometre_builder.payloads.build_dpae_module", return_value=module) as prepare, \
+             mock.patch("barometre_builder.payloads.build_trar_module", return_value=trar) as prepare_trar:
             result = build_context()
         prepare.assert_called_once()
+        self.assertEqual(prepare_trar.call_args.args, (regions, {"75": "Paris"}))
+        prepare_trar.assert_called_once()
         self.assertEqual(result.deferred["modules"]["dpae"], compact_dpae_payload(module))
+        self.assertIs(result.deferred["modules"]["trar"], trar)
         self.assertEqual(result.brief["scopes"]["national"]["dpae"]["points"][-1]["value"], module["national"]["points"][-1]["value"])
 
     def test_build_writes_four_validated_outputs(self):

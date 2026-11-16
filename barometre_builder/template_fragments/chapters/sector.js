@@ -1,8 +1,6 @@
       const employmentPointWindows = new WeakMap();
       const employmentLatestRowsByScope = new WeakMap();
       const sectorDepartmentsByScope = new WeakMap();
-      let sectorDepartmentGeometry = null;
-      let sectorDepartmentHover = null;
       let sectorTreemapResizeObserver = null;
       let sectorTreemapResizeFrame = null;
       let sectorTreemapFontsBound = false;
@@ -602,6 +600,8 @@
           renderSectorTreemap();
         });
 
+        const focusedTile = rootSvg.node().contains(document.activeElement) ? document.activeElement.dataset.sectorKey : null;
+        dismissVizTooltip(rootSvg.node());
         gsap.killTweensOf(rootSvg.selectAll(".employment-treemap-tile").nodes());
         rootSvg.interrupt().selectAll("*").remove();
         rootSvg.on(".zoom", null).on(".treemap", null);
@@ -670,8 +670,7 @@
           .join("g")
           .attr("class", "employment-treemap-tile")
           .attr("transform", (leaf) => `translate(${leaf.x0},${leaf.y0})`)
-          .attr("tabindex", 0).attr("role", "img")
-          .attr("aria-label", (leaf) => `${sectorTreemapTrimLabel(leaf.data.label)}. ${metric.label} : ${sectorTreemapMetricFormatter(metricKey, leaf.data.value)}. Glissement annuel : ${sectorTreemapAnnualFormatter(leaf.data.yoy)}. ${quarterLabel(leaf.data.date)}.`);
+          .attr("data-sector-key", (leaf) => leaf.data.key);
 
         leaves.append("rect")
           .attr("width", (leaf) => Math.max(0, leaf.x1 - leaf.x0))
@@ -707,11 +706,9 @@
         function hideTreemapTooltip() {
           tooltipNode.classList.remove("is-visible");
           tooltipNode.setAttribute("aria-hidden", "true");
-          leaves.classed("is-hovered", false);
         }
 
         function showTreemapTooltip(event, row) {
-          if (interacting) return;
           const shellBounds = shell.getBoundingClientRect();
           if (tooltipKey !== row.key) {
             tooltipKey = row.key;
@@ -739,25 +736,12 @@
           tooltipNode.style.top = `${Math.max(top, Math.min(y, bottom - tooltipHeight))}px`;
         }
 
-        leaves
-          .on("mouseenter", function(event, leaf) {
-            if (interacting) return;
-            leaves.classed("is-hovered", false);
-            d3.select(this).classed("is-hovered", true);
-            showTreemapTooltip(event, leaf.data);
-          })
-          .on("mousemove", (event, leaf) => showTreemapTooltip(event, leaf.data))
-          .on("mouseleave", function() {
-            hideTreemapTooltip();
-          })
-          .on("focus", function(event, leaf) {
-            d3.select(this).classed("is-hovered", true);
-            const bounds = this.getBoundingClientRect();
-            showTreemapTooltip({ clientX: bounds.left + bounds.width / 2, clientY: bounds.top + bounds.height / 2 }, leaf.data);
-          })
-          .on("blur", hideTreemapTooltip)
-          .on("click", (event, leaf) => showTreemapTooltip(event, leaf.data));
-        rootSvg.on("mouseleave.treemap", hideTreemapTooltip);
+        bindVizTooltip(leaves, {
+          label: ({ data: row }) => `${sectorTreemapTrimLabel(row.label)}. ${metric.label} : ${sectorTreemapMetricFormatter(metricKey, row.value)}. Glissement annuel : ${sectorTreemapAnnualFormatter(row.yoy)}. ${quarterLabel(row.date)}.`,
+          show: (position, leaf) => showTreemapTooltip(position, leaf.data),
+          hide: hideTreemapTooltip,
+          enabled: () => !interacting,
+        });
 
         const zoom = d3.zoom()
           .extent([[0, 0], [width, height]])
@@ -768,7 +752,7 @@
           .on("start", () => {
             interacting = true;
             shell.classList.add("is-interacting");
-            hideTreemapTooltip();
+            dismissVizTooltip(rootSvg.node());
           })
           .on("zoom", (event) => {
             viewport.attr("transform", event.transform);
@@ -781,6 +765,7 @@
             shell.classList.remove("is-interacting");
           });
         rootSvg.call(zoom).call(zoom.transform, previousTransform);
+        if (focusedTile) leaves.filter((leaf) => leaf.data.key === focusedTile).node()?.focus({ preventScroll: true });
         if (!sectorTreemapResizeObserver) {
           sectorTreemapResizeObserver = new ResizeObserver(scheduleSectorTreemapResize);
           sectorTreemapResizeObserver.observe(shell);
@@ -799,11 +784,10 @@
           if (pan) {
             event.preventDefault();
             rootSvg.interrupt().call(zoom.translateBy, pan[0] / d3.zoomTransform(rootSvg.node()).k, pan[1] / d3.zoomTransform(rootSvg.node()).k);
-          } else if (["+", "=", "-", "−", "0", "Home", "Escape"].includes(event.key)) {
+          } else if (["+", "=", "-", "−", "0", "Home"].includes(event.key)) {
             event.preventDefault();
             rootSvg.interrupt();
-            if (event.key === "Escape") hideTreemapTooltip();
-            else if (event.key === "0" || event.key === "Home") rootSvg.call(zoom.transform, d3.zoomIdentity);
+            if (event.key === "0" || event.key === "Home") rootSvg.call(zoom.transform, d3.zoomIdentity);
             else rootSvg.call(zoom.scaleBy, event.key === "+" || event.key === "=" ? 1.5 : 1 / 1.5);
           }
         });
@@ -846,37 +830,6 @@
         return index;
       }
 
-      // Seuls les chemins calculés sont conservés ; la projection ne dépend pas des métriques.
-      function departmentMapGeometry(features) {
-        const projection = d3.geoMercator().fitExtent([[32, 32], [868, 588]], { type: "FeatureCollection", features });
-        const path = d3.geoPath(projection);
-        return { features, paths: new Map(features.map((feature) => [feature.properties.code, path(feature)])) };
-      }
-
-      function showSectorDepartmentTooltip(event, feature) {
-        sectorDepartmentHover = { element: event.currentTarget, feature, clientX: event.clientX, clientY: event.clientY };
-        updateSectorDepartmentTooltip(event, feature);
-      }
-
-      function updateSectorDepartmentTooltip(event, feature) {
-        const departments = DATA.modules.sector.departmental.regions[state.selectedRegion]?.departments;
-        const department = departments ? sectorDepartmentIndex(departments).get(feature.properties.code) : null;
-        const value = department ? departmentMetricValue(department, state.sectorDepartmentSectorKey, state.sectorDepartmentMetric) : null;
-        showTooltip(event, department ? department.name : feature.properties.nom, departmentMetricFormatter(state.sectorDepartmentMetric, value));
-      }
-
-      function hideSectorDepartmentTooltip() {
-        sectorDepartmentHover = null;
-        hideTooltip();
-      }
-
-      function refreshSectorDepartmentTooltip() {
-        const hovered = sectorDepartmentHover;
-        if (hovered?.element.isConnected && hovered.element.matches(":hover") && tooltip.classList.contains("is-visible")) {
-          updateSectorDepartmentTooltip(hovered, hovered.element.__data__);
-        }
-      }
-
       function renderSectorDepartmentModule() {
         const departmentModule = DATA.modules.sector.departmental;
         const mapMeta = document.getElementById("employmentDeptMapMeta");
@@ -904,7 +857,7 @@
         );
 
         if (state.phase === "national") {
-          sectorDepartmentHover = null;
+          dismissVizTooltip(mapShell.querySelector("svg"));
           mapMeta.textContent = "Choisir une région pour ouvrir la maille départementale";
           rankingMeta.textContent = "Lecture régionale requise";
           renderEmptyState(mapShell, "Choisir une région", "La carte départementale s'active après sélection d'un territoire dans la barre des régions.");
@@ -924,7 +877,7 @@
         rankingMeta.textContent = `${selectedMetric.label} / niveau actuel + glissement annuel`;
 
         if (!regionScope.length) {
-          sectorDepartmentHover = null;
+          dismissVizTooltip(mapShell.querySelector("svg"));
           renderEmptyState(mapShell, "Données indisponibles", "Le fichier départemental ne documente pas ce territoire pour le dernier trimestre retenu.");
           legend.replaceChildren();
           renderEmptyState(ranking, "Aucun classement", "Les départements de cette région ne sont pas présents dans la source départementale fournie.");
@@ -947,32 +900,22 @@
           : () => paletteToken("chart-employment-dept-low", "#F7C96B");
 
         if (!document.getElementById("employmentDeptMapSvg")) {
-          mapShell.replaceChildren(svgElement("svg", { id: "employmentDeptMapSvg", viewBox: "0 0 900 620" }));
+          mapShell.replaceChildren(svgElement("svg", { id: "employmentDeptMapSvg", viewBox: "0 0 900 620", role: "group", "aria-labelledby": "employmentDeptMapTitle employmentDeptMapMeta" }));
         }
         const svg = d3.select("#employmentDeptMapSvg");
         const departmentsByCode = sectorDepartmentIndex(regionScope);
-        const geometryChanged = !sectorDepartmentGeometry || sectorDepartmentGeometry.features !== features;
-        if (geometryChanged) {
-          sectorDepartmentGeometry = departmentMapGeometry(features);
-        }
-        let root = svg.select("g");
-        if (root.empty()) root = svg.append("g");
-        const paths = root
-          .selectAll("path")
-          .data(features, (feature) => feature.properties.code)
-          .join((enter) => enter.append("path")
-            .attr("d", (feature) => sectorDepartmentGeometry.paths.get(feature.properties.code))
-            .on("mouseenter", showSectorDepartmentTooltip)
-            .on("mousemove", showSectorDepartmentTooltip)
-            .on("mouseleave", hideSectorDepartmentTooltip));
-        if (geometryChanged) paths.attr("d", (feature) => sectorDepartmentGeometry.paths.get(feature.properties.code));
-        paths
+        const paths = renderDepartmentMapPaths(svg, features)
           .attr("class", (feature) => `path-department${departmentsByCode.has(feature.properties.code) ? "" : " is-unavailable"}`)
           .attr("fill", (feature) => {
             const department = departmentsByCode.get(feature.properties.code);
             const value = department ? departmentMetricValue(department, state.sectorDepartmentSectorKey, state.sectorDepartmentMetric) : null;
             return value != null ? scale(value) : paletteToken("map-empty", "rgba(255,255,255,0.05)");
           });
+        bindDepartmentTooltip(paths, (feature) => {
+          const department = departmentsByCode.get(feature.properties.code);
+          const value = department ? departmentMetricValue(department, state.sectorDepartmentSectorKey, state.sectorDepartmentMetric) : null;
+          return { label: department?.name || feature.properties.nom, value: departmentMetricFormatter(state.sectorDepartmentMetric, value) };
+        });
 
         const domain = d3.extent(values);
         rangeLegend(legend, departmentMetricFormatter(state.sectorDepartmentMetric, domain[0]), departmentMetricFormatter(state.sectorDepartmentMetric, domain[1]));
@@ -987,7 +930,6 @@
           .sort((left, right) => right.metricValue - left.metricValue)
           .map((department) => rankingArticle(department.name, departmentMetricFormatter(state.sectorDepartmentMetric, department.metricValue), scopeLabel(), `Glissement annuel : ${formatPercent(department.yoyValue)}`));
         ranking.replaceChildren(...articles);
-        if (!geometryChanged) refreshSectorDepartmentTooltip();
         syncDepartmentRankingHeight(mapGrid);
       }
 

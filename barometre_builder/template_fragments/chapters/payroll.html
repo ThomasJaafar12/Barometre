@@ -305,4 +305,92 @@
               </div>
             </article>
           </div>
+          <section id="module-trar" class="payroll-trar-block" aria-labelledby="trarTitle" hidden>
+            <article class="employment-block snap-card" aria-labelledby="trarTitle">
+              <div class="section-grid employment-grid delai-grid">
+                <div class="viz-panel employment-main trar-main">
+                  <div class="employment-intro delai-intro">
+                    <div class="viz-title employment-title">
+                      <h3 id="trarTitle">Taux de reste à recouvrer</h3>
+                      <span id="trarChartScope"></span>
+                    </div>
+                    <div class="employment-controls delai-controls">
+                      <label class="employment-select-wrap trar-select">
+                        <span class="mono employment-select-label" id="trarSectorLabel">Secteur d’activité</span>
+                        <select id="trarSectorSelect"></select>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="employment-chart-shell delai-chart-shell">
+                    <svg id="trarChartSvg" viewBox="0 0 980 560" role="img" aria-label="Évolution mensuelle du taux de reste à recouvrer"></svg>
+                    <div id="trarChartTooltip" class="employment-tooltip" aria-hidden="true">
+                      <div class="tooltip-overline"></div>
+                      <div class="tooltip-body"></div>
+                    </div>
+                  </div>
+                  <div class="legend-row employment-legend delai-legend trar-curve-legend" id="trarChartLegend"></div>
+                </div>
+                <div class="viz-panel employment-side employment-dashboard-panel trar-dashboard-panel">
+                  <div class="employment-dashboard-context" aria-label="Périmètre des derniers taux disponibles">
+                    <span id="trarDashboardScope"></span>
+                  </div>
+                  <dl class="delai-kpis-wrapper trar-latest" id="trarLatest"></dl>
+                  <section class="delai-top-sectors-block trar-sector-ranking" aria-labelledby="trarTopSectorsTitle">
+                    <div class="delai-top-sectors-head">
+                      <h4 class="delai-top-sectors-title" id="trarTopSectorsTitle">5 taux sectoriels les plus élevés</h4>
+                      <time class="mono delai-top-sectors-meta" id="trarTopSectorsMeta"></time>
+                    </div>
+                    <label class="employment-select-wrap trar-ranking-horizon">
+                      <span class="mono employment-select-label">Échéance du classement</span>
+                      <select id="trarRankingHorizon"></select>
+                    </label>
+                    <div class="delai-top-table-wrapper" id="trarTopSectorsTable"></div>
+                  </section>
+                </div>
+              </div>
+            </article>
+            <article class="employment-block snap-card employment-treemap-card" aria-labelledby="trarDepartmentTitle">
+              <div class="viz-panel employment-treemap-panel trar-department-panel">
+                <div class="trar-panel-head">
+                  <div class="viz-title employment-title">
+                    <h4 id="trarDepartmentTitle">Taux de reste à recouvrer par département</h4>
+                    <span id="trarDepartmentContext" role="status"></span>
+                  </div>
+                  <label class="employment-select-wrap trar-select">
+                    <span class="mono employment-select-label">Grand secteur (NACE 5)</span>
+                    <select id="trarDepartmentSectorSelect"></select>
+                  </label>
+                  <div class="metric-switch" id="trarHorizonSwitch" role="group" aria-label="Délai depuis l’échéance"></div>
+                </div>
+                <div class="employment-treemap-shell trar-treemap-shell" id="trarTreemapShell">
+                  <svg id="trarTreemapSvg" role="group" aria-label="Treemap des départements français regroupés par région"></svg>
+                </div>
+                <div class="employment-map-shell trar-map-shell" id="trarMapShell" hidden>
+                  <svg id="trarMapSvg" viewBox="0 0 900 620" role="group" aria-label="Carte des départements de la région"></svg>
+                </div>
+                <div class="legend-row trar-snapshot-legend" id="trarSnapshotLegend"></div>
+                <p class="trar-note" id="trarTreemapNote">Chaque département a le même poids dans le treemap. La couleur représente le taux.</p>
+                <div class="trar-detail-controls">
+                  <label class="employment-select-wrap trar-select">
+                    <span class="mono employment-select-label">Département à suivre</span>
+                    <select id="trarDepartmentSelect"></select>
+                  </label>
+                </div>
+                <div id="trarDepartmentDetail" hidden>
+                  <div class="viz-title employment-title">
+                    <h5 id="trarDepartmentChartTitle"></h5>
+                    <span id="trarDepartmentChartContext"></span>
+                  </div>
+                  <div class="employment-chart-shell">
+                    <svg id="trarDepartmentChartSvg" viewBox="0 0 980 560" role="img" aria-label="Évolution mensuelle du taux du département sélectionné"></svg>
+                    <div id="trarDepartmentChartTooltip" class="employment-tooltip" aria-hidden="true">
+                      <div class="tooltip-overline"></div>
+                      <div class="tooltip-body"></div>
+                    </div>
+                  </div>
+                  <div class="legend-row employment-legend trar-curve-legend" id="trarDepartmentChartLegend"></div>
+                </div>
+              </div>
+            </article>
+          </section>
         </section>

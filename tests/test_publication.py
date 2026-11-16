@@ -54,9 +54,10 @@ class PublicationEquivalenceTests(unittest.TestCase):
                 self.assertNotIn("fetch(", self.publication.files[app].decode("utf-8"))
 
     def test_combined_html_and_application_assets_keep_historical_budget(self):
-        name = "barometre_emploi.html"
-        total = sum(len(self.publication.files[path]) for path in (name, STYLES[name], APP_SCRIPTS[name]))
-        self.assertLessEqual(total, 4_000_000)
+        for name in ("barometre_emploi.html", "barometre_entreprises.html"):
+            with self.subTest(page=name):
+                total = sum(len(self.publication.files[path]) for path in (name, STYLES[name], APP_SCRIPTS[name]))
+                self.assertLessEqual(total, 4_000_000)
 
     def test_resource_tampering_is_rejected(self):
         for path in ("assets/js/brief.js", "assets/css/details.css", "assets/vendor/d3.min.js"):

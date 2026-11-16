@@ -19,7 +19,7 @@
           const table = document.createElement("table");
           const head = document.createElement("thead");
           const headings = document.createElement("tr");
-          [["#", "delai-th-rank"], ["Secteur", "delai-th-sector"], ["", "delai-th-mt"], ["Évol. 1 an", "delai-th-yoy"]].forEach(([label, className]) => {
+          [["#", "delai-th-rank"], ["Secteur", "delai-th-sector"], ["", "delai-th-mt"], ["", "delai-th-yoy"]].forEach(([label, className]) => {
             if (!showRank && className === "delai-th-rank") return;
             const cell = textElement("th", label, className);
             cell.scope = "col";
@@ -36,6 +36,7 @@
         view.table.className = `delai-top-table sector-ranking-table ${config.tableClass || ""}`;
         rankingText(view.table.querySelector(".delai-th-sector"), config.labelHeader || "Secteur");
         rankingText(view.table.querySelector(".delai-th-mt"), config.valueLabel);
+        rankingText(view.table.querySelector(".delai-th-yoy"), config.changeLabel || "Évol. 1 an");
         const currentKeys = new Set();
         config.rows.forEach((sector, index) => {
           const key = sector.key;
@@ -67,7 +68,7 @@
           else button.removeAttribute("aria-pressed");
           rankingText(value, config.formatValue(sector.value));
           change.className = `delai-td-yoy mono ${sector.yoy > 0 ? "trend-up" : sector.yoy < 0 ? "trend-down" : "trend-flat"}`;
-          rankingText(change, employmentSignedPercent(sector.yoy));
+          rankingText(change, (config.formatChange || employmentSignedPercent)(sector.yoy));
           if (view.body.children[index] !== row) view.body.insertBefore(row, view.body.children[index] || null);
         });
         view.rows.forEach((entry, key) => {

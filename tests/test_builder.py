@@ -13,6 +13,7 @@ from barometre_builder.config import (
     SECTOR_DISPLAY_START_DATE,
 )
 from barometre_builder.page import build_payloads, render_html
+from barometre_builder.topics import TOPICS, project_details_payloads
 from barometre_builder.utils import gzip_base64_json, load_csv
 
 
@@ -95,7 +96,7 @@ class GeneratedPayloadTests(unittest.TestCase):
         cls.boot, cls.deferred = build_payloads()
 
     def test_payload_contract(self) -> None:
-        self.assertEqual(set(self.deferred["modules"]), {"sector", "payroll", "auto", "rar", "delai", "pcol", "dpae"})
+        self.assertEqual(set(self.deferred["modules"]), {"sector", "payroll", "auto", "rar", "delai", "pcol", "dpae", "trar"})
         self.assertEqual(
             [region["code"] for region in self.boot["regions"]],
             EXPERIENCE_REGION_CODES,
@@ -179,7 +180,10 @@ class GeneratedPayloadTests(unittest.TestCase):
         ):
             self.assertNotIn(placeholder, html)
         self.assertLessEqual(len(html.encode("utf-8")), 4_000_000)
-        self.assertLessEqual(len(gzip_base64_json(self.deferred)), 3_000_000)
+        for topic in TOPICS:
+            with self.subTest(topic=topic):
+                _, published = project_details_payloads(self.boot, self.deferred, topic=topic)
+                self.assertLessEqual(len(gzip_base64_json(published)), 3_000_000)
 
     def test_chapter_headers_use_the_swiss_title_contract(self) -> None:
         html = render_html(self.boot, self.deferred)

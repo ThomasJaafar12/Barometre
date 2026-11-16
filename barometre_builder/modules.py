@@ -40,15 +40,51 @@ MODULE_CSV_PATHS = {
 
 
 def build_video_manifest(region_meta: dict[str, dict[str, Any]]) -> dict[str, Any]:
-    available_videos = {slugify(path.stem): relative_asset(path) for path in MP4_DIR.glob("*.mp4")}
-    placeholder = MP4_DIR / "placeholder.mp4"
-    if not placeholder.exists():
-        raise RuntimeError("Le fichier Assets/Mp4/placeholder.mp4 est obligatoire.")
-    placeholder_rel = relative_asset(placeholder)
-    by_region = {}
-    for code, region in region_meta.items():
-        by_region[code] = available_videos.get(region["slug"], placeholder_rel)
-    return {"placeholder": placeholder_rel, "byRegion": by_region}
+    revision = MP4_DIR / "clips_regions_revision"
+    optimized = MP4_DIR / "regions"
+    available_regions = {slugify(path.stem): path for path in sorted(MP4_DIR.glob("*.mp4")) if path.is_file()}
+    revised_regions = {}
+    historical = {}
+    national = None
+    for directory in (revision, optimized):
+        for path in sorted(directory.glob("*.mp4")):
+            if path.stem == "placeholder" or "." in path.stem or not path.is_file():
+                continue
+            if path.stem == "france_entiere":
+                national = path
+            elif path.stem.startswith("anciennes_"):
+                historical[slugify(path.stem.removeprefix("anciennes_"))] = path
+            elif path.stem.startswith("region_"):
+                revised_regions[slugify(path.stem.removeprefix("region_"))] = path
+            else:
+                available_regions[slugify(path.stem)] = path
+
+    if national is None:
+        national = next(
+            (path for path in (optimized / "placeholder.mp4", MP4_DIR / "placeholder.mp4") if path.is_file()),
+            None,
+        )
+        if national is None:
+            raise RuntimeError("Une vidéo France entière ou un fichier de secours placeholder.mp4 est nécessaire.")
+
+    available_regions.update(revised_regions)
+    regions = {code: available_regions.get(region["slug"], national) for code, region in region_meta.items()}
+    selected = dict.fromkeys((national, *regions.values(), *historical.values()))
+    paths = {path: relative_asset(path) for path in selected}
+    posters = {}
+    for path, url in paths.items():
+        poster = path.with_suffix(".webp")
+        if poster.is_file():
+            posters[url] = relative_asset(poster)
+    credits = revision / "SOURCES_ET_LICENCES.md"
+    return {
+        "placeholder": paths[national],
+        "national": paths[national],
+        "byRegion": {code: paths[path] for code, path in regions.items()},
+        "byHistorical": {slug: paths[path] for slug, path in sorted(historical.items())},
+        "posters": posters,
+        "credits": relative_asset(credits) if credits.is_file() else None,
+    }
 
 
 def build_sector_module(

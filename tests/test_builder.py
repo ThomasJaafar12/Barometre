@@ -5,7 +5,7 @@ from pathlib import Path
 import unittest
 from unittest import mock
 
-from barometre_builder import geometry
+from barometre_builder import geometry, modules, utils
 from barometre_builder.config import (
     EXPERIENCE_REGION_CODES,
     PAYROLL_WINDOW_MONTHS,
@@ -35,6 +35,54 @@ class CsvLoadingTests(unittest.TestCase):
                 {"Code": "24", "Label": "Centre", "Optional": "value"},
             ],
         )
+
+
+class VideoManifestTests(unittest.TestCase):
+    def test_optimized_territories_take_precedence_and_other_media_fall_back(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            media = root / "Assets/Mp4"
+            files = (
+                "placeholder.mp4", "ile-de-france.mp4", "regions/placeholder.mp4",
+                "clips_regions_revision/region_bretagne.mp4", "clips_regions_revision/france_entiere.mp4",
+                "clips_regions_revision/anciennes_poitou_charentes.mp4", "clips_regions_revision/SOURCES_ET_LICENCES.md",
+                "regions/region_bretagne.mp4", "regions/region_bretagne.webp", "regions/bretagne.mp4",
+                "regions/france_entiere.mp4",
+                "regions/anciennes_alsace.optimization.mp4",
+            )
+            for file in files:
+                path = media / file
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.touch()
+            regions = {"11": {"slug": "ile-de-france"}, "53": {"slug": "bretagne"}, "06": {"slug": "mayotte"}}
+            with mock.patch.object(modules, "MP4_DIR", media), mock.patch.object(utils, "ROOT", root):
+                videos = modules.build_video_manifest(regions)
+
+        self.assertEqual(videos, {
+            "placeholder": "Assets/Mp4/regions/france_entiere.mp4",
+            "national": "Assets/Mp4/regions/france_entiere.mp4",
+            "byRegion": {
+                "11": "Assets/Mp4/ile-de-france.mp4",
+                "53": "Assets/Mp4/regions/region_bretagne.mp4",
+                "06": "Assets/Mp4/regions/france_entiere.mp4",
+            },
+            "byHistorical": {"poitou-charentes": "Assets/Mp4/clips_regions_revision/anciennes_poitou_charentes.mp4"},
+            "posters": {"Assets/Mp4/regions/region_bretagne.mp4": "Assets/Mp4/regions/region_bretagne.webp"},
+            "credits": "Assets/Mp4/clips_regions_revision/SOURCES_ET_LICENCES.md",
+        })
+
+    def test_legacy_placeholder_serves_as_national_clip_when_needed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            media = root / "Assets/Mp4"
+            media.mkdir(parents=True)
+            (media / "placeholder.mp4").touch()
+            with mock.patch.object(modules, "MP4_DIR", media), mock.patch.object(utils, "ROOT", root):
+                videos = modules.build_video_manifest({"11": {"slug": "ile-de-france"}})
+
+        self.assertEqual(videos["national"], "Assets/Mp4/placeholder.mp4")
+        self.assertEqual(videos["placeholder"], videos["national"])
+        self.assertEqual(videos["byRegion"]["11"], videos["national"])
 
 
 class GeographyCacheTests(unittest.TestCase):

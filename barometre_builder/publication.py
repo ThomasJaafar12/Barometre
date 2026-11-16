@@ -95,7 +95,16 @@ def assemble_publication(context: BuildContext, source_root: Path = ROOT) -> Pub
     boot["assets"]["logo"] = publish_media(boot["assets"]["logo"])
     videos = boot["assets"]["videos"]
     videos["placeholder"] = publish_media(videos["placeholder"])
+    for key in ("national", "credits"):
+        if videos.get(key):
+            videos[key] = publish_media(videos[key])
     videos["byRegion"] = {code: publish_media(path) for code, path in videos["byRegion"].items()}
+    if "byHistorical" in videos:
+        videos["byHistorical"] = {slug: publish_media(path) for slug, path in videos["byHistorical"].items()}
+    if "posters" in videos:
+        videos["posters"] = {
+            publish_media(video): publish_media(poster) for video, poster in videos["posters"].items()
+        }
     for region in boot["regions"]:
         if region.get("video"):
             region["video"] = publish_media(region["video"])

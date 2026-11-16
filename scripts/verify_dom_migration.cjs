@@ -44,7 +44,7 @@ async function frames(page, count = 3) {
 }
 async function choose(page, name, wait = true) {
   await page.locator('#geoTrigger').click({ force: true });
-  await page.locator('#geoMenu button[role="option"]').filter({ hasText: name }).click({ force: true });
+  await page.locator('#geoMenu button[role="option"]:not([data-historical-territory])').filter({ hasText: name }).click({ force: true });
   if (wait) {
     await page.waitForFunction(() => document.body.dataset.topic === 'emploi' ? document.querySelector('#autoMetricSwitch button') : document.querySelector('#dpaeModeSwitch button'));
     await frames(page);

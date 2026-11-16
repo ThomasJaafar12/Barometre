@@ -61,7 +61,8 @@
 
       <section class="stage-shell" id="stageShell" data-phase="landing">
         <div class="stage-media">
-          <video class="stage-video" id="stageVideo" playsinline muted loop preload="auto"></video>
+          <img class="stage-poster" id="stagePoster" alt="" decoding="async" hidden>
+          <video class="stage-video" id="stageVideo" playsinline muted loop preload="none" aria-hidden="true"></video>
           <div class="video-glow"></div>
           <div class="map-stage" id="mapStage">
             <div class="landing-map-stack">
@@ -85,11 +86,15 @@
             <div class="hero-kpis" id="heroKpis"></div>
           </div>
         </div>
+        <button class="stage-video-toggle" id="stageVideoToggle" type="button" hidden>Lire la vidéo</button>
       </section>
 
       <main class="story" id="story">
 __CHAPTER_SECTIONS_HTML__
       </main>
+      <footer class="video-credits" id="videoCreditsFooter" hidden>
+        <a id="videoCredits" download>Sources et crédits des vidéos</a>
+      </footer>
 
     </div>
   </div>

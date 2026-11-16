@@ -70,7 +70,7 @@ async function checkReveal(browser, viewport, reducedMotion, topic) {
     });
 
     await page.locator('#geoTrigger').click();
-    await page.locator('#geoMenu button[role="option"]').filter({ hasText: 'Normandie' }).click();
+    await page.getByRole('option', { name: 'Normandie', exact: true }).click();
     assert.equal(await lastCard.evaluate(element => Number(getComputedStyle(element).opacity)), 1,
       'Switching regions must not restart completed reveals');
     await page.locator('#geoTrigger').click();

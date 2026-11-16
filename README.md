@@ -18,7 +18,7 @@ La commande produit uniquement dans `dist/` :
 - `barometre_emploi.html` : carte et lecture détaillée de la conjoncture de l’emploi ;
 - `barometre_entreprises.html` : carte et lecture détaillée de la santé des entreprises.
 
-Les dossiers `Assets/Data_source`, `Assets/Geo`, `Assets/logo` et `Assets/Mp4` doivent être présents. Le fichier `Assets/Mp4/placeholder.mp4` est obligatoire.
+Les dossiers `Assets/Data_source`, `Assets/Geo`, `Assets/logo` et `Assets/Mp4` doivent être présents. Le clip France entière sert aussi de secours. En son absence, le générateur accepte un ancien fichier `placeholder.mp4` dans `Assets/Mp4/regions` ou `Assets/Mp4`.
 
 Les métadonnées de publication se configurent avant le lancement :
 
@@ -62,6 +62,12 @@ Les données restent intégrées aux pages. La publication adapte uniquement les
 ## Parcours détaillés
 
 Les deux détails commencent par la carte des régions. La lecture des chapitres se fait par défilement normal, sans navigation latérale ni barre de chapitre sur mobile. Après sélection d’un territoire, seul le chapitre du thème choisi est affiché ; les changements de région et le retour à la carte conservent ce thème. Les boutons « Voir en bref » gardent leur destination. Le bouton détaillé des « Chiffres du mois » ouvre provisoirement la conjoncture de l’emploi ; sa future section reste à créer.
+
+Les vidéos de France entière, des régions actuelles et des anciennes régions sont accessibles dans le sélecteur des deux pages détaillées. Une ancienne région affiche son clip et les indicateurs de la région actuelle correspondante.
+
+Les fichiers de diffusion sont dans `Assets/Mp4/regions`. Les MP4 sont en H.264 1080p, sans son, avec les métadonnées placées au début du fichier pour la lecture progressive. Chaque clip dispose d’une affiche WebP qui s’affiche pendant le chargement ou en cas d’échec de lecture. La carte initiale ne charge aucun média régional. Une fois le territoire affiché, le clip joue uniquement si la présentation est visible et que la lecture est autorisée. La préférence de mouvement réduit et le mode économie de données privilégient l’image fixe. La commande de lecture ou de pause conserve le choix pendant les changements de territoire.
+
+Le lien « Sources et crédits des vidéos » donne accès au fichier de provenance inclus dans le paquet. Les originaux distincts de leur version de diffusion sont archivés localement dans `Assets/Mp4/archives`.
 
 La présentation emploi affiche les effectifs privés CVS, la masse salariale trimestrielle CVS et les auto-entrepreneurs économiquement actifs. La présentation santé affiche les procédures collectives, les emplois menacés ou détruits, les DPAE tous contrats et le nombre d’accords de délais de paiement des indépendants. Chaque chiffre reprend la dernière observation de sa série et sa période ; les filtres locaux des graphiques ne modifient pas cette synthèse. Zéro et absence restent distincts, et la disponibilité dépend du thème : Mayotte dispose notamment d’accords de délais de paiement.
 

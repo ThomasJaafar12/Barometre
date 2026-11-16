@@ -40,7 +40,7 @@ const fingerprints = { reference: fingerprint(reference), published: fingerprint
 
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png',
-  '.jpg': 'image/jpeg', '.mp4': 'video/mp4', '.json': 'application/json' };
+  '.jpg': 'image/jpeg', '.webp': 'image/webp', '.mp4': 'video/mp4', '.json': 'application/json' };
 const server = http.createServer((request, response) => {
   const requested = path.resolve(root, '.' + decodeURIComponent(new URL(request.url, 'http://localhost').pathname));
   if (!requested.startsWith(root + path.sep) || !fs.existsSync(requested) || !fs.statSync(requested).isFile()) {
@@ -87,7 +87,7 @@ async function settle(page) {
     await Promise.all([...document.images].map(image => image.decode().catch(() => {})));
     await Promise.all([...document.querySelectorAll('video')].map(async video => {
       video.pause();
-      if (video.readyState > 0) {
+      if (video.readyState > 0 && video.currentTime !== 0) {
         await new Promise(resolve => {
           video.addEventListener('seeked', resolve, { once: true });
           video.currentTime = 0;
@@ -179,8 +179,12 @@ async function forBoth(pair, action) {
 
 async function selectDetailScope(page, label) {
   await page.locator('#geoTrigger').click();
-  await page.locator('#geoMenu button[role="option"]').filter({ hasText: label }).click();
+  await detailScopeOption(page, label).click();
   await page.waitForFunction(name => document.getElementById('heroTitle').textContent === name, label);
+}
+
+function detailScopeOption(page, label) {
+  return page.locator('#geoMenu button[role="option"]:not([data-historical-territory])').filter({ hasText: label });
 }
 
 async function checkTrarRanking(page, touch) {
@@ -375,7 +379,7 @@ async function checkPair(browser, transport, viewport, filename, origin) {
     for (const region of ['France entière', 'Île-de-France', 'Nouvelle-Aquitaine', 'La Réunion', 'Mayotte']) {
       await forBoth(pair, async page => {
         await page.locator('#geoTrigger').click();
-        await page.locator('#geoMenu button[role="option"]').filter({ hasText: region }).click();
+        await detailScopeOption(page, region).click();
         await page.waitForFunction(() => document.querySelector('body').dataset.topic === 'emploi' ? document.querySelector('#autoMetricSwitch button') : document.querySelector('#dpaeModeSwitch button'));
       });
       for (const page of pair) {
@@ -398,16 +402,22 @@ async function checkPair(browser, transport, viewport, filename, origin) {
       await snapshot(pair, `${label}-${region}-chapter`);
       if (region === 'Île-de-France') {
         await forBoth(pair, async page => {
+          const poster = page.locator('#stagePoster');
           const video = page.locator('#stageVideo');
-          await page.waitForFunction(() => document.querySelector('#stageVideo').readyState >= 2);
-          assert.equal(await video.evaluate(element => element.error), null);
+          if (await poster.count()) {
+            await page.waitForFunction(() => document.getElementById('stagePoster').naturalWidth > 0);
+            assert.equal(await video.getAttribute('src'), null);
+          } else {
+            await page.waitForFunction(() => document.getElementById('stageVideo').readyState >= 2);
+            assert.equal(await video.evaluate(element => element.error), null);
+          }
         });
       }
     }
     // Exercise filters on a populated territory rather than the final empty scope.
     await forBoth(pair, async page => {
       await page.locator('#geoTrigger').click();
-      await page.locator('#geoMenu button[role="option"]').filter({ hasText: 'France entière' }).click();
+      await detailScopeOption(page, 'France entière').click();
       await page.waitForFunction(() => document.querySelector('body').dataset.topic === 'emploi' ? document.querySelector('#autoMetricSwitch button') : document.querySelector('#dpaeModeSwitch button'));
     });
     const heroesBeforeFilters = await Promise.all(pair.map(page => page.locator('#heroKpis').innerText()));
@@ -456,7 +466,7 @@ async function checkPair(browser, transport, viewport, filename, origin) {
       // populated region before cropping the two department maps.
       await forBoth(pair, async page => {
         await page.locator('#geoTrigger').click({ force: true });
-        await page.locator('#geoMenu button[role="option"]').filter({ hasText: 'Île-de-France' }).click({ force: true });
+        await detailScopeOption(page, 'Île-de-France').click({ force: true });
       });
       for (const id of (filename === 'barometre_emploi.html'
         ? ['employmentPayrollChartSvg', 'employmentTreemapSvg', 'employmentDeptMapSvg', 'autoMapSvg']

@@ -47,7 +47,7 @@ class FrenchCommandTests(unittest.TestCase):
 def example_context() -> BuildContext:
     boot = {
         "meta": {"publicationDateLabel": "24 juin 2026", "publicationIssueNumber": "189"},
-        "assets": {"logo": "Assets/logo/Urssaf_blanc.png", "videos": {"placeholder": "Assets/Mp4/placeholder.mp4", "byRegion": {}}},
+        "assets": {"logo": "Assets/logo/Urssaf_blanc.png", "videos": {"placeholder": "Assets/Mp4/regions/france_entiere.mp4", "byRegion": {}}},
         "regions": [{"code": "11", "name": "Île-de-France"}, {"code": "06", "name": "Mayotte"}],
     }
     points = [{"date": "2024-12-31", "masse_cvs": 100, "effectifs_cvs": 20}, {"date": "2025-12-31", "masse_cvs": 110, "effectifs_cvs": 22}]

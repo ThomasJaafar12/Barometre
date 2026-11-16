@@ -8,4 +8,6 @@ dist/
 exports/
 .cache/
 Assets/Mockups/urssaf_barometre_landing_page.html
+Assets/Mp4/clips_regions_revision/*.mp4
+Assets/Mp4/archives/
 tests/test_cache.py

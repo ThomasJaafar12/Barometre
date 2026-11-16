@@ -16,8 +16,15 @@ def render_details_payloads(boot: dict, deferred: dict, *, topic: str = "emploi"
         template = TEMPLATE_PATH.read_text(encoding="utf-8")
     except OSError as error:
         raise RuntimeError("Le template de la version détaillée ne peut pas être lu.") from error
-    for video in [boot["assets"]["videos"]["placeholder"], *boot["assets"]["videos"]["byRegion"].values()]:
-        local_asset_url(video)
+    videos = boot["assets"]["videos"]
+    posters = videos.get("posters", {})
+    for asset in (
+        videos["placeholder"], videos.get("national"), videos.get("credits"),
+        *videos["byRegion"].values(), *videos.get("byHistorical", {}).values(),
+        *posters, *posters.values(), *(region.get("video") for region in boot["regions"]),
+    ):
+        if asset is not None:
+            local_asset_url(asset)
     chapters = build_chapter_fragments(topic=topic)
     names = PAGE_DEPENDENCIES[config.page_name]
     values = {

@@ -183,7 +183,7 @@ async function measure(target, action, iteration, operation) {
     const started = performance.now();
     if (action.kind === 'region') {
       document.querySelector('#geoTrigger').click();
-      [...document.querySelectorAll('#geoMenu button[role="option"]')].find(button => button.textContent.includes(action.value)).click();
+      [...document.querySelectorAll('#geoMenu button[role="option"]:not([data-historical-territory])')].find(button => button.textContent.includes(action.value)).click();
       window.__releaseBenchmarkData();
       if (!document.querySelector('#autoMetricSwitch button')) {
         await new Promise(resolve => {

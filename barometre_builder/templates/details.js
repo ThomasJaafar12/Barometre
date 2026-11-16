@@ -7,7 +7,8 @@ __DETAILS_DOM_SCRIPT__
       let deferredGzip = window.BAROMETRE_DEFERRED_GZIP;
       window.BAROMETRE_BOOT = null;
       window.BAROMETRE_DEFERRED_GZIP = null;
-      const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const REDUCED_MOTION = motionPreference.matches;
       const regionOrder = DATA.meta.experienceRegionCodes;
       const domCodes = new Set(DATA.meta.domRegionCodes);
       const REGION_PRIMARY_CITIES = new Map([
@@ -48,9 +49,12 @@ __DETAILS_DOM_SCRIPT__
       const mapLayout = DATA.meta.mapLayout;
       const regionsByCode = new Map(DATA.regions.map((region) => [region.code, region]));
       const DISPLAY_POLYGON_AREA_RATIO = 0.01;
-      const nationalVideo = DATA.assets.videos.placeholder;
+      const videos = DATA.assets.videos;
+      const nationalVideo = videos.national || videos.placeholder;
       const stageShell = document.getElementById("stageShell");
+      const stagePoster = document.getElementById("stagePoster");
       const stageVideo = document.getElementById("stageVideo");
+      const stageVideoToggle = document.getElementById("stageVideoToggle");
       const mapStage = document.getElementById("mapStage");
       const story = document.getElementById("story");
       const publicationMeta = document.getElementById("publicationMeta");
@@ -67,6 +71,7 @@ __DETAILS_DOM_SCRIPT__
       const state = {
         phase: "landing",
         selectedRegion: "11",
+        selectedHistorical: null,
         mapHoverLocked: false,
         sectorEffectifsSeriesKey: null,
         sectorPayrollSeriesKey: null,
@@ -108,6 +113,10 @@ __DETAILS_DOM_SCRIPT__
       const compositeMapViews = new WeakMap();
       let deferredDataPromise = null;
       let regionTransitionToken = 0;
+      let videoSource = null;
+      let videoFailed = false;
+      let stageInView = false;
+      let videoWanted = !motionPreference.matches && !navigator.connection?.saveData;
 
       gsap.registerPlugin(ScrollTrigger);
 
@@ -297,34 +306,36 @@ __CHAPTER_REGISTRY_SCRIPT__
       }
 
       function selectedGeoKey() {
-        return state.phase === "region" ? state.selectedRegion : "national";
+        return state.phase === "region"
+          ? state.selectedHistorical?.key || state.selectedRegion
+          : "national";
       }
 
       const SELECTOR_CURRENT_REGION_CODES = ["84", "27", "53", "24", "94", "44", "32", "11", "28", "75", "76", "52", "93"];
       const SELECTOR_OVERSEAS_REGION_CODES = ["01", "03", "04", "02", "06"];
       const SELECTOR_HISTORICAL_TERRITORIES = [
-        "Alsace",
-        "Aquitaine",
-        "Auvergne",
-        "Basse-Normandie",
-        "Bourgogne",
-        "Centre",
-        "Champagne-Ardenne",
-        "Franche-Comté",
-        "Haute-Normandie",
-        "Languedoc-Roussillon",
-        "Limousin",
-        "Lorraine",
-        "Midi-Pyrénées",
-        "Nord-Pas-de-Calais",
-        "Picardie",
-        "Poitou-Charentes",
-        "Rhône-Alpes",
-        "Bretagne",
-        "Corse",
-        "Île-de-France",
-        "Pays de la Loire",
-        "Provence-Alpes-Côte d'Azur",
+        ["alsace", "Alsace", "44"],
+        ["aquitaine", "Aquitaine", "75"],
+        ["auvergne", "Auvergne", "84"],
+        ["basse-normandie", "Basse-Normandie", "28"],
+        ["bourgogne", "Bourgogne", "27"],
+        ["centre", "Centre", "24", true],
+        ["champagne-ardenne", "Champagne-Ardenne", "44"],
+        ["franche-comte", "Franche-Comté", "27"],
+        ["haute-normandie", "Haute-Normandie", "28"],
+        ["languedoc-roussillon", "Languedoc-Roussillon", "76"],
+        ["limousin", "Limousin", "75"],
+        ["lorraine", "Lorraine", "44"],
+        ["midi-pyrenees", "Midi-Pyrénées", "76"],
+        ["nord-pas-de-calais", "Nord-Pas-de-Calais", "32"],
+        ["picardie", "Picardie", "32"],
+        ["poitou-charentes", "Poitou-Charentes", "75"],
+        ["rhone-alpes", "Rhône-Alpes", "84"],
+        ["bretagne", "Bretagne", "53", true],
+        ["corse", "Corse", "94", true],
+        ["ile-de-france", "Île-de-France", "11", true],
+        ["pays-de-la-loire", "Pays de la Loire", "52", true],
+        ["provence-alpes-cote-d-azur", "Provence-Alpes-Côte d'Azur", "93", true],
       ];
 
       function setGeoMenuOpen(isOpen) {
@@ -334,7 +345,7 @@ __CHAPTER_REGISTRY_SCRIPT__
 
       function renderGeographySelector() {
         const activeKey = selectedGeoKey();
-        const activeLabel = activeKey === "national" ? "France entière" : currentRegion().name;
+        const activeLabel = activeKey === "national" ? "France entière" : state.selectedHistorical?.label || currentRegion().name;
         const hasReturnAction = state.phase !== "landing";
         geoCurrent.textContent = activeLabel;
         geoTrigger.setAttribute("aria-label", `Choisir la zone géographique, actuellement ${activeLabel}`);
@@ -428,37 +439,42 @@ __CHAPTER_REGISTRY_SCRIPT__
           return list;
         };
 
-        const appendRegionRow = (list, region) => {
+        const appendRegionRow = (list, region, historical = null) => {
           if (!region) return;
+          const key = historical?.key || region.code;
           const item = document.createElement("li");
           const button = document.createElement("button");
           button.type = "button";
-          button.className = `geo-selector-row${region.code === activeKey ? " is-active" : ""}`;
+          button.className = `geo-selector-row${key === activeKey ? " is-active" : ""}`;
           button.setAttribute("role", "option");
-          button.setAttribute("aria-selected", String(region.code === activeKey));
+          button.setAttribute("aria-selected", String(key === activeKey));
+          if (historical) button.dataset.historicalTerritory = key;
           const label = document.createElement("span");
-          label.textContent = region.name;
+          label.textContent = historical?.label || region.name;
           button.appendChild(label);
           button.appendChild(createActiveDot());
           button.addEventListener("click", () => {
             setGeoMenuOpen(false);
-            transitionToRegion(region.code, true);
+            transitionToRegion(region.code, true, historical);
           });
           item.appendChild(button);
           list.appendChild(item);
-          optionButtons.set(region.code, button);
+          optionButtons.set(key, button);
         };
 
-        const appendHistoricalRow = (list, labelText) => {
+        const appendHistoricalRow = (list, [key, label, regionCode, sharesCurrentClip]) => {
+          const src = videos.byHistorical?.[key] || (sharesCurrentClip ? videos.byRegion[regionCode] : null);
+          if (src && src !== videos.placeholder) {
+            appendRegionRow(list, regionsByCode.get(regionCode), { key, label, src });
+            return;
+          }
           const item = document.createElement("li");
           const row = document.createElement("div");
           row.className = "geo-selector-static-row";
           row.setAttribute("role", "option");
           row.setAttribute("aria-selected", "false");
           row.setAttribute("aria-disabled", "true");
-          const label = document.createElement("span");
-          label.textContent = labelText;
-          row.appendChild(label);
+          row.appendChild(textElement("span", label));
           row.appendChild(createActiveDot());
           item.appendChild(row);
           list.appendChild(item);
@@ -489,7 +505,8 @@ __CHAPTER_REGISTRY_SCRIPT__
         eyebrow.textContent = national ? "France entière" : currentRegion().group === "dom" ? "Outre-mer" : "Région";
         title.textContent = national ? "France entière" : currentRegion().name;
         const available = detail.indicators.filter((indicator) => heroData[indicator.key]?.value != null).length;
-        const introduction = `${detail.label} · ${national ? "France entière" : currentRegion().name}.`;
+        const clipLabel = state.selectedHistorical ? `Vidéo : ${state.selectedHistorical.label}. ` : "";
+        const introduction = `${clipLabel}${detail.label} · ${national ? "France entière" : currentRegion().name}.`;
         lead.textContent = available === 0
           ? `${introduction} Données indisponibles pour ce territoire.`
           : available < detail.indicators.length
@@ -941,18 +958,78 @@ __CHAPTER_REGISTRY_SCRIPT__
         });
       }
 
-      function updateVideo(regionCode) {
-        const src = regionCode === "national"
-          ? nationalVideo
-          : (regionsByCode.get(regionCode) || {}).video || nationalVideo;
-        if (stageVideo.dataset.src === src) {
-          stageVideo.play().catch(() => {});
+      function syncVideoPlayback() {
+        const available = state.phase !== "landing" && videoSource && !videoFailed;
+        stageVideoToggle.hidden = !available;
+        stageVideoToggle.textContent = videoWanted ? "Mettre la vidéo en pause" : "Lire la vidéo";
+        if (!available || !videoWanted || !stageInView || document.hidden) {
+          stageVideo.pause();
           return;
         }
-        stageVideo.dataset.src = src;
-        stageVideo.src = src;
-        stageVideo.load();
-        stageVideo.play().catch(() => {});
+        if (stageVideo.getAttribute("src") !== videoSource) stageVideo.src = videoSource;
+        if (!stageVideo.paused) return;
+        const source = videoSource;
+        stageVideo.play().catch((error) => {
+          if (error.name === "NotAllowedError" && videoSource === source && videoWanted) {
+            videoWanted = false;
+            syncVideoPlayback();
+          }
+        });
+      }
+
+      function updateVideo(source) {
+        if (source === videoSource && !videoFailed) return;
+        videoSource = source;
+        videoFailed = false;
+        stageVideo.classList.remove("has-frame");
+        if (stageVideo.hasAttribute("src")) {
+          stageVideo.removeAttribute("src");
+          stageVideo.load();
+        }
+        stagePoster.hidden = true;
+        const poster = videos.posters?.[source];
+        if (poster) {
+          stagePoster.src = poster;
+          stagePoster.hidden = !(stagePoster.complete && stagePoster.naturalWidth);
+        } else {
+          stagePoster.removeAttribute("src");
+        }
+        syncVideoPlayback();
+      }
+
+      function initStageMedia() {
+        stageVideo.muted = true;
+        stagePoster.addEventListener("load", () => {
+          stagePoster.hidden = !stagePoster.naturalWidth;
+        });
+        stageVideo.addEventListener("playing", () => {
+          if (stageVideo.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+            stageVideo.classList.add("has-frame");
+          }
+        });
+        stageVideo.addEventListener("error", () => {
+          if (!stageVideo.error || !stageVideo.hasAttribute("src")) return;
+          videoFailed = true;
+          stageVideo.classList.remove("has-frame");
+          syncVideoPlayback();
+        });
+        stageVideoToggle.addEventListener("click", () => {
+          videoWanted = !videoWanted;
+          syncVideoPlayback();
+        });
+        motionPreference.addEventListener("change", () => {
+          videoWanted = !motionPreference.matches && !navigator.connection?.saveData;
+          syncVideoPlayback();
+        });
+        document.addEventListener("visibilitychange", syncVideoPlayback);
+        new IntersectionObserver(([entry]) => {
+          stageInView = entry.isIntersecting;
+          syncVideoPlayback();
+        }).observe(stageVideo);
+        if (videos.credits) {
+          document.getElementById("videoCredits").href = videos.credits;
+          document.getElementById("videoCreditsFooter").hidden = false;
+        }
       }
 
       function clearFocusOverlay() {
@@ -1174,6 +1251,7 @@ __CHAPTER_REGISTRY_SCRIPT__
           if (storyRenderHandle != null) cancelAnimationFrame(storyRenderHandle);
           storyRenderHandle = null;
         }
+        syncVideoPlayback();
         stageShell.classList.toggle("is-map-hover-locked", state.mapHoverLocked);
         renderHeaderActions();
         if (phase === "landing") {
@@ -1216,7 +1294,8 @@ __CHAPTER_REGISTRY_SCRIPT__
         clearFocusOverlay();
         gsap.killTweensOf(chartRefs.regionMap.cameraState);
         gsap.killTweensOf(mapStage);
-        stageVideo.pause();
+        state.selectedHistorical = null;
+        updateVideo(null);
         resetCamera();
         setTheme(null);
         applyPhase("landing");
@@ -1234,9 +1313,10 @@ __CHAPTER_REGISTRY_SCRIPT__
         gsap.killTweensOf(chartRefs.regionMap.cameraState);
         gsap.killTweensOf(mapStage);
         resetCamera();
+        state.selectedHistorical = null;
+        updateVideo(nationalVideo);
         applyPhase("national");
         setTheme(state.selectedRegion);
-        updateVideo("national");
         mapStage.classList.remove("is-hidden", "is-muted");
         gsap.set(mapStage, { opacity: 1 });
         renderLandingMap();
@@ -1278,7 +1358,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         }, null, 1.45);
       }
 
-      async function transitionToRegion(regionCode, fromRail) {
+      async function transitionToRegion(regionCode, fromRail, historical = null) {
         const transitionToken = ++regionTransitionToken;
         setMapCameraMoving(false);
         state.mapHoverLocked = true;
@@ -1287,9 +1367,10 @@ __CHAPTER_REGISTRY_SCRIPT__
         dismissVizTooltip();
         hideTooltip();
         state.selectedRegion = regionCode;
+        state.selectedHistorical = historical;
         setTheme(regionCode);
         hideMapLabels();
-        updateVideo(regionCode);
+        updateVideo(historical?.src || videos.byRegion[regionCode] || currentRegion().video || videos.placeholder);
         clearFocusOverlay();
         gsap.killTweensOf(chartRefs.regionMap.cameraState);
         gsap.killTweensOf(mapStage);
@@ -1429,10 +1510,10 @@ __CHAPTER_MODULES_SCRIPT__
         hydrateChapterSections();
         window.addEventListener("resize", scheduleScrollTriggerRefresh, { passive: true });
         initGeographySelector();
+        initStageMedia();
         renderLandingMap();
         renderHero();
         renderHeaderActions();
-        stageVideo.muted = true;
         setMapStageMode("landing");
         scheduleDeferredPreload();
         if (document.readyState === "complete") {

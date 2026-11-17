@@ -31,7 +31,7 @@ def finite_value(value):
     return value if isinstance(value, (int, float)) and math.isfinite(value) else None
 
 
-def indicator_series(points: list[dict], frequency: str) -> dict:
+def indicator_series(points: list[dict], frequency: str, *, history_years: int | None = HISTORY_YEARS) -> dict:
     ordered = sorted(points, key=lambda point: point["date"])
     values = {point["date"]: finite_value(point["value"]) for point in ordered}
     enriched = []
@@ -41,27 +41,40 @@ def indicator_series(points: list[dict], frequency: str) -> dict:
         previous = values.get(f"{int(date[:4]) - 1}{date[4:]}")
         change = (value / previous - 1) * 100 if value is not None and previous not in (None, 0) else None
         enriched.append({"date": date, "value": value, "yearlyChange": change})
-    # Include both endpoints so a complete series spans ten full years.
-    return {"points": enriched[-(HISTORY_YEARS * (12 if frequency == "month" else 4) + 1):]}
+    # Conserver les deux bornes pour couvrir des années entières dans la synthèse.
+    if history_years is not None:
+        enriched = enriched[-(history_years * (12 if frequency == "month" else 4) + 1):]
+    return {"points": enriched}
 
 
-def build_bref_payload(boot: dict, deferred: dict, dpae: dict) -> dict:
+def build_bref_payload(boot: dict, deferred: dict, dpae: dict, *, history_years: int | None = HISTORY_YEARS) -> dict:
     modules = deferred["modules"]
-    regional = modules["sector"]["regional"]
+    regional = modules.get("sector", {}).get("regional", {})
+    pcol = modules.get("pcol", {})
+    covered_regions = set(dpae.get("coveredRegions", ()))
+    missing = [region["name"] for region in boot["regions"] if region["code"] not in covered_regions]
+
+    def scope(module: dict, code: str) -> dict:
+        return module.get("national", {}) if code == "national" else module.get("regions", {}).get(code, {})
 
     def build_scope(code: str) -> dict:
-        sector_scope = regional["national"] if code == "national" else regional["regions"].get(code, {})
+        sector_scope = scope(regional, code)
         sector_points = sector_scope.get("series", {}).get("population-entiere", {}).get("points", [])
-        pcol_scope = modules["pcol"]["national"] if code == "national" else modules["pcol"]["regions"].get(code, {})
+        pcol_scope = scope(pcol, code)
         pcol_points = pcol_scope.get("modes", {}).get("all", {}).get("population-entiere", [])
-        dpae_scope = dpae["national"] if code == "national" else dpae["regions"].get(code, {})
-        series = {
-            "payroll": indicator_series([{"date": p["date"], "value": p["masse_cvs"]} for p in sector_points], "quarter"),
-            "headcount": indicator_series([{"date": p["date"], "value": p["effectifs_cvs"]} for p in sector_points], "quarter"),
-            "dpae": indicator_series(dpae_scope.get("points", []), "month"),
-            "pcol": indicator_series([{"date": p[0], "value": p[1]} for p in pcol_points], "quarter"),
+        dpae_scope = scope(dpae, code)
+        points_by_indicator = {
+            "payroll": [{"date": p["date"], "value": p.get("masse_cvs")} for p in sector_points],
+            "headcount": [{"date": p["date"], "value": p.get("effectifs_cvs")} for p in sector_points],
+            "dpae": dpae_scope.get("points", []),
+            "pcol": [{"date": p[0], "value": p[1]} for p in pcol_points],
         }
-        missing = [region["name"] for region in boot["regions"] if region["code"] not in dpae["coveredRegions"]]
+        series = {
+            indicator["key"]: indicator_series(
+                points_by_indicator[indicator["key"]], indicator["frequency"], history_years=history_years,
+            )
+            for indicator in INDICATORS
+        }
         series["dpae"]["coverageNote"] = (
             "Périmètre national : régions disponibles dans le fichier, hors " + ", ".join(missing) + "."
             if code == "national" and missing else ""

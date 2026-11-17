@@ -6,7 +6,21 @@ from ..dependencies import PAGE_DEPENDENCIES, script_tags
 from ..security import ERROR_NOTICE, dependency_guard, local_asset_url, script_json, secure_html
 from ..utils import gzip_base64_json
 from ..topics import get_topic, project_details_payloads
-from .common import render_template
+from .common import read_template, render_template
+from .topic_header import render_topic_header
+
+
+TOPIC_DESCRIPTIONS = {
+    "chiffres": "Suivez les indicateurs macro-économiques clés",
+    "entreprises": "Analysez la vitalité du tissu économique et la situation des entreprises",
+    "emploi": "Suivez l’évolution de l’emploi privé",
+}
+
+
+def render_region_map(geography: dict | None = None) -> str:
+    return render_template(read_template("region-map.js"), {
+        "__REGION_GEOJSON__": script_json(geography),
+    })
 
 
 def render_details_payloads(boot: dict, deferred: dict, *, topic: str = "emploi") -> str:
@@ -19,7 +33,7 @@ def render_details_payloads(boot: dict, deferred: dict, *, topic: str = "emploi"
     videos = boot["assets"]["videos"]
     posters = videos.get("posters", {})
     for asset in (
-        videos["placeholder"], videos.get("national"), videos.get("credits"),
+        boot["assets"]["logo"], videos["placeholder"], videos.get("national"), videos.get("credits"),
         *videos["byRegion"].values(), *videos.get("byHistorical", {}).values(),
         *posters, *posters.values(), *(region.get("video") for region in boot["regions"]),
     ):
@@ -30,19 +44,27 @@ def render_details_payloads(boot: dict, deferred: dict, *, topic: str = "emploi"
     values = {
         "__DETAILS_TOPIC__": escape(topic),
         "__DETAILS_TOPIC_LABEL__": escape(config.label),
+        "__DETAILS_BRIEF_LINK__": "barometre_bref.html" if topic == "chiffres" else f"barometre_bref.html?rubrique={topic}",
+        "__DETAILS_HEADER__": render_topic_header(
+            topic, logo_path="Assets/logo/Urssaf.svg", meta=boot["meta"],
+            action_html=read_template("detail-geography-control.html"),
+            description=TOPIC_DESCRIPTIONS[topic], description_id="topicDescription",
+        ),
         "__BOOT_JSON__": script_json(boot),
         "__DEFERRED_B64__": gzip_base64_json(deferred),
-        "__LOGO_PATH__": escape(local_asset_url(boot["assets"]["logo"]), quote=True),
         "__CHAPTER_SECTIONS_HTML__": chapters["sections_html"],
-        "__CHAPTER_REGISTRY_SCRIPT__": chapters["registry_script"],
+        "__CHAPTER_RENDER_FUNCTION__": chapters["render_function"],
         "__CHAPTER_MODULES_SCRIPT__": chapters["chapter_scripts"],
-        "__EXTERNAL_SCRIPTS__": script_tags(names),
-        "__DEPENDENCY_GUARD__": dependency_guard(names),
+        "__MAP_DEPENDENCY__": script_tags(names[:1]),
+        "__REGION_MAP_SCRIPT__": render_region_map(),
+        "__EXTERNAL_SCRIPTS__": script_tags(names[1:]),
+        "__DEPENDENCY_GUARD__": dependency_guard(names, check_now=False),
         "__ERROR_NOTICE__": ERROR_NOTICE,
         "__DETAILS_DOM_SCRIPT__": (PAGE_TEMPLATES_DIR / "details-dom.js").read_text(encoding="utf-8"),
-        "__DETAILS_PUBLICATION__": escape(f'{boot["meta"]["publicationDateLabel"]} – N°{boot["meta"]["publicationIssueNumber"]}'),
     }
-    values["__DETAILS_CSS__"] = (PAGE_TEMPLATES_DIR / "details.css").read_text(encoding="utf-8")
+    values["__DETAILS_CSS__"] = read_template("details.css") + "\n" + read_template("topic-header.css")
+    if topic == "chiffres":
+        values["__DETAILS_CSS__"] += "\n" + read_template("indicator-charts.css")
     values["__DETAILS_SCRIPT__"] = render_template(
         (PAGE_TEMPLATES_DIR / "details.js").read_text(encoding="utf-8"), values
     )

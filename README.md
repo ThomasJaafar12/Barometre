@@ -1,6 +1,6 @@
 # Baromètre économique Urssaf
 
-Générateur Python de quatre pages HTML statiques à partir des données, des géographies et des médias locaux.
+Générateur Python de cinq pages HTML statiques à partir des données, des géographies et des médias locaux.
 
 ## Génération
 
@@ -14,7 +14,8 @@ python builder.py
 La commande produit uniquement dans `dist/` :
 
 - `index.html` : accueil et choix de lecture ;
-- `barometre_bref.html` : quatre indicateurs expliqués simplement, pour la France et ses régions ;
+- `barometre_bref.html` : lecture en bref, avec les quatre indicateurs par défaut et les vues Santé et Emploi choisies depuis l’accueil ;
+- `barometre_chiffres.html` : carte et historique complet des quatre indicateurs des chiffres du mois ;
 - `barometre_emploi.html` : carte et lecture détaillée de la conjoncture de l’emploi ;
 - `barometre_entreprises.html` : carte et lecture détaillée de la santé des entreprises.
 
@@ -28,24 +29,25 @@ $env:BAROMETRE_ISSUE_NUMBER = "189"
 python builder.py
 ```
 
-Les quatre pages partagent ces métadonnées. Les fichiers HTML générés sont des artefacts : effectuer les changements durables dans les templates ou le package Python.
+Les cinq pages partagent ces métadonnées. Les fichiers HTML générés sont des artefacts : effectuer les changements durables dans les templates ou le package Python.
 
 ## Organisation modulaire
 
 - `builder.py` appelle l’orchestrateur `barometre_builder/page.py`.
-- `payloads.py`, les modules métier et `dpae.py` préparent les données. `context.py` les construit une seule fois pour les quatre rendus.
+- `payloads.py`, les modules métier et `dpae.py` préparent les données. `context.py` les construit une seule fois pour les cinq rendus.
 - `brief.py` projette uniquement les séries nécessaires à la synthèse. `topics.py` sélectionne les modules et construit les indicateurs de présentation propres à chaque thème, sans modifier le contexte partagé.
 - `renderers/` contient un moteur sans écriture de fichier pour chaque page, ainsi que les fonctions communes de rendu.
 - `templates/` contient les styles et scripts sources, dont `details.css` et `details.js`. La version détaillée conserve son squelette `barometre.template.html` et les fragments de `template_fragments/chapters/`.
 - `security.py` centralise l’encodage, la validation et la politique CSP ; `dependencies.py` centralise les versions et empreintes des bibliothèques. Leurs fichiers et mentions de licence sont conservés dans `barometre_builder/vendor/`.
 - `publication.py` assemble les rendus pour la diffusion : styles et scripts applicatifs externes, bibliothèques locales, copie des médias et manifeste SHA-256. `publishing.py` prépare les fichiers sur disque puis les publie avec restauration en cas d’échec. Les autres sous-dossiers présents dans `dist/` sont préservés.
 
-`build_pages() -> dict[str, str]` construit et valide le site complet avant sa publication dans `dist/`. `build_page(topic="emploi")` génère aussi les quatre pages et retourne le HTML détaillé du thème demandé (`emploi` ou `entreprises`). `build_payloads()` et `render_html()` restent accessibles dans `barometre_builder.page` ; `render_html(boot, deferred, topic="emploi")` retourne le rendu inline du thème, sans écriture de fichier. Les fonctions de rendu détaillé acceptent le même paramètre nommé ; une valeur inconnue est refusée avant publication.
+`build_pages() -> dict[str, str]` construit et valide le site complet avant sa publication dans `dist/`. `build_page(topic="emploi")` génère aussi les cinq pages et retourne le HTML détaillé du thème demandé (`chiffres`, `entreprises` ou `emploi`). `build_payloads()` et `render_html()` restent accessibles dans `barometre_builder.page` ; `render_html(boot, deferred, topic="emploi")` retourne le rendu inline du thème, sans écriture de fichier. Les fonctions de rendu détaillé acceptent le même paramètre nommé ; une valeur inconnue est refusée avant publication.
 
 ```text
 dist/
 ├── index.html
 ├── barometre_bref.html
+├── barometre_chiffres.html
 ├── barometre_emploi.html
 ├── barometre_entreprises.html
 ├── site_manifest.json
@@ -57,21 +59,25 @@ dist/
     └── vendor/
 ```
 
-Les données restent intégrées aux pages. La publication adapte uniquement les URLs des médias dans une copie de présentation ; le contexte d’ingestion reste inchangé. Chaque détail embarque uniquement ses modules et conserve les géographies nécessaires aux animations. Aucun `fetch()`, JSON externe, module ES ou téléchargement de bibliothèque n’est ajouté à la lecture ou à la génération.
+Les trois pages détaillées partagent le script local `assets/js/region-map-<empreinte>.js`, qui dessine la carte avec D3. Chaque page conserve ses propres indicateurs et la disponibilité de ses territoires. Depuis l’accueil en HTTP(S), le navigateur peut précharger le script de la carte et D3 après le chargement de la page. Le gain dépend des en-têtes de cache du serveur. Depuis le paquet décompressé en `file://`, la carte est dessinée tôt à partir de ces mêmes fichiers locaux.
+
+Après le premier affichage de la carte, chaque page charge en arrière-plan son historique, ses indicateurs et les contours départementaux depuis `assets/js/<rubrique>-data.js`. Une sélection rapide peut démarrer ce même chargement. Les ressources sont incluses dans le manifeste et le rendu HTML inline conserve ses données intégrées.
 
 ## Parcours détaillés
 
-Les deux détails commencent par la carte des régions. La lecture des chapitres se fait par défilement normal, sans navigation latérale ni barre de chapitre sur mobile. Après sélection d’un territoire, seul le chapitre du thème choisi est affiché ; les changements de région et le retour à la carte conservent ce thème. Les boutons « Voir en bref » gardent leur destination. Le bouton détaillé des « Chiffres du mois » ouvre provisoirement la conjoncture de l’emploi ; sa future section reste à créer.
+Les deux niveaux de lecture utilisent le même bandeau de rubrique. En bref, le bouton « Retour à l’accueil » figure dans le bandeau et le choix du territoire se trouve au-dessus des indicateurs. Les vues Santé et Emploi s’ouvrent avec `?rubrique=entreprises` et `?rubrique=emploi`.
 
-Les vidéos de France entière, des régions actuelles et des anciennes régions sont accessibles dans le sélecteur des deux pages détaillées. Une ancienne région affiche son clip et les indicateurs de la région actuelle correspondante.
+Les trois détails commencent par la carte des régions. Après sélection d’un territoire, le chapitre de la rubrique s’affiche. Le sélecteur du bandeau permet de changer de région et de revenir à la carte. Les liens « Le baromètre en bref » ouvrent la synthèse de la rubrique courante. Le détail des Chiffres du mois reprend les quatre indicateurs de la synthèse sur tout l’historique disponible.
+
+Les vidéos de France entière, des régions actuelles et des anciennes régions sont accessibles dans le sélecteur des trois pages détaillées. Une ancienne région affiche son clip et les indicateurs de la région actuelle correspondante.
 
 Les fichiers de diffusion sont dans `Assets/Mp4/regions`. Les MP4 sont en H.264 1080p, sans son, avec les métadonnées placées au début du fichier pour la lecture progressive. Chaque clip dispose d’une affiche WebP qui s’affiche pendant le chargement ou en cas d’échec de lecture. La carte initiale ne charge aucun média régional. Une fois le territoire affiché, le clip joue uniquement si la présentation est visible et que la lecture est autorisée. La préférence de mouvement réduit et le mode économie de données privilégient l’image fixe. La commande de lecture ou de pause conserve le choix pendant les changements de territoire.
 
-Le lien « Sources et crédits des vidéos » donne accès au fichier de provenance inclus dans le paquet. Les originaux distincts de leur version de diffusion sont archivés localement dans `Assets/Mp4/archives`.
+Le fichier de provenance des vidéos est inclus dans le paquet. Les originaux distincts de leur version de diffusion sont archivés localement dans `Assets/Mp4/archives`.
 
 La présentation emploi affiche les effectifs privés CVS, la masse salariale trimestrielle CVS et les auto-entrepreneurs économiquement actifs. La présentation santé affiche les procédures collectives, les emplois menacés ou détruits, les DPAE tous contrats et le nombre d’accords de délais de paiement des indépendants. Chaque chiffre reprend la dernière observation de sa série et sa période ; les filtres locaux des graphiques ne modifient pas cette synthèse. Zéro et absence restent distincts, et la disponibilité dépend du thème : Mayotte dispose notamment d’accords de délais de paiement.
 
-La carte d’entrée reste neutre. La carte nationale utilise les effectifs pour l’emploi et les procédures pour la santé. L’ancienne page `barometre_details.html` et son script ne sont plus publiés : les anciens liens externes doivent être actualisés. Lors d’une régénération, le générateur vérifie l’ancien manifeste à trois pages avant de remplacer ses fichiers ; un échec restaure la publication précédente et les fichiers étrangers au manifeste sont préservés. Cette compatibilité est réservée à la migration, pas à l’export d’un ancien paquet.
+La carte d’entrée reste neutre. La carte nationale utilise les effectifs pour les Chiffres du mois et l’Emploi, et les procédures pour la Santé. Lors d’une régénération, le générateur vérifie les anciens manifestes à trois ou quatre pages avant de remplacer leurs fichiers. En cas d’échec, il restaure la publication précédente.
 
 ## Lecture des indicateurs
 
@@ -101,7 +107,7 @@ Ouvrir `dist/index.html` directement dans un navigateur récent, ou servir le si
 python -m http.server 8000 --directory dist --bind 127.0.0.1
 ```
 
-Les données, D3 7.9.0, GSAP et ScrollTrigger 3.12.5 sont disponibles localement. Seules les polices Google nécessitent Internet ; leur absence conserve les polices de repli existantes. Les scripts classiques sont chargés dans leur ordre historique, sans `async` ni `defer`. Les empreintes des bibliothèques locales sont contrôlées à chaque génération ; les scripts inline restent autorisés par leur empreinte CSP.
+Les données, D3 7.9.0, GSAP et ScrollTrigger 3.12.5 sont disponibles localement. Seules les polices Google nécessitent Internet ; leur absence conserve les polices de repli existantes. Les pages détaillées exécutent D3 et le script de carte avant les scripts d’animation et de commande, qui s’exécutent ensuite dans l’ordre avec `defer`. Les empreintes des bibliothèques locales sont contrôlées à chaque génération ; les scripts inline restent autorisés par leur empreinte CSP.
 
 Après une génération, exporter le site complet et créer une archive :
 
@@ -109,7 +115,7 @@ Après une génération, exporter le site complet et créer une archive :
 .\scripts\export_package.ps1 -Zip
 ```
 
-Cette commande fonctionne sous Windows PowerShell 5.1 ou PowerShell 7, depuis n’importe quel dossier de travail. Elle crée `exports/export_package/` et `exports/export_package.zip`. Les quatre pages, les styles, scripts, bibliothèques, images et vidéos sont copiés sans modification, après vérification du manifeste et des empreintes. L’archive contient `index.html` à sa racine ; la décompresser puis ouvrir cette page. Omettre `-Zip` pour créer uniquement le dossier.
+Cette commande fonctionne sous Windows PowerShell 5.1 ou PowerShell 7, depuis n’importe quel dossier de travail. Elle crée `exports/export_package/` et `exports/export_package.zip`. Les cinq pages et leurs ressources sont copiées après vérification du manifeste et des empreintes. Décompresser l’archive puis ouvrir `index.html`. Omettre `-Zip` pour créer uniquement le dossier.
 
 Utiliser `-OutputDirectory 'exports/publication avec espaces'` pour choisir un autre sous-dossier de `exports`, et `-PythonExecutable 'C:\chemin\vers\python.exe'` pour choisir l’interpréteur. Les sorties hors de `exports` et les liens symboliques sortants sont refusés. Un échec de validation ou de publication préserve la version précédente du paquet. La création du ZIP est préparée dans un fichier temporaire avant remplacement de l’archive précédente.
 
@@ -146,7 +152,7 @@ Servir les pages en HTTPS. Activer `Strict-Transport-Security` uniquement lorsqu
 python -m unittest discover -v
 ```
 
-Les tests couvrent les contrats historiques, les DPAE, les comparaisons annuelles, l’assemblage et l’isolation des quatre pages, les indicateurs par thème, la migration de l’ancienne publication, l’encodage, la CSP, les empreintes, les chemins de diffusion et la restauration après échec de remplacement. Ils réintègrent les styles et scripts externalisés et comparent tout le contenu aux rendus historiques : seuls les chemins des médias, les références aux bibliothèques et les métadonnées de sécurité peuvent changer. Les octets des médias et les données différées de chaque thème sont comparés à leur rendu inline courant. Le budget de 4 Mo pour le HTML détaillé et ses ressources applicatives, ainsi que les 3 Mo de données encodées compressées, est conservé. La compression gzip utilise la stratégie `Z_FILTERED`, sans perte de données.
+Les tests couvrent les contrats historiques, les DPAE, les comparaisons annuelles, l’assemblage et l’isolation des pages, les indicateurs par thème, la migration des anciennes publications, l’encodage, la CSP, les empreintes, les chemins de diffusion et la restauration après échec de remplacement. Ils réintègrent les styles et scripts externalisés et comparent le contenu au rendu inline courant. Le budget de 4 Mo pour le HTML détaillé et ses ressources applicatives, ainsi que les 3 Mo de données encodées compressées, est conservé. La compression gzip utilise la stratégie `Z_FILTERED`, sans perte de données.
 
 Vérifier également le site réellement écrit sur disque :
 
@@ -162,7 +168,14 @@ Le contrôle navigateur facultatif nécessite Node.js, Playwright et `pngjs` dis
 node scripts/verify_browser.cjs
 ```
 
-Il génère une référence inline depuis les mêmes données, vérifie les parcours thématiques, les indicateurs partiels, le clavier, les interactions et les captures sur ordinateur et mobile, en `file://` et HTTP, et refuse les erreurs JavaScript/CSP, les ressources manquantes ou les requêtes de données. Les captures et le rapport sont placés dans `.cache/browser-verification/`. Le profil de couleur sRGB et le rendu logiciel sont imposés aux deux versions pour des comparaisons reproductibles. La tolérance visuelle est limitée à 0,02 % des pixels avec une amplitude maximale de 32/255 pour l’anticrénelage ; la comparaison du contenu, du CSS, des scripts et des médias est exacte. `--reference-dir .cache/migration-reference` compare aux pages sauvegardées avant cette migration ; `--site-dir CHEMIN` contrôle un paquet déplacé ou extrait.
+Il génère une référence inline depuis les mêmes données, vérifie les parcours thématiques, les indicateurs partiels, le clavier, les interactions et les captures sur ordinateur et mobile, en `file://` et HTTP. Il vérifie le chargement du script local de données de chaque détail et refuse les requêtes `fetch`/XHR, les erreurs JavaScript/CSP et les ressources manquantes. Les captures et le rapport sont placés dans `.cache/browser-verification/`. Le profil de couleur sRGB et le rendu logiciel sont imposés aux deux versions pour des comparaisons reproductibles. La tolérance visuelle est limitée à 0,02 % des pixels avec une amplitude maximale de 32/255 pour l’anticrénelage ; la comparaison du contenu, du CSS, des scripts et des médias est exacte. `--reference-dir .cache/migration-reference` compare aux pages sauvegardées avant cette migration ; `--site-dir CHEMIN` contrôle un paquet déplacé ou extrait.
+
+Pour mesurer le temps entre le clic et l’affichage de la carte, sauvegarder une publication de référence et comparer les deux versions. Les options `--before-file` et `--after-file` permettent de mesurer les copies extraites des archives ZIP. Le scénario HTTP utilise gzip et un cache navigateur disponible, à 10 Mbit/s avec 40 ms de latence simulée.
+
+```powershell
+node scripts/verify_map_startup.cjs
+node scripts/benchmark_map.cjs --before .cache/reference/site --after dist --output .cache/map-benchmark.json
+```
 
 ### Vérification d’une migration DOM historique
 

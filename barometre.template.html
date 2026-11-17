@@ -11,53 +11,27 @@
   <style>__DETAILS_CSS__</style>
 </head>
 <body data-topic="__DETAILS_TOPIC__">
-  <nav class="page-links" aria-label="Lectures du baromètre"><a href="index.html">Accueil</a><a href="barometre_bref.html">Le baromètre en bref</a></nav>
+  <nav class="page-links" aria-label="Lectures du baromètre"><a href="index.html">Accueil</a><a href="__DETAILS_BRIEF_LINK__">Le baromètre en bref</a></nav>
   __ERROR_NOTICE__
+  <div class="tooltip" id="tooltip">
+    <div class="mono" id="tooltipLabel"></div>
+    <strong id="tooltipValue"></strong>
+  </div>
   <div class="page">
     <div class="shell">
-      <header class="topbar econ-header" id="econHeader">
-        <div class="econ-header-art-frame" aria-hidden="true">
-          <svg class="econ-header-art" viewBox="0 0 185 122" focusable="false">
-            <defs>
-              <clipPath id="econRightBlockClip" clipPathUnits="userSpaceOnUse">
-                <rect x="123" y="60" width="62" height="62"></rect>
-              </clipPath>
-            </defs>
-            <rect x="0" y="0" width="185" height="122" fill="var(--econ-bg)" shape-rendering="crispEdges"></rect>
-            <circle cx="31" cy="31" r="31" fill="var(--econ-teal-deep)"></circle>
-            <circle cx="77" cy="15" r="15" fill="#FFFFFF"></circle>
-            <circle cx="107" cy="15" r="15" fill="var(--econ-sky)"></circle>
-            <circle cx="77" cy="45" r="15" fill="var(--econ-sky)"></circle>
-            <circle cx="107" cy="45" r="15" fill="var(--econ-yellow)"></circle>
-            <circle cx="31" cy="91.5" r="31.5" fill="var(--econ-sky)"></circle>
-            <circle cx="0" cy="91.5" r="31.5" fill="var(--econ-yellow)"></circle>
-            <rect x="62" y="60" width="61" height="62" fill="var(--econ-coral)" shape-rendering="crispEdges"></rect>
-            <circle cx="92.5" cy="90.5" r="15" fill="#FFFFFF"></circle>
-            <rect x="123" y="60" width="62" height="62" fill="var(--econ-orange)" shape-rendering="crispEdges"></rect>
-            <g clip-path="url(#econRightBlockClip)">
-              <circle cx="184" cy="60" r="63" fill="var(--econ-blue)"></circle>
-              <circle cx="184" cy="60" r="32" fill="var(--econ-bg)"></circle>
-            </g>
-            <rect x="123" y="60" width="29" height="1" fill="var(--econ-blue)" shape-rendering="crispEdges"></rect>
-            <rect x="152" y="60" width="33" height="1" fill="var(--econ-bg)" shape-rendering="crispEdges"></rect>
-          </svg>
-        </div>
-        <div class="econ-header-copy">
-          <h1>Baromètre économique</h1>
-          <p id="publicationMeta">__DETAILS_PUBLICATION__</p>
-        </div>
-        <div class="geo-control" id="geoControl">
-          <button class="geo-trigger" id="geoTrigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Choisir la zone géographique, actuellement France entière">
-            <span class="geo-trigger-value" id="geoCurrent">France entière</span>
-            <span class="geo-trigger-chevron" aria-hidden="true">
-              <svg viewBox="0 0 24 24" focusable="false">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </span>
-          </button>
-          <div class="geo-menu" id="geoMenu" role="listbox" aria-label="Sélectionner une géographie"></div>
-        </div>
-      </header>
+      __DETAILS_HEADER__
+      <script>
+        {
+          const trigger = document.getElementById("geoTrigger");
+          let pending = false;
+          const trackToggle = () => { pending = !pending; };
+          trigger.addEventListener("click", trackToggle);
+          window.BAROMETRE_TAKE_GEOGRAPHY_TOGGLE = () => {
+            trigger.removeEventListener("click", trackToggle);
+            return pending;
+          };
+        }
+      </script>
 
       <section class="stage-shell" id="stageShell" data-phase="landing">
         <div class="stage-media">
@@ -79,7 +53,7 @@
           <div class="hero-panel glass" id="heroPanel">
             <div class="hero-title-block">
               <span class="mono" id="heroEyebrow">Sélection</span>
-              <h1 id="heroTitle">France entière</h1>
+              <h2 id="heroTitle">France entière</h2>
               <p id="heroLead">__DETAILS_TOPIC_LABEL__.</p>
               <div class="hero-chip-row" id="heroDates"></div>
             </div>
@@ -89,25 +63,22 @@
         <button class="stage-video-toggle" id="stageVideoToggle" type="button" hidden>Lire la vidéo</button>
       </section>
 
+      __MAP_DEPENDENCY__
+      <script>
+        window.BAROMETRE_BOOT = __BOOT_JSON__;
+      </script>
+      <script id="barometre-region-map">__REGION_MAP_SCRIPT__</script>
+
       <main class="story" id="story">
 __CHAPTER_SECTIONS_HTML__
       </main>
-      <footer class="video-credits" id="videoCreditsFooter" hidden>
-        <a id="videoCredits" download>Sources et crédits des vidéos</a>
-      </footer>
 
     </div>
-  </div>
-
-  <div class="tooltip" id="tooltip">
-    <div class="mono" id="tooltipLabel"></div>
-    <strong id="tooltipValue"></strong>
   </div>
 
   __EXTERNAL_SCRIPTS__
   __DEPENDENCY_GUARD__
   <script>
-    window.BAROMETRE_BOOT = __BOOT_JSON__;
     window.BAROMETRE_DEFERRED_GZIP = "__DEFERRED_B64__";
   </script>
   <script>__DETAILS_SCRIPT__</script>

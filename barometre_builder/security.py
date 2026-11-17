@@ -48,16 +48,16 @@ def local_asset_url(value: str) -> str:
     return decoded
 
 
-def dependency_guard(names: tuple[str, ...]) -> str:
+def dependency_guard(names: tuple[str, ...], *, check_now: bool = True) -> str:
     condition = " && ".join(f"window.{SCRIPTS[name].global_name}" for name in names) or "true"
+    check = "\n    barometreDependenciesAvailable();" if check_now else ""
     return f"""<script>
     function barometreDependenciesAvailable() {{
       if ({condition}) return true;
       const message = document.getElementById('dependencyError');
       if (message) message.hidden = false;
       return false;
-    }}
-    barometreDependenciesAvailable();
+    }}{check}
   </script>"""
 
 
@@ -94,13 +94,15 @@ def secure_html(html: str, page_name: str, *, local_scripts: bool = False) -> st
 
 
 class PageValidator(HTMLParser):
-    def __init__(self, page_name: str, local_scripts: tuple[str, ...] | None = None):
+    def __init__(self, page_name: str, local_scripts: tuple[str, ...] | None = None,
+                 deferred_scripts: tuple[str, ...] = ()):
         super().__init__()
         self.page_name = page_name
         self.scripts: list[str] = []
         self.has_policy = False
         self.is_french = False
         self.local_scripts = local_scripts
+        self.deferred_scripts = deferred_scripts
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         fields = dict(attrs)
@@ -119,7 +121,9 @@ class PageValidator(HTMLParser):
         if tag == "script" and fields.get("src"):
             if self.local_scripts is not None:
                 source = local_asset_url(fields["src"])
-                if source not in self.local_scripts or any(key in fields for key in ("async", "defer", "type", "crossorigin", "integrity")):
+                if (source not in self.local_scripts
+                        or any(key in fields for key in ("async", "type", "crossorigin", "integrity"))
+                        or ("defer" in fields) != (source in self.deferred_scripts)):
                     raise ValueError("Un script local n’a pas été vérifié ou son mode de chargement a changé.")
                 self.scripts.append(source)
                 return
@@ -130,8 +134,9 @@ class PageValidator(HTMLParser):
             self.scripts.append(fields["src"])
 
 
-def validate_html(html: str, page_name: str, *, local_scripts: tuple[str, ...] | None = None) -> None:
-    validator = PageValidator(page_name, local_scripts)
+def validate_html(html: str, page_name: str, *, local_scripts: tuple[str, ...] | None = None,
+                  deferred_scripts: tuple[str, ...] = ()) -> None:
+    validator = PageValidator(page_name, local_scripts, deferred_scripts)
     validator.feed(html)
     if not validator.is_french or not validator.has_policy:
         raise ValueError(f"La page {page_name} doit être en français et posséder une politique de sécurité.")

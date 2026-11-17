@@ -32,6 +32,7 @@ PAGE_DEPENDENCIES = {
     "barometre_bref.html": ("d3",),
     "barometre_emploi.html": ("d3", "gsap", "scroll_trigger"),
     "barometre_entreprises.html": ("d3", "gsap", "scroll_trigger"),
+    "barometre_chiffres.html": ("d3", "gsap", "scroll_trigger"),
 }
 
 

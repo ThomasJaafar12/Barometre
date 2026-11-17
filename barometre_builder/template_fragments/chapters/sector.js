@@ -934,17 +934,6 @@
       }
 
       function renderSectorModule() {
-        const regionalData = DATA.modules.sector.regional;
-        const departmentData = DATA.modules.sector.departmental;
-        const subtitle = document.getElementById("sectorSubtitle");
-
-        const regionalScope = state.phase === "national"
-          ? regionalData.national
-          : regionalData.regions[state.selectedRegion];
-        subtitle.textContent = state.phase === "national"
-          ? `France entière / conjoncture de l'emploi / séries régionales 2014-2025 + zoom départemental après sélection d'une région`
-          : `Suivez l’évolution de l’emploi privé en ${scopeLabel()}.`;
-
         renderRegionalEmploymentBlock({
           metricKey: "effectifs_cvs",
           seriesStateKey: "sectorEffectifsSeriesKey",

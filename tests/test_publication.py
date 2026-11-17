@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import hashlib
 import json
 from pathlib import Path
+import re
 import tempfile
 import unittest
 from unittest import mock
@@ -11,11 +13,13 @@ from zipfile import ZipFile
 from barometre_builder.config import ROOT, OUTPUT_PAGES
 from barometre_builder.context import build_context
 from barometre_builder.publication import (
-    APP_SCRIPTS, MANIFEST_NAME, STYLES, VENDOR_DIR, assemble_publication,
-    expected_scripts, publication_path, read_publication, validate_publication,
+    APP_SCRIPTS, DEFERRED_DATA_SCRIPTS, MANIFEST_NAME, STYLES, VENDOR_DIR, assemble_publication,
+    expected_scripts, late_detail_scripts, publication_path, read_publication, region_map_preloads,
+    strip_security_metadata, validate_publication,
 )
 from barometre_builder.publishing import publish_files
 from barometre_builder.renderers import RENDERERS
+from barometre_builder.security import secure_html
 from scripts import export_package
 from scripts.verify_publication import compare_publication
 from tests.test_pages import example_context
@@ -29,7 +33,7 @@ class PublicationEquivalenceTests(unittest.TestCase):
         cls.reference = {name: RENDERERS[name](cls.context) for name in OUTPUT_PAGES}
         cls.publication = assemble_publication(cls.context)
 
-    def test_all_content_styles_scripts_and_embedded_data_are_preserved(self):
+    def test_all_content_styles_scripts_and_data_are_preserved(self):
         compare_publication(self.reference, self.publication.files)
 
     def test_ingestion_context_is_not_mutated(self):
@@ -42,29 +46,82 @@ class PublicationEquivalenceTests(unittest.TestCase):
         self.assertFalse(any("Data_source" in name or "Geo/" in name for name in self.publication.files))
 
     def test_local_loading_keeps_script_order_and_security(self):
+        region_map = json.loads(self.publication.files[MANIFEST_NAME])["region_map"]
         for name, html in self.publication.pages.items():
             self.assertIn("connect-src &#x27;none&#x27;", html)
             self.assertNotIn('crossorigin="anonymous"', html)
             self.assertNotIn("cdn.jsdelivr.net", html)
             self.assertNotIn('<script type="module"', html)
-            for path in expected_scripts(name):
-                self.assertIn(f'<script src="{path}"></script>', html)
+            expected = expected_scripts(name, region_map=region_map)
+            scripts = re.findall(r'<script (?:defer )?src="([^"]+)"></script>', html)
+            self.assertEqual(scripts, list(expected))
+            if name in DEFERRED_DATA_SCRIPTS:
+                for path in late_detail_scripts(name):
+                    self.assertIn(f'<script defer src="{path}"></script>', html)
             app = APP_SCRIPTS[name]
             if app:
                 self.assertNotIn("fetch(", self.publication.files[app].decode("utf-8"))
 
     def test_combined_html_and_application_assets_keep_historical_budget(self):
-        for name in ("barometre_emploi.html", "barometre_entreprises.html"):
+        region_map = json.loads(self.publication.files[MANIFEST_NAME])["region_map"]
+        for name, data_path in DEFERRED_DATA_SCRIPTS.items():
             with self.subTest(page=name):
-                total = sum(len(self.publication.files[path]) for path in (name, STYLES[name], APP_SCRIPTS[name]))
+                total = sum(len(self.publication.files[path])
+                            for path in (name, STYLES[name], APP_SCRIPTS[name], data_path, region_map))
                 self.assertLessEqual(total, 4_000_000)
 
+    def test_regional_geometry_is_published_once_and_used_before_late_scripts(self):
+        files = self.publication.files
+        manifest = json.loads(files[MANIFEST_NAME])
+        self.assertEqual(manifest["version"], 3)
+        path = manifest["region_map"]
+        digest = hashlib.sha256(files[path]).hexdigest()[:16]
+        self.assertEqual(path, f"assets/js/region-map-{digest}.js")
+        self.assertEqual([name for name in files if name.startswith("assets/js/region-map-")], [path])
+        self.assertIn(path, self.publication.pages["index.html"])
+        for page in DEFERRED_DATA_SCRIPTS:
+            with self.subTest(page=page):
+                html = self.publication.pages[page]
+                boot = json.loads(re.search(r"window\.BAROMETRE_BOOT = (.*);$", html, re.M)[1])
+                self.assertNotIn("regions", boot.get("geography", {}))
+                self.assertIn(region_map_preloads(path), html.split("</head>")[0])
+                mount = html.index(f'<script src="{path}"></script>')
+                self.assertLess(html.index('id="landingMap"'), mount)
+                self.assertLess(mount, html.index('id="story"'))
+                self.assertLess(mount, html.index(f'<script defer src="{APP_SCRIPTS[page]}"></script>'))
+
+    def test_detail_pages_reference_their_data_without_loading_it_during_parsing(self):
+        for name, data_path in DEFERRED_DATA_SCRIPTS.items():
+            with self.subTest(page=name):
+                html = self.publication.pages[name]
+                self.assertIn(f'window.BAROMETRE_DEFERRED_SRC = "{data_path}";', html)
+                self.assertNotIn("window.BAROMETRE_DEFERRED_GZIP =", html)
+                self.assertNotIn(f'<script src="{data_path}"', html)
+
     def test_resource_tampering_is_rejected(self):
-        for path in ("assets/js/brief.js", "assets/css/details.css", "assets/vendor/d3.min.js"):
+        for path in ("assets/js/brief.js", "assets/css/details.css", "assets/vendor/d3.min.js",
+                     DEFERRED_DATA_SCRIPTS["barometre_emploi.html"]):
             files = dict(self.publication.files)
             files[path] += b"tampered"
             with self.subTest(path=path), self.assertRaises(ValueError):
                 validate_publication(files)
+
+    def test_validation_enforces_the_data_script_contract_after_hash_checks(self):
+        page = "barometre_emploi.html"
+        data_path = DEFERRED_DATA_SCRIPTS[page]
+        other_data_path = DEFERRED_DATA_SCRIPTS["barometre_entreprises.html"]
+        html = strip_security_metadata(self.publication.pages[page]).replace(data_path, other_data_path)
+        wrong_source = secure_html(html, page, local_scripts=True).encode("utf-8")
+        extra_code = self.publication.files[data_path] + b"window.unexpected = true;\n"
+        for path, content in ((page, wrong_source), (data_path, extra_code)):
+            with self.subTest(path=path):
+                files = dict(self.publication.files)
+                files[path] = content
+                manifest = json.loads(files[MANIFEST_NAME])
+                manifest["files"][path] = {"sha256": hashlib.sha256(content).hexdigest(), "size": len(content)}
+                files[MANIFEST_NAME] = json.dumps(manifest).encode("utf-8")
+                with self.assertRaises(ValueError):
+                    validate_publication(files)
 
     def test_manifest_cannot_authorize_an_additional_script(self):
         files = dict(self.publication.files)

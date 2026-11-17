@@ -223,7 +223,7 @@ class GeneratedPayloadTests(unittest.TestCase):
             "__DEFERRED_B64__",
             "__LOGO_PATH__",
             "__CHAPTER_SECTIONS_HTML__",
-            "__CHAPTER_REGISTRY_SCRIPT__",
+            "__CHAPTER_RENDER_FUNCTION__",
             "__CHAPTER_MODULES_SCRIPT__",
         ):
             self.assertNotIn(placeholder, html)
@@ -233,15 +233,14 @@ class GeneratedPayloadTests(unittest.TestCase):
                 _, published = project_details_payloads(self.boot, self.deferred, topic=topic)
                 self.assertLessEqual(len(gzip_base64_json(published)), 3_000_000)
 
-    def test_chapter_headers_use_the_swiss_title_contract(self) -> None:
+    def test_employment_charts_follow_the_video_without_a_chapter_header(self) -> None:
         html = render_html(self.boot, self.deferred)
 
-        self.assertEqual(html.count('class="section-kicker-label">Chapitre</span>'), 1)
-        self.assertEqual(html.count('class="section-title-content">'), 1)
-        self.assertIn('sectionTitlePrefix: "Conjoncture de l\\u2019"', html)
-        self.assertIn('sectionTitleHighlight: "emploi"', html)
-        self.assertIn('className = "chapter-title-highlight"', html)
-        self.assertIn('className = "chapter-title-period"', html)
+        self.assertEqual(html.count('<header class="topic-header"'), 1)
+        self.assertLess(html.index('<header class="topic-header"'), html.index('id="stageVideo"'))
+        self.assertLess(html.index('id="stageVideo"'), html.index('id="employmentEffectifsChartSvg"'))
+        self.assertNotIn("section-head", html)
+        self.assertNotIn("hydrateChapterSections", html)
 
     def test_independent_workers_map_is_last_in_employment_chapter(self) -> None:
         html = render_html(self.boot, self.deferred)

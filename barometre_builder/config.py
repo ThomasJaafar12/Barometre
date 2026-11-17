@@ -21,7 +21,10 @@ DPAE_CACHE_PATH = DERIVED_CACHE_DIR / "dpae.json"
 TRAR_CACHE_PATH = DERIVED_CACHE_DIR / "trar.json"
 OUTPUT_DIR = ROOT / "dist"
 OUTPUT_HTML_PATH = OUTPUT_DIR / "index.html"
-OUTPUT_PAGES = ("index.html", "barometre_bref.html", "barometre_emploi.html", "barometre_entreprises.html")
+OUTPUT_PAGES = (
+    "index.html", "barometre_bref.html", "barometre_emploi.html", "barometre_entreprises.html",
+    "barometre_chiffres.html",
+)
 TEMPLATE_PATH = ROOT / "barometre.template.html"
 PAGE_TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 DPAE_EXCEL_PATH = DATA_DIR / "donnees_dpae_regions.xlsx"

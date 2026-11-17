@@ -10,4 +10,5 @@ RENDERERS = {
     "barometre_bref.html": render_brief,
     "barometre_emploi.html": partial(render_details, topic="emploi"),
     "barometre_entreprises.html": partial(render_details, topic="entreprises"),
+    "barometre_chiffres.html": partial(render_details, topic="chiffres"),
 }

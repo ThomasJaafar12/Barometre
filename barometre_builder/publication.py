@@ -14,39 +14,70 @@ from .config import ROOT, OUTPUT_PAGES
 from .context import BuildContext
 from .dependencies import PAGE_DEPENDENCIES, SCRIPTS
 from .renderers import RENDERERS
-from .security import local_asset_url, secure_html, validate_html, validate_application_script
+from .renderers.details import render_region_map
+from .renderers.landing import render_landing_prefetch
+from .security import local_asset_url, script_json, secure_html, validate_html, validate_application_script
+from .topics import TOPICS
 
 
 MANIFEST_NAME = "site_manifest.json"
 VENDOR_DIR = Path(__file__).resolve().parent / "vendor"
 APP_SCRIPTS = {"index.html": None, "barometre_bref.html": "assets/js/brief.js",
                "barometre_emploi.html": "assets/js/emploi.js",
-               "barometre_entreprises.html": "assets/js/entreprises.js"}
+               "barometre_entreprises.html": "assets/js/entreprises.js",
+               "barometre_chiffres.html": "assets/js/chiffres.js"}
+DEFERRED_DATA_SCRIPTS = {topic.page_name: f"assets/js/{topic.key}-data.js" for topic in TOPICS.values()}
 STYLES = {"index.html": "assets/css/landing.css", "barometre_bref.html": "assets/css/shared.css",
           "barometre_emploi.html": "assets/css/details.css",
-          "barometre_entreprises.html": "assets/css/details.css"}
-# Ancien format accepté uniquement lors du remplacement d’une publication existante.
+          "barometre_entreprises.html": "assets/css/details.css",
+          "barometre_chiffres.html": "assets/css/chiffres.css"}
+# Anciens formats acceptés uniquement lors du remplacement d’une publication existante.
+PREVIOUS_PAGES = ("index.html", "barometre_bref.html", "barometre_emploi.html", "barometre_entreprises.html")
 LEGACY_PAGES = ("index.html", "barometre_bref.html", "barometre_details.html")
 LEGACY_APP_SCRIPTS = {"index.html": None, "barometre_bref.html": "assets/js/brief.js",
                       "barometre_details.html": "assets/js/details.js"}
 LEGACY_STYLES = {"index.html": "assets/css/landing.css", "barometre_bref.html": "assets/css/shared.css",
                  "barometre_details.html": "assets/css/details.css"}
-PAGE_LINK_PATTERN = re.compile(r'\bhref="([^"/#?]+\.html)(?:#[^"]*)?"')
+PAGE_LINK_PATTERN = re.compile(r'\bhref="([^"/#?]+\.html)(?:[?#][^"]*)?"')
 SECURITY_METADATA = re.compile(
     r'\n  <meta http-equiv="Content-Security-Policy" content="[^"]+">\n  <meta name="referrer" content="no-referrer">'
 )
 SCRIPT_PATTERN = re.compile(r"<script\b([^>]*)>(.*?)</script\s*>", re.S | re.I)
 RESOURCE_PATTERN = re.compile(r'\b(?:src|href)="((?:Assets|assets)/[^"<>]+)"')
+DEFERRED_DATA_ASSIGNMENT = r'window\.BAROMETRE_DEFERRED_GZIP = "[A-Za-z0-9+/]+={0,2}";'
+INLINE_DEFERRED_DATA = re.compile(rf"^    ({DEFERRED_DATA_ASSIGNMENT})$", re.M)
+DEFERRED_DATA_SOURCE = re.compile(r'window\.BAROMETRE_DEFERRED_SRC\s*=\s*"([^"\n]+)";')
+REGION_MAP_PREFETCH_SCRIPT = re.compile(r'<script id="region-map-prefetch">(.*?)</script>', re.S)
 
 
 def vendor_path(name: str) -> str:
     return "assets/vendor/" + SCRIPTS[name].url.rsplit("/", 1)[-1]
 
 
-def expected_scripts(page_name: str, *, legacy: bool = False) -> tuple[str, ...]:
+def region_map_asset_path(data: bytes) -> str:
+    return f"assets/js/region-map-{hashlib.sha256(data).hexdigest()[:16]}.js"
+
+
+def region_map_resources(region_map: str) -> tuple[str, str]:
+    return vendor_path("d3"), region_map
+
+
+def region_map_preloads(region_map: str) -> str:
+    return "".join(f'  <link rel="preload" as="script" href="{path}">\n'
+                   for path in region_map_resources(region_map))
+
+
+def expected_scripts(page_name: str, *, legacy: bool = False, region_map: str | None = None) -> tuple[str, ...]:
     app = (LEGACY_APP_SCRIPTS if legacy else APP_SCRIPTS)[page_name]
     dependencies = ("d3", "gsap", "scroll_trigger") if legacy and page_name == "barometre_details.html" else PAGE_DEPENDENCIES[page_name]
-    return tuple(vendor_path(name) for name in dependencies) + ((app,) if app else ())
+    scripts = tuple(vendor_path(name) for name in dependencies) + ((app,) if app else ())
+    if region_map is not None and page_name in DEFERRED_DATA_SCRIPTS:
+        return region_map_resources(region_map) + scripts[1:]
+    return scripts
+
+
+def late_detail_scripts(page_name: str) -> tuple[str, ...]:
+    return expected_scripts(page_name)[1:] if page_name in DEFERRED_DATA_SCRIPTS else ()
 
 
 def asset_destination(source: str) -> str:
@@ -108,6 +139,10 @@ def assemble_publication(context: BuildContext, source_root: Path = ROOT) -> Pub
     for region in boot["regions"]:
         if region.get("video"):
             region["video"] = publish_media(region["video"])
+    region_geography = boot.get("geography", {}).pop("regions", None)
+    map_data = render_region_map(region_geography).encode("utf-8")
+    region_map = region_map_asset_path(map_data)
+    files[region_map] = map_data
     presentation = BuildContext(boot, context.deferred, context.brief)
 
     for name, dependency in SCRIPTS.items():
@@ -122,6 +157,15 @@ def assemble_publication(context: BuildContext, source_root: Path = ROOT) -> Pub
     pages = {}
     for page_name in OUTPUT_PAGES:
         html = strip_security_metadata(RENDERERS[page_name](presentation))
+        late_scripts = late_detail_scripts(page_name)
+        if destination := DEFERRED_DATA_SCRIPTS.get(page_name):
+            assignments = INLINE_DEFERRED_DATA.findall(html)
+            if len(assignments) != 1:
+                raise ValueError("Les données différées sont absentes ou répétées.")
+            files[destination] = (assignments[0] + "\n").encode("ascii")
+            html = INLINE_DEFERRED_DATA.sub(f'    window.BAROMETRE_DEFERRED_SRC = "{destination}";', html)
+            icon = '  <link rel="icon" href="data:,">'
+            html = html.replace(icon, region_map_preloads(region_map) + icon, 1)
 
         def rewrite_resource(match):
             source = unescape(match[1])
@@ -146,8 +190,13 @@ def assemble_publication(context: BuildContext, source_root: Path = ROOT) -> Pub
                     dependency = SCRIPTS[name]
                     original = f'<script src="{dependency.url}" integrity="{dependency.integrity}" crossorigin="anonymous"></script>'
                     if match[0] == original:
-                        return f'<script src="{vendor_path(name)}"></script>'
+                        script = vendor_path(name)
+                        mode = " defer" if script in late_scripts else ""
+                        return f'<script{mode} src="{script}"></script>'
                 raise ValueError("Une bibliothèque inattendue a été trouvée.")
+            if match[1] == ' id="barometre-region-map"' and late_scripts:
+                validate_application_script(match[2])
+                return f'<script src="{region_map}"></script>'
             if match[2].lstrip().startswith("(() => {"):
                 app_count += 1
                 destination = APP_SCRIPTS[page_name]
@@ -155,20 +204,26 @@ def assemble_publication(context: BuildContext, source_root: Path = ROOT) -> Pub
                     raise ValueError("Un script applicatif inattendu a été trouvé.")
                 validate_application_script(match[2])
                 files[destination] = match[2].encode("utf-8")
-                return f'<script src="{destination}"></script>'
+                mode = " defer" if destination in late_scripts else ""
+                return f'<script{mode} src="{destination}"></script>'
             return match[0]
 
         html = SCRIPT_PATTERN.sub(extract_script, html)
         if app_count != int(APP_SCRIPTS[page_name] is not None):
             raise ValueError("Le script applicatif attendu est absent ou répété.")
+        if page_name == "index.html":
+            prefetch = render_landing_prefetch(region_map_resources(region_map))
+            validate_application_script(prefetch)
+            html = html.replace("</body>", prefetch + "</body>", 1)
         html = secure_html(html, page_name, local_scripts=True)
-        validate_html(html, page_name, local_scripts=expected_scripts(page_name))
+        validate_html(html, page_name, local_scripts=expected_scripts(page_name, region_map=region_map),
+                      deferred_scripts=late_scripts)
         pages[page_name] = html
         files[page_name] = html.encode("utf-8")
 
     manifest = {
-        "version": 1, "pages": list(OUTPUT_PAGES), "media": media,
-        "scripts": {name: list(expected_scripts(name)) for name in OUTPUT_PAGES},
+        "version": 3, "pages": list(OUTPUT_PAGES), "media": media, "region_map": region_map,
+        "scripts": {name: list(expected_scripts(name, region_map=region_map)) for name in OUTPUT_PAGES},
         "styles": STYLES,
         "files": {name: {"sha256": hashlib.sha256(data).hexdigest(), "size": len(data)}
                   for name, data in sorted(files.items())},
@@ -190,12 +245,22 @@ def publication_path(value: str, *, allow_legacy: bool = False) -> str:
 def validate_publication(files: dict[str, bytes], *, allow_legacy: bool = False) -> dict:
     """Valider le manifeste, les octets, les scripts et toutes les références locales."""
     manifest = json.loads(files[MANIFEST_NAME])
-    legacy = allow_legacy and manifest.get("pages") == list(LEGACY_PAGES)
-    pages = LEGACY_PAGES if legacy else OUTPUT_PAGES
-    styles = LEGACY_STYLES if legacy else STYLES
-    if manifest.get("version") != 1 or manifest.get("pages") != list(pages):
+    known_layouts = (OUTPUT_PAGES, PREVIOUS_PAGES, LEGACY_PAGES) if allow_legacy else (OUTPUT_PAGES,)
+    pages = next((layout for layout in known_layouts if manifest.get("pages") == list(layout)), None)
+    version = manifest.get("version")
+    if pages is None or version not in (1, 2, 3) or (version > 1 and pages != OUTPUT_PAGES):
         raise ValueError("Le manifeste de publication est invalide.")
-    if manifest.get("styles") != styles or manifest.get("scripts") != {name: list(expected_scripts(name, legacy=legacy)) for name in pages}:
+    region_map = None
+    if version == 3:
+        region_map = manifest.get("region_map")
+        if not isinstance(region_map, str) or region_map not in files or region_map_asset_path(files[region_map]) != region_map:
+            raise ValueError("La carte des régions est absente ou son empreinte ne correspond pas.")
+    elif "region_map" in manifest:
+        raise ValueError("Le manifeste contient une carte des régions inattendue.")
+    legacy = pages == LEGACY_PAGES
+    styles = LEGACY_STYLES if legacy else {name: STYLES[name] for name in pages}
+    scripts = {name: list(expected_scripts(name, legacy=legacy, region_map=region_map)) for name in pages}
+    if manifest.get("styles") != styles or manifest.get("scripts") != scripts:
         raise ValueError("Le manifeste contient des scripts ou styles inattendus.")
     records = manifest["files"]
     if len({name.casefold() for name in records}) != len(records):
@@ -214,11 +279,29 @@ def validate_publication(files: dict[str, bytes], *, allow_legacy: bool = False)
         if actual != dependency.integrity:
             raise ValueError(f"La bibliothèque {name} a été altérée.")
     for page_name in pages:
-        expected = expected_scripts(page_name, legacy=legacy)
+        expected = tuple(scripts[page_name])
         html = files[page_name].decode("utf-8")
-        validate_html(html, page_name, local_scripts=expected)
+        late_scripts = late_detail_scripts(page_name) if region_map else ()
+        validate_html(html, page_name, local_scripts=expected, deferred_scripts=late_scripts)
         if secure_html(strip_security_metadata(html), page_name, local_scripts=True) != html:
             raise ValueError("La politique de sécurité ne correspond pas aux scripts.")
+        data_script = DEFERRED_DATA_SCRIPTS.get(page_name) if version >= 2 else None
+        data_sources = DEFERRED_DATA_SOURCE.findall(html)
+        if data_script:
+            if (data_sources != [data_script] or INLINE_DEFERRED_DATA.search(html)
+                    or data_script not in records
+                    or not re.fullmatch((DEFERRED_DATA_ASSIGNMENT + "\n").encode("ascii"), files[data_script])):
+                raise ValueError(f"Les données différées de {page_name} sont absentes ou invalides.")
+        elif data_sources:
+            raise ValueError(f"Une source de données différées inattendue est présente dans {page_name}.")
+        if region_map and late_scripts:
+            if html.partition("</head>")[0].count(region_map_preloads(region_map)) != 1:
+                raise ValueError(f"Les ressources de la carte de {page_name} ne sont pas préchargées.")
+        if region_map and page_name == "index.html":
+            prefetch_scripts = REGION_MAP_PREFETCH_SCRIPT.findall(html)
+            paths = script_json(region_map_resources(region_map))
+            if len(prefetch_scripts) != 1 or f"const paths = {paths};" not in prefetch_scripts[0]:
+                raise ValueError("Le préchargement de la carte sur l’accueil référence des ressources inattendues.")
         for match in RESOURCE_PATTERN.finditer(html):
             if unescape(match[1]) not in records:
                 raise ValueError("Une référence locale est absente du manifeste.")

@@ -14,22 +14,17 @@
 <body>
   <a class="skip-link" href="#contenu">Aller au contenu</a>
   <div class="site-shell">
-    <header class="site-header">
-      <div class="header-art" aria-hidden="true">__HEADER_ART__</div>
-      <div><h1>Baromètre économique</h1><p class="publication">__PUBLICATION__</p></div>
-      <a class="header-home" href="index.html">Retour à l’accueil</a>
-    </header>
-    <main id="contenu">
-      <div class="intro"><p class="eyebrow">Le baromètre en bref</p><h2>Quatre repères pour comprendre l’économie.</h2><p>L’emploi, les rémunérations, les embauches déclarées et les difficultés des entreprises : les chiffres essentiels, avec les clés pour les lire.</p></div>
+    __TOPIC_HEADERS__
+    <main id="contenu" class="brief-main">
       <div class="brief-toolbar">
-        <div><p class="scope-label" id="scopeLabel" aria-live="polite">France entière</p><p class="scope-note">Dix ans d’historique selon les données disponibles. Chaque indicateur affiche sa propre période de référence.</p></div>
+        <div><h2 class="brief-reading">Le baromètre en bref</h2><p class="scope-label" id="scopeLabel" aria-live="polite">France entière</p><p class="scope-note">Dix ans d’historique selon les données disponibles. Chaque indicateur affiche sa propre période de référence.</p></div>
         <label class="region-control" for="regionSelect">Choisir un territoire<select id="regionSelect">__REGION_OPTIONS__</select></label>
       </div>
       __ERROR_NOTICE__
       <noscript><p>Activez JavaScript pour consulter les indicateurs et choisir votre région.</p></noscript>
       <div class="brief-section">
         <div class="indicator-grid" id="indicators"></div>
-        <div class="brief-end"><p>Pour comparer les secteurs et explorer les cartes, poursuivez votre lecture.</p><a class="button-link" href="barometre_emploi.html">Conjoncture de l’emploi <span aria-hidden="true">→</span></a><a class="button-link" href="barometre_entreprises.html">Santé des entreprises <span aria-hidden="true">→</span></a></div>
+        <div class="brief-end"><p>Poursuivez votre lecture avec les cartes et les séries détaillées.</p><a class="button-link" id="briefDetailLink" href="barometre_chiffres.html">Explorer en détail <span aria-hidden="true">→</span></a></div>
       </div>
     </main>
     <footer class="site-footer"><span class="logo-badge"><img src="__LOGO_PATH__" alt="Urssaf"></span><span>Les évolutions sont comparées à la même période un an auparavant.</span><a href="index.html">Accueil</a></footer>

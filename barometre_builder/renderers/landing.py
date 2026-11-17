@@ -1,7 +1,14 @@
 from html import escape
 
-from ..security import secure_html
+from ..security import script_json, secure_html
 from .common import read_template, render_template
+
+
+def render_landing_prefetch(paths: tuple[str, ...]) -> str:
+    script = render_template(read_template("landing-prefetch.js"), {
+        "__PREFETCH_PATHS__": script_json(paths),
+    })
+    return f'  <script id="region-map-prefetch">{script}</script>\n'
 
 
 def render_landing(context) -> str:

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import json
 from pathlib import Path
 
+from .config import PAGE_TEMPLATES_DIR
 from .topics import get_topic
 
 
@@ -12,50 +12,16 @@ FRAGMENTS_DIR = Path(__file__).resolve().parent / "template_fragments" / "chapte
 
 @dataclass(frozen=True)
 class ChapterFragment:
-    key: str
-    section_id: str
-    number: str
-    label: str
-    section_title_prefix: str
-    section_title_highlight: str
-    section_title_suffix: str
-    section_meta: str
-    tone: int
     html_fragment: str
     script_fragment: str
     render_function: str
 
 
-CHAPTERS: tuple[ChapterFragment, ...] = (
-    ChapterFragment(
-        key="sector",
-        section_id="module-sector",
-        number="01",
-        label="Conjoncture de l'emploi",
-        section_title_prefix="Conjoncture de l’",
-        section_title_highlight="emploi",
-        section_title_suffix="",
-        section_meta="",
-        tone=1,
-        html_fragment="sector.html",
-        script_fragment="sector.js",
-        render_function="renderSectorModule",
-    ),
-    ChapterFragment(
-        key="payroll",
-        section_id="module-payroll",
-        number="02",
-        label="Santé des entreprises",
-        section_title_prefix="Santé des ",
-        section_title_highlight="entreprises",
-        section_title_suffix="",
-        section_meta="Suivez les procédures collectives, les déclarations préalables à l’embauche, les accords de délais de paiement et le taux de reste à recouvrer.",
-        tone=2,
-        html_fragment="payroll.html",
-        script_fragment="payroll.js",
-        render_function="renderPayrollModule",
-    ),
-)
+CHAPTERS = {
+    "chiffres": ChapterFragment("chiffres.html", "chiffres.js", "renderChiffresModule"),
+    "sector": ChapterFragment("sector.html", "sector.js", "renderSectorModule"),
+    "payroll": ChapterFragment("payroll.html", "payroll.js", "renderPayrollModule"),
+}
 
 
 SHARED_SCRIPTS: tuple[str, ...] = ("shared.js", "ranking.js")
@@ -67,35 +33,22 @@ def _fragment(name: str) -> str:
 
 def build_chapter_fragments(*, topic: str = "emploi") -> dict[str, str]:
     config = get_topic(topic)
-    chapters = tuple(chapter for chapter in CHAPTERS if chapter.key == config.chapter_key)
-    registry_lines = ["      const chapterRegistry = ["]
-    for chapter in chapters:
-        payload = {
-            "key": chapter.key,
-            "id": chapter.section_id,
-            "number": chapter.number,
-            "label": chapter.label,
-            "sectionKicker": chapter.number,
-            "sectionTitlePrefix": chapter.section_title_prefix,
-            "sectionTitleHighlight": chapter.section_title_highlight,
-            "sectionTitleSuffix": chapter.section_title_suffix,
-            "sectionMeta": chapter.section_meta,
-            "tone": chapter.tone,
-        }
-        payload_fields = ", ".join(
-            f"{key}: {json.dumps(value, ensure_ascii=True)}" for key, value in payload.items()
-        )
-        registry_lines.append(
-            f"        {{ {payload_fields}, render: {chapter.render_function} }},"
-        )
-    registry_lines.append("      ];")
+    chapter = CHAPTERS[config.chapter_key]
+
+    if topic == "chiffres":
+        shared_scripts = [
+            _fragment("shared.js"),
+            (PAGE_TEMPLATES_DIR / "indicator-charts.js").read_text(encoding="utf-8").rstrip(),
+        ]
+    else:
+        shared_scripts = [_fragment(script) for script in SHARED_SCRIPTS]
 
     return {
-        "sections_html": "\n\n".join(_fragment(chapter.html_fragment) for chapter in chapters),
-        "registry_script": "\n".join(registry_lines),
+        "sections_html": _fragment(chapter.html_fragment),
+        "render_function": chapter.render_function,
         "chapter_scripts": "\n\n".join(
-            [_fragment(script) for script in SHARED_SCRIPTS]
-            + [_fragment(chapter.script_fragment) for chapter in chapters]
+            shared_scripts
+            + [_fragment(chapter.script_fragment)]
             + [_fragment(script) for script in config.scripts]
         ),
     }

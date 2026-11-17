@@ -168,7 +168,7 @@ class BriefProjectionTests(unittest.TestCase):
 
 
 class PageSecurityTests(unittest.TestCase):
-    def test_four_renderers_have_expected_dependencies_and_french_metadata(self):
+    def test_renderers_have_expected_dependencies_and_french_metadata(self):
         context = example_context()
         for name, renderer in RENDERERS.items():
             html = renderer(context)
@@ -253,7 +253,7 @@ class OrchestrationTests(unittest.TestCase):
         self.assertIs(result.deferred["modules"]["trar"], trar)
         self.assertEqual(result.brief["scopes"]["national"]["dpae"]["points"][-1]["value"], module["national"]["points"][-1]["value"])
 
-    def test_build_writes_four_validated_outputs(self):
+    def test_build_writes_validated_outputs(self):
         with tempfile.TemporaryDirectory() as directory, mock.patch.object(page, "OUTPUT_DIR", Path(directory)), mock.patch.object(page, "build_context", return_value=example_context()):
             result = page.build_pages()
             self.assertEqual(set(result), set(RENDERERS))

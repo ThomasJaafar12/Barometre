@@ -426,29 +426,46 @@
 
     .stage-video-toggle {
       position: absolute;
-      top: 18px;
-      right: 18px;
+      bottom: 7px;
+      left: 50%;
+      transform: translateX(-50%);
       z-index: 6;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      min-height: 40px;
-      padding: 8px 14px;
-      border-radius: 9px;
-      border: 1px solid rgba(255, 255, 255, 0.65);
-      background: rgba(255, 255, 255, 0.90);
-      backdrop-filter: blur(14px);
-      color: var(--navy);
-      font-size: 12.5px;
-      font-weight: 700;
-      box-shadow: 0 10px 26px rgba(15, 28, 53, 0.12);
-      transition: transform 0.25s var(--spring), background-color 0.25s ease, border-color 0.25s ease;
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: #ffffff;
     }
 
-    .stage-video-toggle:hover {
-      background: #ffffff;
-      border-color: var(--c-chiffres);
-      transform: translateY(-1px);
+    .stage-video-toggle::before {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      border-radius: inherit;
+      background: rgba(11, 29, 58, 0.56);
+      transition: background-color 0.2s ease;
+    }
+
+    .stage-video-toggle:hover::before,
+    .stage-video-toggle:focus-visible::before {
+      background: rgba(11, 29, 58, 0.82);
+    }
+
+    .stage-video-toggle:focus-visible {
+      outline-color: #ffffff;
+      outline-offset: -4px;
+      border-radius: 50%;
+    }
+
+    .stage-video-toggle .icon {
+      position: relative;
+      width: 16px;
+      height: 16px;
     }
 
     /* Media Layer */
@@ -473,7 +490,7 @@
       transition: opacity 0.55s ease;
     }
 
-    body.video-on .media-frame video.is-ready {
+    .media-frame video.is-ready {
       opacity: 1;
     }
 
@@ -870,7 +887,6 @@
     .v1-backdrop {
       position: absolute;
       inset: 0;
-      z-index: 0;
     }
 
     .v1-backdrop::after {
@@ -893,7 +909,7 @@
       align-items: flex-end;
       justify-content: space-between;
       gap: 24px;
-      padding: 30px;
+      padding: 30px 30px 60px;
       pointer-events: none;
     }
 
@@ -1116,7 +1132,7 @@
       border: 1px solid var(--line-soft);
       display: flex;
       align-items: flex-end;
-      padding: 22px;
+      padding: 22px 22px 60px;
     }
 
     .v4-title-card {
@@ -1522,7 +1538,7 @@
     }
   </style>
 </head>
-<body class="video-on" data-topic="entreprises">
+<body data-topic="entreprises">
   <nav class="page-links" aria-label="Lectures du baromètre">
     <a href="../../dist/index.html">Accueil</a>
     <a href="../../dist/barometre_bref.html">Le baromètre en bref</a>
@@ -1549,7 +1565,20 @@
       <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.65"/>
       <path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
     </symbol>
+    <symbol id="video-pause" viewBox="0 0 24 24">
+      <rect x="6" y="5" width="4" height="14" rx="1.2" fill="currentColor"/>
+      <rect x="14" y="5" width="4" height="14" rx="1.2" fill="currentColor"/>
+    </symbol>
+    <symbol id="video-play" viewBox="0 0 24 24">
+      <path d="M8 5.5 19 12 8 18.5Z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    </symbol>
   </svg>
+
+  <template id="video-toggle-template">
+    <button class="stage-video-toggle" type="button" aria-label="Mettre la vidéo en pause">
+      <svg class="icon" aria-hidden="true"><use href="#video-pause"/></svg>
+    </button>
+  </template>
 
   <div class="page">
 
@@ -1565,8 +1594,7 @@
         <header class="topbar brand-header" data-slot="header"></header>
 
         <section class="stage-shell">
-          <div class="media-frame v1-backdrop" data-slot="media"></div>
-          <button class="stage-video-toggle" type="button" data-action="toggle-video">Mettre la vidéo en pause</button>
+          <div class="media-frame v1-backdrop" data-slot="media" data-video-toggle></div>
 
           <div class="v1-copy">
             <div class="media-badge" style="position: static;">
@@ -1602,8 +1630,7 @@
         <header class="topbar brand-header" data-slot="header"></header>
 
         <section class="stage-shell">
-          <div class="media-frame v1-backdrop" data-slot="media"></div>
-          <button class="stage-video-toggle" type="button" data-action="toggle-video">Mettre la vidéo en pause</button>
+          <div class="media-frame v1-backdrop" data-slot="media" data-video-toggle></div>
 
           <div class="v1-copy">
             <aside class="v2-atlas-dock">
@@ -1712,8 +1739,7 @@
         <section class="stage-shell">
           <div class="v4-shell-inner">
             <div class="v4-top-cinema">
-              <div class="media-frame" style="position: absolute; inset: 0;" data-slot="media"></div>
-              <button class="stage-video-toggle" type="button" data-action="toggle-video">Mettre la vidéo en pause</button>
+              <div class="media-frame" style="position: absolute; inset: 0;" data-slot="media" data-video-toggle></div>
 
               <div class="v4-title-card">
                 <span class="eyebrow-pill" data-bind="eyebrow"></span>
@@ -2069,7 +2095,7 @@
         video.muted = true;
         video.loop = true;
         video.playsInline = true;
-        video.autoplay = true;
+        video.autoplay = state.video;
         video.preload = "metadata";
         video.addEventListener("canplay", () => video.classList.add("is-ready"), { once: true });
 
@@ -2276,12 +2302,28 @@
         window.scrollTo({ top: 0, behavior: "smooth" });
       });
 
-      document.querySelectorAll('[data-action="toggle-video"]').forEach((btn) => {
+      const videoToggleTemplate = document.getElementById("video-toggle-template");
+      document.querySelectorAll("[data-video-toggle]").forEach((frame) => {
+        frame.appendChild(videoToggleTemplate.content.cloneNode(true));
+      });
+
+      const videoButtons = document.querySelectorAll(".stage-video-toggle");
+      videoButtons.forEach((btn) => {
         btn.addEventListener("click", () => {
           state.video = !state.video;
-          document.body.classList.toggle("video-on", state.video);
-          document.querySelectorAll('[data-action="toggle-video"]').forEach((b) => {
-            b.textContent = state.video ? "Mettre la vidéo en pause" : "Lire la vidéo";
+          document.querySelectorAll("video.media-video").forEach((video) => {
+            video.autoplay = state.video;
+            if (state.video) {
+              video.play().catch(() => {});
+            } else {
+              video.pause();
+            }
+          });
+          const label = state.video ? "Mettre la vidéo en pause" : "Lire la vidéo";
+          const icon = state.video ? "#video-pause" : "#video-play";
+          videoButtons.forEach((button) => {
+            button.setAttribute("aria-label", label);
+            button.querySelector("use").setAttribute("href", icon);
           });
         });
       });

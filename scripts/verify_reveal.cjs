@@ -8,33 +8,60 @@ const siteOption = process.argv.indexOf('--site-dir');
 const siteDirectory = siteOption < 0 ? 'dist' : process.argv[siteOption + 1];
 if (!siteDirectory) throw new Error('--site-dir nécessite un dossier.');
 
+const topics = {
+  chiffres: { chapterId: 'module-chiffres', chartMarks: ['#chiffresIndicators .indicator'] },
+  emploi: { chapterId: 'module-sector', chartMarks: ['#employmentEffectifsChartSvg .tick',
+    '#employmentPayrollChartSvg .tick', '#employmentTreemapSvg .employment-treemap-tile', '#autoMetricSwitch button'] },
+  entreprises: { chapterId: 'module-payroll', chartMarks: ['#dpaeChartSvg .tick',
+    '#pcolChartSvg .tick', '#delaiChartSvg .tick', '#trarChartSvg .quarterly-series'] },
+};
 
 async function checkReveal(browser, viewport, reducedMotion, topic) {
   const url = pathToFileURL(path.resolve(__dirname, '..', siteDirectory, `barometre_${topic}.html`)).href;
-  const chapterId = topic === 'emploi' ? 'module-sector' : 'module-payroll';
+  const dataUrl = new URL(`assets/js/${topic}-data.js`, url).href;
+  const { chapterId, chartMarks } = topics[topic];
   const context = await browser.newContext({ viewport, reducedMotion });
-  // Hold decompression until the story is visible to reproduce slow data loading.
-  await context.addInitScript(() => {
-    const gate = new Promise(resolve => { window.releaseDeferredData = resolve; });
-    const text = Response.prototype.text;
-    Response.prototype.text = async function (...args) {
-      const result = await text.apply(this, args);
-      await gate;
-      return result;
-    };
+  await context.route('https://fonts.googleapis.com/**', route => route.fulfill({ contentType: 'text/css', body: '' }));
+  await context.addInitScript(source => {
+    let mapFrameScheduled = false;
+    let mapFrameStarted = false;
+    const observer = new MutationObserver(() => {
+      if ([...document.scripts].some(script => script.src === source)) {
+        window.mapFrameBeforeData = mapFrameStarted;
+        observer.disconnect();
+      } else if (!mapFrameScheduled && document.querySelector('#landingMap .path-region[d]')) {
+        mapFrameScheduled = true;
+        requestAnimationFrame(() => { mapFrameStarted = true; });
+      }
+    });
+    observer.observe(document, { childList: true, subtree: true });
+  }, dataUrl);
+  // Keep the chart asset pending while the map and the chapter are revealed.
+  let releaseData;
+  const pendingData = new Promise(resolve => { releaseData = resolve; });
+  await context.route(dataUrl, async route => {
+    await pendingData;
+    await route.continue();
   });
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   try {
-    await page.goto(url, { waitUntil: 'load' });
+    const [request] = await Promise.all([
+      page.waitForRequest(dataUrl, { timeout: 10000 }),
+      page.goto(url, { waitUntil: 'domcontentloaded' }),
+    ]);
+    assert.equal(request.resourceType(), 'script');
+    assert.equal(await page.evaluate(() => window.mapFrameBeforeData), true,
+      'The map must have a frame before starting the chart data request');
+    await page.locator('#landingMap .path-region[d]').first().waitFor({ state: 'visible' });
     assert.equal(await page.locator('#story').isVisible(), false);
     await page.locator('#geoTrigger').click();
     // The national selector reveals immediately, independently of chart data.
     await page.locator('#geoMenu button[role="option"]').filter({ hasText: 'France entière' }).click();
     await page.waitForFunction(() => document.querySelector('#story').classList.contains('is-visible'));
 
-    const lastCard = page.locator('.snap-card').last();
+    const lastCard = page.locator(topic === 'chiffres' ? `#${chapterId}` : '.snap-card:visible').last();
     const initialOpacity = await lastCard.evaluate(element => Number(getComputedStyle(element).opacity));
     assert.equal(initialOpacity, reducedMotion === 'reduce' ? 1 : 0,
       'Offscreen cards must have their final initial state before data loads');
@@ -45,8 +72,8 @@ async function checkReveal(browser, viewport, reducedMotion, topic) {
       window.scrollTo({ top: element.getBoundingClientRect().top + window.scrollY - innerHeight * 0.3, behavior: 'instant' });
     });
     await page.waitForFunction(id => Number(getComputedStyle(document.getElementById(id)).opacity) === 1, chapterId);
-    const minimumOpacity = await page.evaluate(async id => {
-      window.releaseDeferredData();
+    for (const selector of chartMarks) assert.equal(await page.locator(selector).count(), 0);
+    const minimumOpacity = page.evaluate(async id => {
       const chapter = document.getElementById(id);
       let minimum = 1;
       const deadline = performance.now() + 1200;
@@ -56,17 +83,22 @@ async function checkReveal(browser, viewport, reducedMotion, topic) {
       } while (performance.now() < deadline);
       return minimum;
     }, chapterId);
-    assert.equal(minimumOpacity, 1, 'Loading chart data must not hide an already revealed chapter');
-    await page.waitForFunction(() => document.body.dataset.topic === 'emploi' ? document.querySelector('#autoMetricSwitch button') : document.querySelector('#dpaeModeSwitch button'));
+    releaseData();
+    assert.equal(await minimumOpacity, 1, 'Loading chart data must not hide an already revealed chapter');
+    for (const selector of chartMarks) await page.locator(selector).first().waitFor({ state: 'attached' });
 
     // Scrolling reveals the remaining cards, including their parent chapter.
     await lastCard.evaluate(element => {
       window.scrollTo({ top: element.getBoundingClientRect().top + window.scrollY - innerHeight * 0.3, behavior: 'instant' });
     });
-    await page.waitForFunction(() => {
-      const card = [...document.querySelectorAll('.snap-card')].at(-1);
-      return Number(getComputedStyle(card).opacity) === 1 &&
-        Number(getComputedStyle(card.closest('.section-card')).opacity) === 1;
+    await lastCard.evaluate(async card => {
+      const deadline = performance.now() + 3000;
+      while (performance.now() < deadline) {
+        if (Number(getComputedStyle(card).opacity) === 1 &&
+            Number(getComputedStyle(card.closest('.section-card')).opacity) === 1) return;
+        await new Promise(requestAnimationFrame);
+      }
+      throw new Error('The chapter and its last card did not reveal');
     });
 
     await page.locator('#geoTrigger').click();
@@ -88,6 +120,7 @@ async function checkReveal(browser, viewport, reducedMotion, topic) {
     }))));
     throw error;
   } finally {
+    releaseData();
     await context.close();
   }
 }
@@ -96,7 +129,7 @@ async function checkReveal(browser, viewport, reducedMotion, topic) {
   const browser = await chromium.launch({ channel: process.platform === 'win32' ? 'msedge' : undefined, headless: true });
   try {
     for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
-      for (const topic of ['emploi', 'entreprises']) {
+      for (const topic of Object.keys(topics)) {
         for (const motion of ['no-preference', 'reduce']) await checkReveal(browser, viewport, motion, topic);
       }
     }

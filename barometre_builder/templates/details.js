@@ -1,16 +1,27 @@
 
     (() => {
       if (!barometreDependenciesAvailable()) return;
+      const map = window.BAROMETRE_REGION_MAP;
+      if (!map) {
+        const message = document.getElementById("dependencyError");
+        if (message) message.hidden = false;
+        return;
+      }
+      window.BAROMETRE_REGION_MAP = null;
+      const {
+        buildScale, chartRefs, colorWithAlpha, hideTooltip, paletteToken, primaryHeroValue,
+        regionsByCode, renderLandingMap, setTheme, showTooltip, state, themeForRegion,
+      } = map;
 __DETAILS_DOM_SCRIPT__
       const DATA = window.BAROMETRE_BOOT;
       const detail = DATA.detail;
+      const deferredSrc = window.BAROMETRE_DEFERRED_SRC;
       let deferredGzip = window.BAROMETRE_DEFERRED_GZIP;
       window.BAROMETRE_BOOT = null;
       window.BAROMETRE_DEFERRED_GZIP = null;
       const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
       const REDUCED_MOTION = motionPreference.matches;
-      const regionOrder = DATA.meta.experienceRegionCodes;
-      const domCodes = new Set(DATA.meta.domRegionCodes);
+      const mapLayout = DATA.meta.mapLayout;
       const REGION_PRIMARY_CITIES = new Map([
         ["11", { name: "Paris", coordinates: [2.3522, 48.8566] }],
         ["24", { name: "Tours", coordinates: [0.6848, 47.3941] }],
@@ -31,24 +42,6 @@ __DETAILS_DOM_SCRIPT__
         ["04", { name: "Saint-Denis", coordinates: [55.4481, -20.8789] }],
         ["06", { name: "Mamoudzou", coordinates: [45.2279, -12.7806] }],
       ]);
-      const MAINLAND_REGION_LABELS = new Map([
-        ["11", { lines: ["Île-de-", "France"], dy: 8 }],
-        ["24", { lines: ["Centre-Val", "de Loire"], dy: 4 }],
-        ["27", { lines: ["Bourgogne-", "Franche-Comté"], dx: 28, dy: 8, fontSize: 11 }],
-        ["28", { lines: ["Normandie"], dy: -6 }],
-        ["32", { lines: ["Hauts-de-", "France"], dx: 24, dy: -18 }],
-        ["44", { lines: ["Grand Est"], dx: 34, dy: -6 }],
-        ["52", { lines: ["Pays de", "la Loire"], dx: -28, dy: -4 }],
-        ["53", { lines: ["Bretagne"], dx: -18, dy: -8 }],
-        ["75", { lines: ["Nouvelle-", "Aquitaine"], dx: -26, dy: 18 }],
-        ["76", { lines: ["Occitanie"], dx: 18, dy: 28 }],
-        ["84", { lines: ["Auvergne-", "Rhône-Alpes"], dx: 22, dy: 10, fontSize: 11.2 }],
-        ["93", { lines: ["Provence-Alpes-", "Côte d'Azur"], dx: 42, dy: 20, fontSize: 10.8 }],
-        ["94", { lines: ["Corse"], dy: -42 }],
-      ]);
-      const mapLayout = DATA.meta.mapLayout;
-      const regionsByCode = new Map(DATA.regions.map((region) => [region.code, region]));
-      const DISPLAY_POLYGON_AREA_RATIO = 0.01;
       const videos = DATA.assets.videos;
       const nationalVideo = videos.national || videos.placeholder;
       const stageShell = document.getElementById("stageShell");
@@ -57,22 +50,13 @@ __DETAILS_DOM_SCRIPT__
       const stageVideoToggle = document.getElementById("stageVideoToggle");
       const mapStage = document.getElementById("mapStage");
       const story = document.getElementById("story");
-      const publicationMeta = document.getElementById("publicationMeta");
+      const topicDescription = document.getElementById("topicDescription");
+      const topicDescriptionText = topicDescription.textContent;
       const geoControl = document.getElementById("geoControl");
       const geoTrigger = document.getElementById("geoTrigger");
       const geoCurrent = document.getElementById("geoCurrent");
       const geoMenu = document.getElementById("geoMenu");
-      const tooltip = document.getElementById("tooltip");
-      const tooltipLabel = document.getElementById("tooltipLabel");
-      const tooltipValue = document.getElementById("tooltipValue");
-      const landingMapShadowSvg = d3.select("#landingMapShadow");
-      const landingMapSvg = d3.select("#landingMap");
-
-      const state = {
-        phase: "landing",
-        selectedRegion: "11",
-        selectedHistorical: null,
-        mapHoverLocked: false,
+      Object.assign(state, {
         sectorEffectifsSeriesKey: null,
         sectorPayrollSeriesKey: null,
         sectorTreemapMetric: "effectifs_cvs",
@@ -85,23 +69,8 @@ __DETAILS_DOM_SCRIPT__
         dpaeMode: "all",
         delaiSectorKey: "ensemble",
         delaiMode: "all",
-      };
+      });
 
-      const publicationLabel = DATA.meta.publicationDateLabel && DATA.meta.publicationIssueNumber
-        ? `${DATA.meta.publicationDateLabel} – N°${DATA.meta.publicationIssueNumber}`
-        : "24 juin 2026 – N°189";
-
-      const chartRefs = {
-        regionMap: {
-          cameraGroup: null,
-          cameraState: { scale: 1, x: 0, y: 0 },
-          focusGroup: null,
-          pathByCode: new Map(),
-          labelByCode: new Map(),
-          rootGroup: null,
-          pathGeneratorByCode: new Map(),
-        },
-      };
       let storyRenderHandle = null;
       let storyRenderGeneration = 0;
       let scrollRefreshFrame = null;
@@ -110,7 +79,6 @@ __DETAILS_DOM_SCRIPT__
       let scrollRefreshFontsBound = false;
       let geographySelectorView = null;
       const rankingHeightFrames = new WeakMap();
-      const compositeMapViews = new WeakMap();
       let deferredDataPromise = null;
       let regionTransitionToken = 0;
       let videoSource = null;
@@ -119,51 +87,6 @@ __DETAILS_DOM_SCRIPT__
       let videoWanted = !motionPreference.matches && !navigator.connection?.saveData;
 
       gsap.registerPlugin(ScrollTrigger);
-
-      const COLOR_SYSTEM = DATA.colorSystem || { tokens: {}, regionThemes: [] };
-      const colorTokens = COLOR_SYSTEM.tokens || {};
-
-      function applyColorTokens() {
-        Object.entries(colorTokens).forEach(([tokenName, value]) => {
-          document.documentElement.style.setProperty(`--${tokenName}`, value);
-        });
-      }
-
-      function paletteToken(name, fallback = null) {
-        return colorTokens[name] != null ? colorTokens[name] : fallback;
-      }
-
-      function themeForRegion(regionCode) {
-        const index = regionOrder.indexOf(regionCode);
-        const theme = index >= 0 && Array.isArray(COLOR_SYSTEM.regionThemes)
-          ? COLOR_SYSTEM.regionThemes[index]
-          : null;
-        const fallback = Array.isArray(COLOR_SYSTEM.regionThemes) && COLOR_SYSTEM.regionThemes.length
-          ? COLOR_SYSTEM.regionThemes[0]
-          : null;
-        return theme || (regionCode && regionsByCode.get(regionCode) ? regionsByCode.get(regionCode).theme : null) || fallback || {
-          accent: "#0EA5A8",
-          accentDeep: "#0B1D3A",
-          secondary: "#2B82F6",
-          glow: "#0EA5A8",
-        };
-      }
-
-__CHAPTER_REGISTRY_SCRIPT__
-
-      function colorWithAlpha(color, alphaHex = "55") {
-        return typeof color === "string" && /^#[0-9a-f]{6}$/i.test(color)
-          ? `${color}${alphaHex}`
-          : color;
-      }
-
-      function setTheme(regionCode) {
-        const theme = themeForRegion(regionCode);
-        document.documentElement.style.setProperty("--accent", theme.accent);
-        document.documentElement.style.setProperty("--accent-deep", theme.accentDeep);
-        document.documentElement.style.setProperty("--accent-secondary", theme.secondary);
-        document.documentElement.style.setProperty("--accent-glow", colorWithAlpha(theme.glow));
-      }
 
       const decimalNumberFormatters = new Map([0, 1, 2].map((digits) => [digits, new Intl.NumberFormat("fr-FR", {
         minimumFractionDigits: digits, maximumFractionDigits: digits,
@@ -233,40 +156,6 @@ __CHAPTER_REGISTRY_SCRIPT__
         return state.phase === "national" ? "France entière" : currentRegion().name;
       }
 
-      function mapRegionValues() {
-        if (state.phase === "national") {
-          return new Map(DATA.regions.map((region) => [region.code, primaryHeroValue(region)]));
-        }
-        return new Map();
-      }
-
-      function hydrateChapterSections() {
-        chapterRegistry.forEach((chapter) => {
-          const section = document.getElementById(chapter.id);
-          if (!section) return;
-          section.dataset.tone = chapter.tone;
-          const kicker = section.querySelector("[data-chapter-kicker]");
-          const title = section.querySelector("[data-chapter-title]");
-          const meta = section.querySelector("[data-chapter-meta]");
-          if (kicker) kicker.textContent = chapter.sectionKicker;
-          if (title) {
-            const highlight = document.createElement("span");
-            const period = document.createElement("span");
-            highlight.className = "chapter-title-highlight";
-            highlight.textContent = chapter.sectionTitleHighlight;
-            period.className = "chapter-title-period";
-            period.textContent = ".";
-            title.replaceChildren(
-              document.createTextNode(chapter.sectionTitlePrefix),
-              highlight,
-              document.createTextNode(chapter.sectionTitleSuffix),
-              period,
-            );
-          }
-          if (meta) meta.textContent = chapter.sectionMeta;
-        });
-      }
-
       function refreshScrollTriggers() {
         ScrollTrigger.refresh();
       }
@@ -302,6 +191,9 @@ __CHAPTER_REGISTRY_SCRIPT__
       }
 
       function renderHeaderActions() {
+        topicDescription.textContent = state.phase === "region"
+          ? `${topicDescriptionText} · ${currentRegion().name}`
+          : topicDescriptionText;
         renderGeographySelector();
       }
 
@@ -533,423 +425,8 @@ __CHAPTER_REGISTRY_SCRIPT__
         });
       }
 
-      function primaryHeroValue(region) {
-        return region.hero[detail.primaryIndicator]?.value ?? null;
-      }
-
-      function buildScale(domain, colors) {
-        return d3.scaleLinear().domain(domain).range(colors).clamp(true);
-      }
-
-      function ringArea(ring) {
-        const points = ring && ring.length > 1 && ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1]
-          ? ring.slice(0, -1)
-          : ring;
-        if (!points || points.length < 3) return 0;
-        let area = 0;
-        for (let index = 0; index < points.length; index += 1) {
-          const [x1, y1] = points[index];
-          const [x2, y2] = points[(index + 1) % points.length];
-          area += (x1 * y2) - (x2 * y1);
-        }
-        return Math.abs(area / 2);
-      }
-
-      function polygonArea(polygon) {
-        if (!polygon || !polygon.length) return 0;
-        return ringArea(polygon[0]);
-      }
-
-      function pruneDisplayGeometry(geometry) {
-        if (!geometry || geometry.type !== "MultiPolygon") return geometry;
-        const rankedPolygons = geometry.coordinates
-          .map((polygon) => ({ polygon, area: polygonArea(polygon) }))
-          .filter((entry) => entry.area > 0)
-          .sort((left, right) => right.area - left.area);
-        if (rankedPolygons.length <= 1) return geometry;
-        const minimumArea = rankedPolygons[0].area * DISPLAY_POLYGON_AREA_RATIO;
-        const keptPolygons = rankedPolygons
-          .filter((entry) => entry.area >= minimumArea)
-          .map((entry) => entry.polygon);
-        if (!keptPolygons.length) {
-          return { type: "Polygon", coordinates: rankedPolygons[0].polygon };
-        }
-        return keptPolygons.length === 1
-          ? { type: "Polygon", coordinates: keptPolygons[0] }
-          : { type: "MultiPolygon", coordinates: keptPolygons };
-      }
-
-      const displayRegionFeatures = DATA.geography.regions.features.map((feature) => ({
-        ...feature,
-        geometry: pruneDisplayGeometry(feature.geometry),
-      }));
-      const displayRegionsGeojson = { ...DATA.geography.regions, features: displayRegionFeatures };
-      const displayRegionFeatureByCode = new Map(displayRegionFeatures.map((feature) => [feature.properties.code, feature]));
-
-      let tooltipMoveFrame = null;
-      let tooltipClientX = 0;
-      let tooltipClientY = 0;
-      let tooltipFitsViewport = false;
-      let tooltipWidth = 0;
-      let tooltipHeight = 0;
-
-      function applyTooltipPosition() {
-        tooltipMoveFrame = null;
-        if (tooltipFitsViewport) {
-          const right = document.documentElement.clientWidth - tooltipWidth - 8;
-          const bottom = window.innerHeight - tooltipHeight - 8;
-          const left = Math.max(8, Math.min(tooltipClientX - tooltipWidth / 2, right));
-          const above = tooltipClientY - tooltipHeight - 10;
-          const top = Math.max(8, Math.min(above >= 8 ? above : tooltipClientY + 10, bottom));
-          tooltip.style.transform = `translate3d(${left}px, ${top}px, 0)`;
-          return;
-        }
-        tooltip.style.transform = `translate3d(${tooltipClientX}px, ${tooltipClientY}px, 0) translate(-50%, calc(-100% - 10px))`;
-      }
-
-      function moveTooltip(event) {
-        tooltipClientX = event.clientX;
-        tooltipClientY = event.clientY;
-        if (tooltipMoveFrame != null) return;
-        tooltipMoveFrame = requestAnimationFrame(applyTooltipPosition);
-      }
-
-      function showTooltip(event, label, value, fitViewport = false) {
-        if (tooltipMoveFrame != null) {
-          cancelAnimationFrame(tooltipMoveFrame);
-          tooltipMoveFrame = null;
-        }
-        tooltipClientX = event.clientX;
-        tooltipClientY = event.clientY;
-        const labelChanged = tooltipLabel.textContent !== label;
-        const valueChanged = tooltipValue.textContent !== value;
-        if (labelChanged) tooltipLabel.textContent = label;
-        if (valueChanged) tooltipValue.textContent = value;
-        if (fitViewport && (!tooltipFitsViewport || labelChanged || valueChanged)) {
-          tooltipWidth = tooltip.offsetWidth;
-          tooltipHeight = tooltip.offsetHeight;
-        }
-        tooltipFitsViewport = fitViewport;
-        applyTooltipPosition();
-        tooltip.classList.add("is-visible");
-      }
-
-      function hideTooltip() {
-        if (tooltipMoveFrame != null) {
-          cancelAnimationFrame(tooltipMoveFrame);
-          tooltipMoveFrame = null;
-        }
-        tooltip.classList.remove("is-visible");
-      }
-
       function drawCompositeMap(selection, featureCollection, config) {
-        const viewKey = selection.node();
-        const geometryKey = JSON.stringify([Boolean(config.showMainlandLabels), Boolean(config.isolateShadows), config.hoverClass || ""]);
-        const previousView = !config.clickable ? compositeMapViews.get(viewKey) : null;
-        if (previousView && previousView.featureCollection === featureCollection && previousView.geometryKey === geometryKey
-          && previousView.refs.rootGroup.node().parentNode === viewKey) {
-          previousView.update(config);
-          return previousView.refs;
-        }
-        selection.selectAll("*").remove();
-        if (config.shadowSelection) config.shadowSelection.selectAll("*").remove();
-        const staticShadowRoot = config.isolateShadows && config.shadowSelection
-          ? config.shadowSelection.append("g").attr("class", "map-root")
-          : null;
-        const staticShadowLayer = staticShadowRoot
-          ? staticShadowRoot.append("g").attr("class", "map-static-shadow-layer").attr("aria-hidden", "true")
-          : null;
-        const root = selection.append("g").attr("class", "map-root");
-        const cameraGroup = root.append("g").attr("class", "camera-group");
-        const hoverShadowLayer = config.isolateShadows
-          ? cameraGroup.append("g").attr("class", "map-hover-shadow-layer").attr("aria-hidden", "true")
-          : null;
-        const hoverEffectPaths = hoverShadowLayer
-          ? [
-              hoverShadowLayer.append("path").attr("class", "map-hover-effect-path map-hover-depth-far").attr("transform", "translate(0 12)").attr("display", "none"),
-              hoverShadowLayer.append("path").attr("class", "map-hover-effect-path map-hover-depth-near").attr("transform", "translate(0 7)").attr("display", "none"),
-              hoverShadowLayer.append("path").attr("class", "map-hover-effect-path map-hover-glow-outer").attr("display", "none"),
-              hoverShadowLayer.append("path").attr("class", "map-hover-effect-path map-hover-glow-inner").attr("display", "none"),
-            ]
-          : [];
-        const featureLayer = cameraGroup.append("g").attr("class", "feature-layer");
-        const focusGroup = cameraGroup.append("g").attr("class", "focus-layer");
-        const features = featureCollection.features;
-        const mainlandFeatures = features.filter((feature) => !domCodes.has(config.regionResolver(feature)));
-        const projection = d3.geoMercator().fitExtent(
-          [[mapLayout.mainlandExtent[0], mapLayout.mainlandExtent[1]], [mapLayout.mainlandExtent[2], mapLayout.mainlandExtent[3]]],
-          { type: "FeatureCollection", features: mainlandFeatures },
-        );
-        const path = d3.geoPath(projection);
-        const pathByCode = new Map();
-        const labelByCode = new Map();
-        const pathGeneratorByCode = new Map();
-        let hoveredElement = null;
-        const clearHoverShadow = () => {
-          hoverEffectPaths.forEach((effectPath) => effectPath.attr("display", "none").attr("d", null));
-        };
-        const clearPathHover = () => {
-          if (!config.hoverClass) return;
-          if (hoveredElement) hoveredElement.classed(config.hoverClass, false);
-          hoveredElement = null;
-          clearHoverShadow();
-        };
-        const canUseHoverEffect = () => !config.canHover || config.canHover();
-        const canShowPathTooltip = () => !config.canShowTooltip || config.canShowTooltip();
-        const setPathHover = (element, datum, pathGenerator, enabled) => {
-          if (!config.hoverClass) return;
-          if (enabled && !canUseHoverEffect()) {
-            clearPathHover();
-            return;
-          }
-          if (enabled) {
-            if (hoveredElement !== element) clearPathHover();
-            hoveredElement = element;
-            element.classed(config.hoverClass, true);
-            if (hoverEffectPaths.length) {
-              const hoverEffect = config.hoverEffectResolver ? config.hoverEffectResolver(datum) : null;
-              if (hoverEffect) {
-                const pathData = pathGenerator(datum);
-                hoverEffectPaths.forEach((effectPath) => {
-                  effectPath
-                    .attr("d", pathData)
-                    .style("--region-hover-shadow", hoverEffect.shadow)
-                    .attr("display", null);
-                });
-              } else {
-                clearHoverShadow();
-              }
-            }
-            return;
-          }
-          if (hoveredElement === element) clearPathHover();
-        };
-        const bindPathInteractions = (element, key, pathGenerator) => {
-          if (!config.clickable) return;
-          element
-            .on("mouseenter", (event, datum) => {
-              if (!canUseHoverEffect()) {
-                clearPathHover();
-              } else {
-                setPathHover(element, datum, pathGenerator, true);
-              }
-              if (!canShowPathTooltip()) {
-                hideTooltip();
-                return;
-              }
-              const tooltipText = config.tooltipResolver(datum);
-              showTooltip(event, tooltipText.label, tooltipText.value);
-            })
-            .on("mousemove", (event) => {
-              if (!canUseHoverEffect()) clearPathHover();
-              if (!canShowPathTooltip()) {
-                hideTooltip();
-                return;
-              }
-              moveTooltip(event);
-            })
-            .on("mouseleave", (event, datum) => {
-              setPathHover(element, datum, pathGenerator, false);
-              hideTooltip();
-            })
-            .on("click", () => {
-              clearPathHover();
-              hideTooltip();
-              config.onClick(key);
-            });
-        };
-
-        if (staticShadowLayer) {
-          const mainlandShadowGroup = staticShadowLayer.append("g").attr("class", "map-static-mainland-shadow");
-          mainlandFeatures
-            .filter((feature) => !config.shadowFeatureFilter || config.shadowFeatureFilter(feature))
-            .forEach((feature) => {
-              mainlandShadowGroup.append("path").datum(feature).attr("class", "map-static-shadow-shape").attr("d", path);
-            });
-        }
-
-        const mainlandGroup = featureLayer.append("g").attr("class", "mainland-layer");
-        const labelLayer = config.showMainlandLabels ? featureLayer.append("g").attr("class", "mainland-label-layer") : null;
-        mainlandFeatures.forEach((feature) => {
-          const key = config.keyResolver(feature);
-          const element = mainlandGroup.append("path")
-            .datum(feature)
-            .attr("class", config.className(feature))
-            .attr("d", path)
-            .attr("fill", config.fillResolver(feature))
-            .attr("data-code", key);
-          bindPathInteractions(element, key, path);
-          pathByCode.set(key, element);
-          pathGeneratorByCode.set(key, path);
-        });
-        if (labelLayer) {
-          mainlandFeatures.forEach((feature) => {
-            const code = config.regionResolver(feature);
-            const region = regionsByCode.get(code);
-            if (!region) return;
-            const layout = MAINLAND_REGION_LABELS.get(code) || { lines: [region.name] };
-            const [baseX, baseY] = path.centroid(feature);
-            if (!Number.isFinite(baseX) || !Number.isFinite(baseY)) return;
-            const x = baseX + (layout.dx || 0);
-            const lineHeight = layout.lineHeight || 14;
-            const startY = baseY + (layout.dy || 0) - ((layout.lines.length - 1) * lineHeight) / 2;
-            const text = labelLayer.append("text")
-              .attr("class", "map-region-label")
-              .attr("x", x)
-              .attr("y", startY)
-              .attr("data-code", code);
-            if (layout.fontSize) {
-              text.style("font-size", `${layout.fontSize}px`);
-            }
-            layout.lines.forEach((line, index) => {
-              text.append("tspan")
-                .attr("x", x)
-                .attr("y", startY + index * lineHeight)
-                .text(line);
-            });
-            labelByCode.set(code, text);
-          });
-        }
-
-        Object.entries(mapLayout.domInsets).forEach(([regionCode, inset]) => {
-          const insetFeatures = features.filter((feature) => config.regionResolver(feature) === regionCode);
-          const insetProjection = d3.geoMercator().fitExtent(
-            [[inset.x + 18, inset.y + 34], [inset.x + inset.width - 18, inset.y + inset.height - 18]],
-            { type: "FeatureCollection", features: insetFeatures },
-          );
-          const insetPath = d3.geoPath(insetProjection);
-          if (staticShadowLayer) {
-            const insetShadowGroup = staticShadowLayer.append("g").attr("class", `map-static-inset-shadow inset-${regionCode}`);
-            insetShadowGroup.append("rect")
-              .attr("class", "map-static-inset-card-shadow")
-              .attr("x", inset.x)
-              .attr("y", inset.y)
-              .attr("width", inset.width)
-              .attr("height", inset.height)
-              .attr("rx", 24);
-            const insetPathShadowGroup = insetShadowGroup.append("g").attr("class", "map-static-inset-path-shadow");
-            insetFeatures
-              .filter((feature) => !config.shadowFeatureFilter || config.shadowFeatureFilter(feature))
-              .forEach((feature) => {
-                insetPathShadowGroup.append("path").datum(feature).attr("class", "map-static-shadow-shape").attr("d", insetPath);
-              });
-          }
-          const group = featureLayer.append("g").attr("class", `inset inset-${regionCode}`);
-          group.append("rect").attr("class", "inset-card").attr("x", inset.x).attr("y", inset.y).attr("width", inset.width).attr("height", inset.height).attr("rx", 24);
-          const pathGroup = group.append("g").attr("class", "inset-path-layer");
-          group.append("text").attr("class", "inset-label").attr("x", inset.x + 16).attr("y", inset.y + 22).text(regionsByCode.get(regionCode).name);
-          insetFeatures.forEach((feature) => {
-            const key = config.keyResolver(feature);
-            const element = pathGroup.append("path")
-              .datum(feature)
-              .attr("class", config.className(feature))
-              .attr("d", insetPath)
-              .attr("fill", config.fillResolver(feature))
-              .attr("data-code", key);
-            bindPathInteractions(element, key, insetPath);
-            pathByCode.set(key, element);
-            pathGeneratorByCode.set(key, insetPath);
-          });
-        });
-
-        const refs = {
-          rootGroup: root,
-          cameraGroup,
-          cameraState: { scale: 1, x: 0, y: 0 },
-          staticShadowLayer,
-          hoverEffectPaths,
-          featureLayer,
-          focusGroup,
-          pathByCode,
-          labelByCode,
-          pathGeneratorByCode,
-        };
-        // La carte interactive d'accueil conserve sa reconstruction et ses animations.
-        // Ce registre ne sert qu'aux vues départementales : les événements lisent le contexte courant.
-        if (!config.clickable) {
-          const paths = featureLayer.selectAll("path.path-department");
-          bindDepartmentTooltip(paths, config.tooltipResolver);
-          compositeMapViews.set(viewKey, { featureCollection, geometryKey, refs, update(nextConfig) {
-            config = nextConfig;
-            pathByCode.forEach((element) => {
-              const feature = element.datum();
-              element.attr("class", config.className(feature)).attr("fill", config.fillResolver(feature));
-            });
-            bindDepartmentTooltip(paths, config.tooltipResolver);
-          } });
-        }
-        return refs;
-      }
-
-      function renderLandingMap() {
-        const regionValues = mapRegionValues();
-        const numericValues = [...regionValues.values()].filter((value) => value != null);
-        const colorScale = numericValues.length
-          ? buildScale(d3.extent(numericValues), [paletteToken("map-national-low", "rgba(255,255,255,0.08)"), paletteToken("map-national-high", "rgba(120,236,203,0.9)")])
-          : () => paletteToken("map-national-low", "rgba(255,255,255,0.08)");
-        chartRefs.regionMap = drawCompositeMap(landingMapSvg, displayRegionsGeojson, {
-          clickable: true,
-          showMainlandLabels: true,
-          hoverClass: "is-hovered",
-          isolateShadows: state.phase === "landing",
-          shadowSelection: landingMapShadowSvg,
-          shadowFeatureFilter: (feature) => regionsByCode.get(feature.properties.code).hasData,
-          hoverEffectResolver: (feature) => {
-            const region = regionsByCode.get(feature.properties.code);
-            if (!region.hasData) return null;
-            const theme = themeForRegion(feature.properties.code);
-            return { shadow: colorWithAlpha(theme.glow) };
-          },
-          canHover: () => state.phase === "landing" && !state.mapHoverLocked,
-          canShowTooltip: () => !state.mapHoverLocked,
-          keyResolver: (feature) => feature.properties.code,
-          regionResolver: (feature) => feature.properties.code,
-          className: (feature) => `path-region${regionsByCode.get(feature.properties.code).hasData ? "" : " is-unavailable"}`,
-          fillResolver: (feature) => {
-            if (state.phase === "national") {
-              const value = regionValues.get(feature.properties.code);
-              return value != null ? colorScale(value) : paletteToken("map-idle", "rgba(255,255,255,0.06)");
-            }
-            const theme = themeForRegion(feature.properties.code);
-            return state.phase !== "landing" && state.selectedRegion === feature.properties.code ? theme.accent : paletteToken("map-idle", "rgba(255,255,255,0.06)");
-          },
-          tooltipResolver: (feature) => {
-            const region = regionsByCode.get(feature.properties.code);
-            if (state.phase === "national" && primaryHeroValue(region) != null) {
-              return { label: region.name, value: formatCount(primaryHeroValue(region)) };
-            }
-            if (!region.hasData) return { label: region.name, value: "Données indisponibles" };
-            return { label: region.name, value: "Entrer" };
-          },
-          onClick: (code) => transitionToRegion(code, false),
-        });
-        chartRefs.regionMap.pathByCode.forEach((element, code) => {
-          const theme = themeForRegion(code);
-          element
-            .style("--region-hover-fill", theme.accent)
-            .style("--region-hover-shadow", colorWithAlpha(theme.glow));
-        });
-        highlightSelectedRegion();
-      }
-
-      function highlightSelectedRegion() {
-        chartRefs.regionMap.pathByCode.forEach((element, code) => {
-          const isSelected = state.phase === "region" && code === state.selectedRegion;
-          if (state.phase !== "landing") {
-            element.classed("is-hovered", false);
-          }
-          element.classed("is-selected", isSelected);
-          if (state.phase === "region") {
-            const theme = themeForRegion(code);
-            element.attr("fill", isSelected ? theme.accent : paletteToken("map-idle", "rgba(255,255,255,0.06)"));
-          }
-          if (isSelected) {
-            element.raise();
-          }
-        });
-        chartRefs.regionMap.labelByCode.forEach((element, code) => {
-          element.attr("display", state.phase === "region" ? "none" : null);
-        });
+        return map.drawCompositeMap(selection, featureCollection, { ...config, bindDepartmentTooltip });
       }
 
       function hideMapLabels() {
@@ -1026,10 +503,6 @@ __CHAPTER_REGISTRY_SCRIPT__
           stageInView = entry.isIntersecting;
           syncVideoPlayback();
         }).observe(stageVideo);
-        if (videos.credits) {
-          document.getElementById("videoCredits").href = videos.credits;
-          document.getElementById("videoCreditsFooter").hidden = false;
-        }
       }
 
       function clearFocusOverlay() {
@@ -1150,9 +623,28 @@ __CHAPTER_REGISTRY_SCRIPT__
         });
       }
 
-      async function parseDeferredData() {
-        const binary = atob(deferredGzip);
-        deferredGzip = null;
+      async function loadDeferredGzip() {
+        if (deferredGzip) return deferredGzip;
+        if (!deferredSrc) throw new Error("Missing deferred payload source");
+        const script = document.createElement("script");
+        script.src = deferredSrc;
+        try {
+          await new Promise((resolve, reject) => {
+            script.addEventListener("load", resolve, { once: true });
+            script.addEventListener("error", () => reject(new Error("Unable to load deferred payload")), { once: true });
+            document.head.append(script);
+          });
+          const encoded = window.BAROMETRE_DEFERRED_GZIP;
+          if (!encoded || typeof encoded !== "string") throw new Error("Missing deferred payload");
+          return encoded;
+        } finally {
+          window.BAROMETRE_DEFERRED_GZIP = null;
+          script.remove();
+        }
+      }
+
+      async function parseDeferredData(encoded) {
+        const binary = atob(encoded);
         const bytes = new Uint8Array(binary.length);
         for (let index = 0; index < binary.length; index += 1) {
           bytes[index] = binary.charCodeAt(index);
@@ -1165,17 +657,25 @@ __CHAPTER_REGISTRY_SCRIPT__
         if (DATA.modules && DATA.geography.departments) {
           return Promise.resolve(DATA);
         }
-        deferredDataPromise ??= parseDeferredData().then((deferred) => {
-          DATA.geography = { ...DATA.geography, ...deferred.geography };
-          DATA.modules = deferred.modules;
-          if (DATA.modules.sector) {
-            state.sectorEffectifsSeriesKey ??= DATA.modules.sector.regional.national.defaultSeriesKey;
-            state.sectorPayrollSeriesKey ??= DATA.modules.sector.regional.national.defaultSeriesKey;
-            state.sectorDepartmentSectorKey ??= DATA.modules.sector.departmental.defaultSectorKey;
-          }
-          if (DATA.modules.auto) state.autoSector ??= DATA.modules.auto.defaultSector;
-          return DATA;
-        });
+        deferredDataPromise ??= loadDeferredGzip()
+          .then(parseDeferredData)
+          .then(({ geography, modules }) => {
+            if (!geography?.departments || !modules) throw new Error("Invalid deferred payload");
+            if (modules.sector) {
+              state.sectorEffectifsSeriesKey ??= modules.sector.regional.national.defaultSeriesKey;
+              state.sectorPayrollSeriesKey ??= modules.sector.regional.national.defaultSeriesKey;
+              state.sectorDepartmentSectorKey ??= modules.sector.departmental.defaultSectorKey;
+            }
+            if (modules.auto) state.autoSector ??= modules.auto.defaultSector;
+            DATA.geography = { ...DATA.geography, ...geography };
+            DATA.modules = modules;
+            deferredGzip = null;
+            return DATA;
+          })
+          .catch((error) => {
+            deferredDataPromise = null;
+            throw error;
+          });
         return deferredDataPromise;
       }
 
@@ -1183,18 +683,14 @@ __CHAPTER_REGISTRY_SCRIPT__
         const preload = () => {
           ensureDeferredData().catch((error) => console.error("Deferred payload error", error));
         };
-        const schedule = () => {
+        // Give the map a frame to paint before starting the chart payload.
+        requestAnimationFrame(() => requestAnimationFrame(() => {
           if ("requestIdleCallback" in window) {
             window.requestIdleCallback(preload, { timeout: 1500 });
           } else {
-            window.setTimeout(preload, 250);
+            window.setTimeout(preload, 0);
           }
-        };
-        if (document.readyState === "complete") {
-          schedule();
-        } else {
-          window.addEventListener("load", schedule, { once: true });
-        }
+        }));
       }
 
       function resetCamera() {
@@ -1227,8 +723,7 @@ __CHAPTER_REGISTRY_SCRIPT__
           ensureDeferredData()
             .then(() => {
               if (generation !== storyRenderGeneration || transitionToken !== regionTransitionToken || state.phase === "landing") return;
-              renderStoryModules();
-              hydrateChapterSections();
+              __CHAPTER_RENDER_FUNCTION__();
               scheduleScrollTriggerRefresh();
             })
             .catch((error) => console.error("Deferred payload error", error));
@@ -1389,6 +884,9 @@ __CHAPTER_REGISTRY_SCRIPT__
         gsap.set(mapStage, { opacity: 1 });
         resetCamera();
 
+        const departmentData = ensureDeferredData().catch((error) => {
+          console.error("Deferred payload error", error);
+        });
         setMapCameraMoving(true);
         await animateCameraToTarget(
           getRegionCameraTarget(regionCode),
@@ -1396,9 +894,7 @@ __CHAPTER_REGISTRY_SCRIPT__
         );
         if (transitionToken !== regionTransitionToken) return;
 
-        await ensureDeferredData().catch((error) => {
-          console.error("Deferred payload error", error);
-        });
+        await departmentData;
         if (transitionToken !== regionTransitionToken) return;
 
         await animateDepartmentFocus(regionCode);
@@ -1459,12 +955,8 @@ __CHAPTER_REGISTRY_SCRIPT__
         }));
       }
 __CHAPTER_MODULES_SCRIPT__
-      function renderStoryModules() {
-        chapterRegistry.forEach((chapter) => chapter.render());
-      }
 
       function initGeographySelector() {
-        publicationMeta.textContent = publicationLabel;
         geoTrigger.addEventListener("click", () => {
           setGeoMenuOpen(!geoControl.classList.contains("is-open"));
         });
@@ -1505,13 +997,9 @@ __CHAPTER_MODULES_SCRIPT__
       }
 
       function boot() {
-        applyColorTokens();
-        setTheme(null);
-        hydrateChapterSections();
         window.addEventListener("resize", scheduleScrollTriggerRefresh, { passive: true });
         initGeographySelector();
         initStageMedia();
-        renderLandingMap();
         renderHero();
         renderHeaderActions();
         setMapStageMode("landing");
@@ -1521,6 +1009,11 @@ __CHAPTER_MODULES_SCRIPT__
         } else {
           window.addEventListener("load", scheduleScrollTriggerRefresh, { once: true });
         }
+        map.hydrate({
+          activateRegion: (code) => transitionToRegion(code, false),
+          toggleGeography: () => geoTrigger.click(),
+          formatCount,
+        });
       }
 
       boot();

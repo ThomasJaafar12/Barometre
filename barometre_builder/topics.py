@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import math
+from operator import itemgetter
 
-from .brief import build_bref_payload
+from .brief import build_bref_payload, finite_value, percent_change
 
 
 @dataclass(frozen=True)
@@ -15,7 +15,6 @@ class DetailTopic:
     modules: tuple[str, ...]
     scripts: tuple[str, ...]
     indicators: tuple[tuple[str, str, str, str, str], ...]
-    primary_indicator: str
 
     @property
     def page_name(self) -> str:
@@ -29,14 +28,12 @@ TOPICS = {
          ("headcount", "Effectifs salariés privés", "count", "quarter", "Effectifs"),
          ("dpae", "DPAE · Tous contrats", "count", "month", "DPAE"),
          ("pcol", "Procédures collectives", "count", "quarter", "Procédures")),
-        primary_indicator="headcount",
     ),
     "emploi": DetailTopic(
         "emploi", "Conjoncture de l’emploi", "sector", ("sector", "auto"), ("auto.js",),
         (("headcount", "Effectifs privés CVS", "count", "quarter", "Effectifs"),
          ("payroll", "Masse salariale trimestrielle CVS", "currency", "quarter", "Masse"),
          ("auto", "Auto-entrepreneurs économiquement actifs", "count", "quarter", "Auto")),
-        primary_indicator="headcount",
     ),
     "entreprises": DetailTopic(
         "entreprises", "Santé des entreprises", "payroll", ("pcol", "dpae", "delai", "trar"),
@@ -45,7 +42,6 @@ TOPICS = {
          ("jobs", "Emplois menacés ou détruits", "count", "quarter", "Emplois menacés"),
          ("dpae", "DPAE · Tous contrats", "count", "month", "DPAE"),
          ("delai", "Accords de délais de paiement des indépendants", "count", "quarter", "Délais")),
-        primary_indicator="pcol",
     ),
 }
 
@@ -71,9 +67,16 @@ def project_details_payloads(boot: dict, deferred: dict, *, topic: str = "emploi
     def scope(module: dict, code: str) -> dict:
         return module.get("national", {}) if code == "national" else module.get("regions", {}).get(code, {})
 
-    def observation(value=None, date=None) -> dict:
-        valid = isinstance(value, (int, float)) and math.isfinite(value)
-        return {"value": value if valid else None, "date": date}
+    def observation(value=None, date=None, yearly_change=None) -> dict:
+        return {"value": finite_value(value), "date": date, "yearlyChange": finite_value(yearly_change)}
+
+    def latest_observation(points, date_and_value) -> dict:
+        if not points:
+            return observation()
+        date, value = date_and_value(points[-1])
+        prior_date = f"{int(date[:4]) - 1}{date[4:]}"
+        previous = next((v for d, v in map(date_and_value, reversed(points)) if d == prior_date), None)
+        return observation(value, date, percent_change(value, previous))
 
     def hero(code: str) -> dict:
         if topic == "chiffres":
@@ -81,7 +84,7 @@ def project_details_payloads(boot: dict, deferred: dict, *, topic: str = "emploi
             for key, series in monthly_scopes[code].items():
                 points = series["points"]
                 point = points[-1] if points else {}
-                latest[key] = observation(point.get("value"), point.get("date"))
+                latest[key] = observation(point.get("value"), point.get("date"), point.get("yearlyChange"))
             return latest
         if topic == "emploi":
             regional = modules.get("sector", {}).get("regional", {})
@@ -92,23 +95,21 @@ def project_details_payloads(boot: dict, deferred: dict, *, topic: str = "emploi
                            if code == "national" or department.get("regionCode") == code]
             values = [department.get("values", {}).get("population-entiere", {}).get("economically_active")
                       for department in departments]
-            total = sum(values) if values and all(isinstance(value, (int, float)) and math.isfinite(value) for value in values) else None
+            total = sum(values) if values and all(finite_value(value) is not None for value in values) else None
+            prior_active = auto.get("previousYearActive", {}).get(code)
             return {
-                "headcount": observation(latest.get("effectifs_cvs"), latest.get("date")),
-                "payroll": observation(latest.get("masse_cvs"), latest.get("date")),
-                "auto": observation(total, auto.get("latestDate") if departments else None),
+                "headcount": observation(latest.get("effectifs_cvs"), latest.get("date"), latest.get("effectifs_yoy")),
+                "payroll": observation(latest.get("masse_cvs"), latest.get("date"), latest.get("masse_yoy")),
+                "auto": observation(total, auto.get("latestDate") if departments else None, percent_change(total, prior_active)),
             }
         pcol = scope(modules.get("pcol", {}), code).get("modes", {}).get("all", {}).get("population-entiere", [])
         dpae = scope(modules.get("dpae", {}), code).get("points", [])
         delai = scope(modules.get("delai", {}), code).get("modes", {}).get("all", {}).get("ensemble", [])
-        latest_pcol = pcol[-1] if pcol else [None, None, None]
-        latest_dpae = dpae[-1] if dpae else {}
-        latest_delai = delai[-1] if delai else [None, None]
         return {
-            "pcol": observation(latest_pcol[1], latest_pcol[0]),
-            "jobs": observation(latest_pcol[2], latest_pcol[0]),
-            "dpae": observation(latest_dpae.get("value"), latest_dpae.get("date")),
-            "delai": observation(latest_delai[1], latest_delai[0]),
+            "pcol": latest_observation(pcol, itemgetter(0, 1)),
+            "jobs": latest_observation(pcol, itemgetter(0, 2)),
+            "dpae": latest_observation(dpae, itemgetter("date", "value")),
+            "delai": latest_observation(delai, itemgetter(0, 1)),
         }
 
     regions = []
@@ -120,7 +121,7 @@ def project_details_payloads(boot: dict, deferred: dict, *, topic: str = "emploi
     presentation = {
         **boot, "regions": regions, "nationalHero": hero("national"),
         "detail": {
-            "topic": topic, "label": config.label, "primaryIndicator": config.primary_indicator,
+            "topic": topic, "label": config.label,
             "indicators": [dict(zip(("key", "label", "format", "frequency", "dateLabel"), item)) for item in config.indicators],
         },
     }

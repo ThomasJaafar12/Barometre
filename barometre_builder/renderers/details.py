@@ -1,7 +1,8 @@
 from html import escape
+import json
 
 from ..chapters import build_chapter_fragments
-from ..config import TEMPLATE_PATH, PAGE_TEMPLATES_DIR
+from ..config import GEO_DIR, TEMPLATE_PATH, PAGE_TEMPLATES_DIR
 from ..dependencies import PAGE_DEPENDENCIES, script_tags
 from ..security import ERROR_NOTICE, dependency_guard, local_asset_url, script_json, secure_html
 from ..utils import gzip_base64_json
@@ -18,8 +19,13 @@ TOPIC_DESCRIPTIONS = {
 
 
 def render_region_map(geography: dict | None = None) -> str:
+    europe = json.loads((GEO_DIR / "europe_context.json").read_text(encoding="utf-8"))
     return render_template(read_template("region-map.js"), {
         "__REGION_GEOJSON__": script_json(geography),
+        "__COCKPIT_MAP__": render_template(read_template("cockpit-map.js"), {
+            "__EUROPE_CONTEXT__": script_json(europe),
+        }),
+        "__COCKPIT_READOUT__": read_template("cockpit-readout.js"),
     })
 
 

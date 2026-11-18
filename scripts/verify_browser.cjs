@@ -234,6 +234,10 @@ async function checkTrar(page, touch) {
   const deptSector = page.locator('#trarDepartmentSectorSelect');
   const department = page.locator('#trarDepartmentSelect');
   const horizon90 = page.locator('#trarHorizonSwitch').getByRole('button', { name: /90/ });
+  const colorSwitch = page.locator('#trarColorSwitch');
+  const annual = colorSwitch.getByRole('button', { name: 'Écart annuel', exact: true });
+  const rate = colorSwitch.getByRole('button', { name: 'Taux', exact: true });
+  const legend = page.locator('#trarSnapshotLegend');
   const treemap = page.locator('#trarTreemapSvg');
   const map = page.locator('#trarMapSvg');
   const detail = page.locator('#trarDepartmentDetail');
@@ -241,6 +245,54 @@ async function checkTrar(page, touch) {
   assert.equal(await sector.inputValue(), 'tous-secteurs');
   assert.equal(await treemap.locator('[data-code]').count(), 101);
   assert.equal(await page.locator('#trarLatest time[datetime]').count(), 3);
+  assert.equal(await annual.getAttribute('aria-pressed'), 'true');
+  const annualLegend = await legend.innerText();
+  assert.match(annualLegend, /Hausse annuelle/);
+  assert.match(annualLegend, /Quasi stable/);
+  assert.match(annualLegend, /Repli annuel/);
+  const tiles = await treemap.locator('[data-code]').evaluateAll(nodes => nodes.map(node => ({
+    label: node.getAttribute('aria-label'),
+    fill: getComputedStyle(node.querySelector('rect')).fill,
+  })));
+  const expectedColors = new Set(['hausse', 'repli', 'stable', 'indisponible']);
+  for (const { label, fill } of tiles) {
+    if (/Écart annuel indisponible/i.test(label)) {
+      assert.equal(fill, 'rgb(226, 232, 240)', label);
+      assert.match(annualLegend, /Écart annuel indisponible/i);
+      expectedColors.delete('indisponible');
+      continue;
+    }
+    const match = label.match(/Écart annuel\s*:\s*([+−]?[0-9]+,[0-9]{2})\s*pt/i);
+    assert.ok(match, label);
+    const change = Number(match[1].replace('−', '-').replace(',', '.'));
+    if (Math.abs(change) <= 0.05) {
+      assert.equal(fill, 'rgb(246, 198, 91)', label);
+      expectedColors.delete('stable');
+    } else {
+      const [red, green] = fill.match(/\d+/g)?.map(Number) || [];
+      assert.ok(change > 0 ? red >= 237 && green <= 150 : red <= 98 && green >= 173, `${label} (${fill})`);
+      expectedColors.delete(change > 0 ? 'hausse' : 'repli');
+    }
+  }
+  assert.deepEqual([...expectedColors], []);
+  await rate.click();
+  assert.equal(await rate.getAttribute('aria-pressed'), 'true');
+  assert.match(await legend.innerText(), /%/);
+  const rateSwatches = await legend.locator('.trar-color-key i')
+    .evaluateAll(nodes => nodes.map(node => getComputedStyle(node).backgroundColor));
+  assert.deepEqual(rateSwatches, [
+    'rgb(16, 173, 141)', 'rgb(98, 221, 177)', 'rgb(246, 198, 91)',
+    'rgb(255, 150, 125)', 'rgb(237, 71, 102)', 'rgb(226, 232, 240)',
+  ]);
+  const rateTiles = await treemap.locator('[data-code="43"], [data-code="26"], [data-code="971"], [data-code="976"]')
+    .evaluateAll(nodes => Object.fromEntries(nodes.map(node => [node.dataset.code, getComputedStyle(node.querySelector('rect')).fill])));
+  // Haute-Loire has a low but rising rate, while Guadeloupe has a high but falling rate.
+  assert.deepEqual(rateTiles, {
+    43: rateSwatches[0], 26: rateSwatches[2], 971: rateSwatches[4], 976: rateSwatches[5],
+  });
+  await annual.click();
+  assert.equal(await annual.getAttribute('aria-pressed'), 'true');
+
   const nationalOption = sector.locator('option[value="01"]');
   assert.match(await nationalOption.textContent(), /Culture et production animale/);
   await sector.selectOption('01');
@@ -269,6 +321,8 @@ async function checkTrar(page, touch) {
   assert.equal(await horizon90.getAttribute('aria-pressed'), 'true');
   assert.equal(await page.locator('#trarDepartmentContext').innerText(), nationalSnapshot);
 
+  await rate.click();
+  const parisRateColor = await parisTile.locator('rect').getAttribute('fill');
   await selectDetailScope(page, 'Île-de-France');
   await map.waitFor({ state: 'visible' });
   assert.equal(await treemap.isVisible(), false);
@@ -281,6 +335,10 @@ async function checkTrar(page, touch) {
   assert.equal(await deptSector.inputValue(), 'btp');
   assert.equal(await horizon90.getAttribute('aria-pressed'), 'true');
   const parisPath = map.locator('[data-code="75"]');
+  assert.equal(await rate.getAttribute('aria-pressed'), 'true');
+  assert.equal(await parisPath.getAttribute('fill'), parisRateColor);
+  await annual.click();
+  assert.equal(await annual.getAttribute('aria-pressed'), 'true');
   assert.equal(await parisPath.getAttribute('fill'), parisColor);
   const datePattern = /\p{L}{3,}\.?\s+\d{4}/u;
   const referenceMonth = nationalSnapshot.match(datePattern)?.[0];
@@ -359,7 +417,7 @@ async function checkPair(browser, transport, viewport, filename, origin) {
       : origin + '/' + path.relative(root, path.join(directory, filename)).split(path.sep).map(encodeURIComponent).join('/');
     if (i && detailTopic) expectedDeferred = new URL(`assets/js/${detailTopic}-data.js`, url).href;
     await page.goto(url, { waitUntil: 'load' });
-    if (detailTopic) await page.locator('#heroKpis .kpi-card').first().waitFor({ state: 'attached' });
+    if (detailTopic) await page.locator('#cockpitKpis .kpi-card').first().waitFor({ state: 'visible' });
   }
   const label = `${transport}-${viewport.width}-${filename.replace('.html', '')}`;
   await snapshot(pair, label, true);
@@ -411,7 +469,7 @@ async function checkPair(browser, transport, viewport, filename, origin) {
       assert.equal(await page.locator('#story').isVisible(), false);
       assert.equal(await page.locator('.chapter-section').count(), 1);
       assert.equal(await page.locator(employment ? '#module-payroll' : '#module-sector').count(), 0);
-      assert.deepEqual(await page.locator('#heroKpis .kpi-card').evaluateAll(cards => cards.map(card => card.dataset.indicator)), heroKeys);
+      assert.deepEqual(await page.locator('#cockpitKpis .kpi-card').evaluateAll(cards => cards.map(card => card.dataset.indicator)), heroKeys);
     }
     for (const region of ['France entière', 'Île-de-France', 'Nouvelle-Aquitaine', 'La Réunion', 'Mayotte']) {
       await forBoth(pair, async page => {
@@ -426,9 +484,9 @@ async function checkPair(browser, transport, viewport, filename, origin) {
           assert.match(await page.locator('#employmentEffectifsChartSvg').textContent(), /Données indisponibles/);
         }
         if (region === 'Mayotte' && !employment) {
-          assert.equal(await page.locator('[data-indicator="pcol"] strong').innerText(), '—');
-          assert.notEqual(await page.locator('[data-indicator="delai"] strong').innerText(), '—');
-          assert.match(await page.locator('#heroLead').innerText(), /Certains indicateurs/);
+          assert.equal(await page.locator('#heroKpis [data-indicator="pcol"] strong').innerText(), '—');
+          assert.notEqual(await page.locator('#heroKpis [data-indicator="delai"] strong').innerText(), '—');
+          assert.match(await page.locator('#heroKpis [data-indicator="pcol"] .meta').innerText(), /Donnée indisponible/);
         }
       }
       await snapshot(pair, `${label}-${region.replace(/[^\p{L}]/gu, '_')}`);

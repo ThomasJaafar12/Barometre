@@ -16,6 +16,72 @@ const topics = {
     '#pcolChartSvg .tick', '#delaiChartSvg .tick', '#trarChartSvg .quarterly-series'] },
 };
 
+async function checkRegionalHandoff(page, reducedMotion) {
+  const region = page.locator('#landingMap .region-face[data-code="24"]');
+  await region.evaluate(node => {
+    const stage = document.getElementById('stageShell');
+    const map = document.getElementById('landingMap');
+    const rail = document.getElementById('cockpitTerritories');
+    const startWidth = node.getBoundingClientRect().width;
+    const frames = { zoom: 0, region: 0, visibleRail: 0, visibleRegionalMap: 0 };
+    const visible = element => element.checkVisibility({ opacityProperty: true, visibilityProperty: true });
+    let frame;
+    function sample() {
+      if (visible(rail) || (rail.checkVisibility({ visibilityProperty: true }) && !rail.closest('[inert]'))) {
+        frames.visibleRail++;
+      }
+      if (stage.dataset.phase === 'region') {
+        frames.region++;
+        if (visible(map)) frames.visibleRegionalMap++;
+      } else if (visible(map) && node.getBoundingClientRect().width > startWidth * 1.05) {
+        frames.zoom++;
+      }
+      frame = requestAnimationFrame(sample);
+    }
+    node.addEventListener('click', () => { frame = requestAnimationFrame(sample); }, { once: true });
+    window.finishRegionHandoffCheck = () => { cancelAnimationFrame(frame); return frames; };
+  });
+  await region.click();
+  await page.locator('#stageShell[data-phase="region"] #heroTitle').waitFor({ state: 'visible' });
+  await page.locator('#story.is-visible').waitFor({ state: 'visible' });
+  const frames = await page.evaluate(async () => {
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    return window.finishRegionHandoffCheck();
+  });
+  assert.ok(frames.region > 0);
+  if (reducedMotion !== 'reduce') assert.ok(frames.zoom > 0, 'The regional camera zoom must remain visible');
+  assert.deepEqual({ visibleRail: frames.visibleRail, visibleRegionalMap: frames.visibleRegionalMap },
+    { visibleRail: 0, visibleRegionalMap: 0 }, 'Regional transitions must keep the rail hidden and the regional page clear of the map');
+  await page.locator('#geoTrigger').click();
+  await page.locator('.geo-return-button').click();
+  await region.waitFor({ state: 'visible' });
+  await page.locator('#cockpitTerritories').getByRole('button', { name: 'France entière' }).waitFor({ state: 'visible' });
+}
+
+async function checkVideoScroll(page) {
+  const media = page.locator('.stage-media');
+  assert.equal(await media.evaluate(el => getComputedStyle(el, '::after').backgroundImage), 'none');
+  await page.evaluate(() => {
+    const original = window.scrollTo;
+    const resets = [];
+    window.scrollTo = function (...args) {
+      const top = typeof args[0] === 'object' ? args[0].top : args[1];
+      if (top === 0 && scrollY > 0 && ScrollTrigger.isScrolling()) resets.push(scrollY);
+      return original.apply(this, args);
+    };
+    window.finishVideoScrollCheck = () => { window.scrollTo = original; return resets; };
+  });
+  await page.mouse.move(320, 340);
+  const start = await page.evaluate(() => scrollY);
+  for (let i = 0; i < 45; i++) {
+    await page.mouse.wheel(0, 24);
+    await page.evaluate(() => new Promise(requestAnimationFrame));
+  }
+  assert.ok(await page.evaluate(() => scrollY) > start);
+  assert.deepEqual(await page.evaluate(() => window.finishVideoScrollCheck()), [],
+    'Chapter layout updates must preserve the active wheel gesture');
+}
+
 async function checkReveal(browser, viewport, reducedMotion, topic) {
   const url = pathToFileURL(path.resolve(__dirname, '..', siteDirectory, `barometre_${topic}.html`)).href;
   const dataUrl = new URL(`assets/js/${topic}-data.js`, url).href;
@@ -105,10 +171,14 @@ async function checkReveal(browser, viewport, reducedMotion, topic) {
     await page.getByRole('option', { name: 'Normandie', exact: true }).click();
     assert.equal(await lastCard.evaluate(element => Number(getComputedStyle(element).opacity)), 1,
       'Switching regions must not restart completed reveals');
+    if (topic === 'emploi' && viewport.width === 1440 && reducedMotion === 'no-preference') {
+      await checkVideoScroll(page);
+    }
     await page.locator('#geoTrigger').click();
     await page.locator('.geo-return-button').click();
     await page.waitForFunction(() => document.querySelector('#stageShell').dataset.phase === 'landing');
     assert.equal(await page.locator('#story').isVisible(), false);
+    if (topic === 'entreprises') await checkRegionalHandoff(page, reducedMotion);
     assert.deepEqual(errors, []);
     console.log(`OK reveal ${topic}, ${viewport.width}px, ${reducedMotion}`);
   } catch (error) {

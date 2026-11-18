@@ -31,6 +31,12 @@ def finite_value(value):
     return value if isinstance(value, (int, float)) and math.isfinite(value) else None
 
 
+def percent_change(value, previous):
+    if finite_value(value) is None or finite_value(previous) in (None, 0):
+        return None
+    return (value / previous - 1) * 100
+
+
 def indicator_series(points: list[dict], frequency: str, *, history_years: int | None = HISTORY_YEARS) -> dict:
     ordered = sorted(points, key=lambda point: point["date"])
     values = {point["date"]: finite_value(point["value"]) for point in ordered}
@@ -39,8 +45,7 @@ def indicator_series(points: list[dict], frequency: str, *, history_years: int |
         date = point["date"]
         value = values[date]
         previous = values.get(f"{int(date[:4]) - 1}{date[4:]}")
-        change = (value / previous - 1) * 100 if value is not None and previous not in (None, 0) else None
-        enriched.append({"date": date, "value": value, "yearlyChange": change})
+        enriched.append({"date": date, "value": value, "yearlyChange": percent_change(value, previous)})
     # Conserver les deux bornes pour couvrir des années entières dans la synthèse.
     if history_years is not None:
         enriched = enriched[-(history_years * (12 if frequency == "month" else 4) + 1):]

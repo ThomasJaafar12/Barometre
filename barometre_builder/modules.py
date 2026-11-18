@@ -77,12 +77,22 @@ def build_video_manifest(region_meta: dict[str, dict[str, Any]]) -> dict[str, An
         if poster.is_file():
             posters[url] = relative_asset(poster)
     credits = revision / "SOURCES_ET_LICENCES.md"
+    locations = {}
+    if credits.is_file():
+        urls_by_filename = {path.name: url for path, url in paths.items()}
+        clip_url = None
+        for line in credits.read_text(encoding="utf-8").splitlines():
+            if line.startswith("### "):
+                clip_url = urls_by_filename.get(line.removeprefix("### ").strip())
+            elif clip_url and line.startswith("- Légende : "):
+                locations[clip_url] = line.removeprefix("- Légende : ").strip()
     return {
         "placeholder": paths[national],
         "national": paths[national],
         "byRegion": {code: paths[path] for code, path in regions.items()},
         "byHistorical": {slug: paths[path] for slug, path in sorted(historical.items())},
         "posters": posters,
+        "locations": locations,
         "credits": relative_asset(credits) if credits.is_file() else None,
     }
 
@@ -406,6 +416,13 @@ def build_auto_module(rows: list[dict[str, str]], region_meta: dict[str, dict[st
     ]
     latest_date = max(row["Dernier jour du trimestre"] for row in filtered_rows)
     latest_rows = [row for row in filtered_rows if row["Dernier jour du trimestre"] == latest_date]
+    prior_date = f"{int(latest_date[:4]) - 1}{latest_date[4:]}"
+    previous_year_active: dict[str, float] = defaultdict(float)
+    for row in filtered_rows:
+        if row["Dernier jour du trimestre"] == prior_date:
+            previous_year_active[normalize_code(row["Code région"])] += parse_number(row["Economiquement actifs"]) or 0
+    if previous_year_active:
+        previous_year_active["national"] = sum(previous_year_active.values())
     aggregate_key = "population-entiere"
     technical_sector_label = "_calage_"
     sector_labels = sorted(
@@ -467,6 +484,7 @@ def build_auto_module(rows: list[dict[str, str]], region_meta: dict[str, dict[st
     return (
         {
             "latestDate": latest_date,
+            "previousYearActive": dict(previous_year_active),
             "metrics": [
                 {"key": "economically_active", "label": "Auto-entrepreneurs actifs", "format": "count"},
                 {"key": "administratively_active", "label": "Indépendants administrativement actifs", "format": "count"},

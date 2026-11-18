@@ -67,7 +67,7 @@ Après le premier affichage de la carte, chaque page charge en arrière-plan son
 
 Les deux niveaux de lecture utilisent le même bandeau de rubrique. En bref, le bouton « Retour à l’accueil » figure dans le bandeau et le choix du territoire se trouve au-dessus des indicateurs. Les vues Santé et Emploi s’ouvrent avec `?rubrique=entreprises` et `?rubrique=emploi`.
 
-Les trois détails commencent par la carte des régions. Après sélection d’un territoire, le chapitre de la rubrique s’affiche. Le sélecteur du bandeau permet de changer de région et de revenir à la carte. Les liens « Le baromètre en bref » ouvrent la synthèse de la rubrique courante. Le détail des Chiffres du mois reprend les quatre indicateurs de la synthèse sur tout l’historique disponible.
+Les trois détails s’ouvrent sur une carte de France en relief, sur fond européen. Le survol ou le focus clavier sur une région ou un raccourci territorial affiche les indicateurs de la rubrique et leurs périodes. Un clic, une activation au clavier ou un appui tactile ouvre le chapitre du territoire. Le sélecteur du bandeau donne aussi accès à Mayotte et permet de revenir à la carte. Les liens « Le baromètre en bref » ouvrent la synthèse de la rubrique courante. Le détail des Chiffres du mois reprend les quatre indicateurs de la synthèse sur tout l’historique disponible.
 
 Les vidéos de France entière, des régions actuelles et des anciennes régions sont accessibles dans le sélecteur des trois pages détaillées. Une ancienne région affiche son clip et les indicateurs de la région actuelle correspondante.
 
@@ -77,7 +77,9 @@ Le fichier de provenance des vidéos est inclus dans le paquet. Les originaux di
 
 La présentation emploi affiche les effectifs privés CVS, la masse salariale trimestrielle CVS et les auto-entrepreneurs économiquement actifs. La présentation santé affiche les procédures collectives, les emplois menacés ou détruits, les DPAE tous contrats et le nombre d’accords de délais de paiement des indépendants. Chaque chiffre reprend la dernière observation de sa série et sa période ; les filtres locaux des graphiques ne modifient pas cette synthèse. Zéro et absence restent distincts, et la disponibilité dépend du thème : Mayotte dispose notamment d’accords de délais de paiement.
 
-La carte d’entrée reste neutre. La carte nationale utilise les effectifs pour les Chiffres du mois et l’Emploi, et les procédures pour la Santé. Lors d’une régénération, le générateur vérifie les anciens manifestes à trois ou quatre pages avant de remplacer leurs fichiers. En cas d’échec, il restaure la publication précédente.
+Dans les trois rubriques, la vue Essentiel affiche les indicateurs du territoire dans un panneau en bas à droite de la vidéo. Sur petit écran, le panneau passe sous l’image. Chaque indicateur présente sa période et, si la comparaison est disponible, son évolution sur un an. Le repère en bas à gauche indique le lieu filmé ou, à défaut, le nom du territoire. « France entière » ouvre cette même vue avec les données nationales. L’action « Retour à la carte » du sélecteur rouvre le choix du territoire.
+
+Lors d’une régénération, le générateur vérifie les anciens manifestes à trois ou quatre pages avant de remplacer leurs fichiers. En cas d’échec, il restaure la publication précédente.
 
 ## Lecture des indicateurs
 

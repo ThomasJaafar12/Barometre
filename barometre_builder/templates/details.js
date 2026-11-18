@@ -9,8 +9,9 @@
       }
       window.BAROMETRE_REGION_MAP = null;
       const {
-        buildScale, chartRefs, colorWithAlpha, hideTooltip, paletteToken, primaryHeroValue,
-        regionsByCode, renderLandingMap, setTheme, showTooltip, state, themeForRegion,
+        buildScale, chartRefs, cockpitCenter, colorWithAlpha, createIndicatorCard, updateIndicatorCard,
+        formatCount, formatCurrency, frNumber, monthLabel, quarterLabel, hideTooltip, paletteToken,
+        regionsByCode, resetTerritoryPreview, setTheme, showTooltip, state, themeForRegion,
       } = map;
 __DETAILS_DOM_SCRIPT__
       const DATA = window.BAROMETRE_BOOT;
@@ -21,7 +22,6 @@ __DETAILS_DOM_SCRIPT__
       window.BAROMETRE_DEFERRED_GZIP = null;
       const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
       const REDUCED_MOTION = motionPreference.matches;
-      const mapLayout = DATA.meta.mapLayout;
       const REGION_PRIMARY_CITIES = new Map([
         ["11", { name: "Paris", coordinates: [2.3522, 48.8566] }],
         ["24", { name: "Tours", coordinates: [0.6848, 47.3941] }],
@@ -48,7 +48,6 @@ __DETAILS_DOM_SCRIPT__
       const stagePoster = document.getElementById("stagePoster");
       const stageVideo = document.getElementById("stageVideo");
       const stageVideoToggle = document.getElementById("stageVideoToggle");
-      const mapStage = document.getElementById("mapStage");
       const story = document.getElementById("story");
       const topicDescription = document.getElementById("topicDescription");
       const topicDescriptionText = topicDescription.textContent;
@@ -73,10 +72,6 @@ __DETAILS_DOM_SCRIPT__
 
       let storyRenderHandle = null;
       let storyRenderGeneration = 0;
-      let scrollRefreshFrame = null;
-      let scrollRefresh260 = null;
-      let scrollRefresh900 = null;
-      let scrollRefreshFontsBound = false;
       let geographySelectorView = null;
       const rankingHeightFrames = new WeakMap();
       let deferredDataPromise = null;
@@ -88,54 +83,9 @@ __DETAILS_DOM_SCRIPT__
 
       gsap.registerPlugin(ScrollTrigger);
 
-      const decimalNumberFormatters = new Map([0, 1, 2].map((digits) => [digits, new Intl.NumberFormat("fr-FR", {
-        minimumFractionDigits: digits, maximumFractionDigits: digits,
-      })]));
-      const integerNumberFormatter = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
-      const monthDateFormatter = new Intl.DateTimeFormat("fr-FR", { month: "short", year: "numeric" });
-
-      function frNumber(value, digits = 1) {
-        if (value == null || Number.isNaN(value)) return "—";
-        let formatter = decimalNumberFormatters.get(digits);
-        if (!formatter) {
-          formatter = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: digits, maximumFractionDigits: digits });
-          decimalNumberFormatters.set(digits, formatter);
-        }
-        return formatter.format(Number(value));
-      }
-
-      function formatCount(value) {
-        if (value == null || Number.isNaN(value)) return "—";
-        const abs = Math.abs(value);
-        if (abs >= 1e6) return `${frNumber(value / 1e6, 2)} M`;
-        if (abs >= 1e3) return `${frNumber(value / 1e3, 1)} k`;
-        return integerNumberFormatter.format(Number(value));
-      }
-
-      function formatCurrency(value) {
-        if (value == null || Number.isNaN(value)) return "—";
-        const abs = Math.abs(value);
-        if (abs >= 1e9) return `${frNumber(value / 1e9, 1)} Md€`;
-        if (abs >= 1e6) return `${frNumber(value / 1e6, 1)} M€`;
-        return `${integerNumberFormatter.format(Number(value))} €`;
-      }
-
       function formatPercent(value, digits = 1) {
         if (value == null || Number.isNaN(value)) return "—";
         return `${frNumber(value, digits)} %`;
-      }
-
-      function monthLabel(dateValue) {
-        if (!dateValue) return "—";
-        const date = new Date(`${dateValue}T00:00:00`);
-        return Number.isNaN(date.valueOf()) ? date.toLocaleDateString("fr-FR", { month: "short", year: "numeric" }) : monthDateFormatter.format(date);
-      }
-
-      function quarterLabel(dateValue) {
-        if (!dateValue) return "—";
-        const date = new Date(`${dateValue}T00:00:00`);
-        const quarter = Math.floor(date.getMonth() / 3) + 1;
-        return `T${quarter} ${date.getFullYear()}`;
       }
 
       function dateLabel(dateValue) {
@@ -156,38 +106,15 @@ __DETAILS_DOM_SCRIPT__
         return state.phase === "national" ? "France entière" : currentRegion().name;
       }
 
-      function refreshScrollTriggers() {
-        ScrollTrigger.refresh();
-      }
-
-      function scheduleScrollTriggerRefresh() {
-        if (REDUCED_MOTION || !window.ScrollTrigger) return;
-        // Garder les jalons existants sans multiplier les tâches ni repousser leur échéance.
-        if (scrollRefreshFrame == null) {
-          scrollRefreshFrame = requestAnimationFrame(() => {
-            refreshScrollTriggers();
-            scrollRefreshFrame = requestAnimationFrame(() => {
-              scrollRefreshFrame = null;
-              refreshScrollTriggers();
-            });
-          });
+      function refreshChapterPositions() {
+        ScrollTrigger.removeEventListener("scrollEnd", refreshChapterPositions);
+        if (state.phase === "landing") return;
+        if (ScrollTrigger.isScrolling()) {
+          ScrollTrigger.addEventListener("scrollEnd", refreshChapterPositions);
+          return;
         }
-        if (scrollRefresh260 == null) {
-          scrollRefresh260 = window.setTimeout(() => {
-            scrollRefresh260 = null;
-            refreshScrollTriggers();
-          }, 260);
-        }
-        if (scrollRefresh900 == null) {
-          scrollRefresh900 = window.setTimeout(() => {
-            scrollRefresh900 = null;
-            refreshScrollTriggers();
-          }, 900);
-        }
-        if (!scrollRefreshFontsBound) {
-          scrollRefreshFontsBound = true;
-          onFontsReady(refreshScrollTriggers);
-        }
+        // Les chapitres ne sont pas épinglés. Mesurer chaque seuil conserve la position du lecteur.
+        ScrollTrigger.getAll().forEach(trigger => trigger.refresh());
       }
 
       function renderHeaderActions() {
@@ -319,7 +246,7 @@ __DETAILS_DOM_SCRIPT__
         );
         nationalButton.addEventListener("click", () => {
           setGeoMenuOpen(false);
-          transitionToNational(true);
+          transitionToNational();
         });
         nationalColumn.appendChild(nationalButton);
         optionButtons.set("national", nationalButton);
@@ -387,58 +314,47 @@ __DETAILS_DOM_SCRIPT__
       }
 
       function renderHero() {
-        const eyebrow = document.getElementById("heroEyebrow");
         const title = document.getElementById("heroTitle");
-        const lead = document.getElementById("heroLead");
-        const heroDates = document.getElementById("heroDates");
         const heroKpis = document.getElementById("heroKpis");
-        const national = state.phase === "national";
         const heroData = heroPayloadForScope();
-        eyebrow.textContent = national ? "France entière" : currentRegion().group === "dom" ? "Outre-mer" : "Région";
-        title.textContent = national ? "France entière" : currentRegion().name;
-        const available = detail.indicators.filter((indicator) => heroData[indicator.key]?.value != null).length;
-        const clipLabel = state.selectedHistorical ? `Vidéo : ${state.selectedHistorical.label}. ` : "";
-        const introduction = `${clipLabel}${detail.label} · ${national ? "France entière" : currentRegion().name}.`;
-        lead.textContent = available === 0
-          ? `${introduction} Données indisponibles pour ce territoire.`
-          : available < detail.indicators.length
-          ? `${introduction} Certains indicateurs ne sont pas disponibles pour ce territoire.`
-          : introduction;
+        const name = scopeLabel();
+        const lastWord = Math.max(name.lastIndexOf(" "), name.lastIndexOf("-")) + 1;
+        title.replaceChildren(name.slice(0, lastWord), textElement("span", name.slice(lastWord), "hero-title-accent"));
+        const usesFallbackClip = state.phase === "region" && videoSource === videos.placeholder;
+        const location = usesFallbackClip ? null : videos.locations?.[videoSource];
+        document.getElementById("stageLocationName").textContent = location || state.selectedHistorical?.label || name;
 
-        heroDates.replaceChildren();
-        heroKpis.replaceChildren();
-        detail.indicators.forEach((indicator) => {
+        heroKpis.replaceChildren(...detail.indicators.map((indicator) => {
           const point = heroData[indicator.key];
-          const period = indicator.frequency === "quarter" ? quarterLabel(point?.date) : monthLabel(point?.date);
-          if (point?.date) {
-            heroDates.appendChild(textElement("span", `${indicator.dateLabel} · ${period}`, "hero-chip"));
+          const article = createIndicatorCard(indicator);
+          updateIndicatorCard(article, indicator, point);
+          const row = document.createElement("div");
+          row.className = "hero-kpi-meta";
+          row.append(article.querySelector(".meta"));
+          const change = point?.yearlyChange;
+          if (point?.value != null && Number.isFinite(change)) {
+            const direction = Math.abs(change) < 0.05 ? 0 : Math.sign(change);
+            const sign = direction > 0 ? "+" : direction < 0 ? "−" : "";
+            const badge = textElement("span", `${sign}${frNumber(Math.abs(change), 1)} % sur 1 an`, "hero-kpi-change");
+            const lowerIsFavorable = ["pcol", "jobs", "delai"].includes(indicator.key);
+            const trend = lowerIsFavorable ? -direction : direction;
+            badge.dataset.trend = trend > 0 ? "favorable" : trend < 0 ? "unfavorable" : "stable";
+            row.appendChild(badge);
           }
-          const article = document.createElement("article");
-          article.className = "kpi-card";
-          article.dataset.indicator = indicator.key;
-          const label = textElement("span", "", "label");
-          label.appendChild(textElement("span", indicator.label, `text-highlight text-highlight--${indicator.key}`));
-          const value = indicator.format === "currency" ? formatCurrency(point?.value) : formatCount(point?.value);
-          article.append(label, textElement("strong", value),
-            textElement("span", point?.value == null ? `Donnée indisponible${point?.date ? ` · ${period}` : ""}` : period, "meta"));
-          heroKpis.appendChild(article);
-        });
+          article.appendChild(row);
+          return article;
+        }));
       }
 
       function drawCompositeMap(selection, featureCollection, config) {
         return map.drawCompositeMap(selection, featureCollection, { ...config, bindDepartmentTooltip });
       }
 
-      function hideMapLabels() {
-        chartRefs.regionMap.labelByCode.forEach((element) => {
-          element.attr("display", "none");
-        });
-      }
-
       function syncVideoPlayback() {
         const available = state.phase !== "landing" && videoSource && !videoFailed;
         stageVideoToggle.hidden = !available;
-        stageVideoToggle.textContent = videoWanted ? "Mettre la vidéo en pause" : "Lire la vidéo";
+        stageVideoToggle.setAttribute("aria-label", videoWanted ? "Mettre la vidéo en pause" : "Lire la vidéo");
+        stageVideoToggle.toggleAttribute("data-pause", videoWanted);
         if (!available || !videoWanted || !stageInView || document.hidden) {
           stageVideo.pause();
           return;
@@ -530,10 +446,11 @@ __DETAILS_DOM_SCRIPT__
         const minScale = options.minScale ?? 1.8;
         const maxScale = options.maxScale ?? 4.2;
         const targetScale = Math.max(minScale, Math.min(maxScale, (620 / Math.max(bbox.width, bbox.height)) * scaleMultiplier));
+        const [centerX, centerY] = cockpitCenter();
         return {
           scale: targetScale,
-          x: mapLayout.width / 2 - (bbox.x + bbox.width / 2) * targetScale,
-          y: mapLayout.height / 2 - (bbox.y + bbox.height / 2) * targetScale,
+          x: centerX - (bbox.x + bbox.width / 2) * targetScale,
+          y: centerY - (bbox.y + bbox.height / 2) * targetScale,
         };
       }
 
@@ -700,20 +617,6 @@ __DETAILS_DOM_SCRIPT__
         applyCameraTransform();
       }
 
-      function setMapStageMode(mode) {
-        mapStage.classList.remove("is-muted", "is-hidden");
-        if (mode === "landing") {
-          gsap.set(mapStage, { opacity: 1 });
-          return;
-        }
-        if (mode === "national") {
-          gsap.set(mapStage, { opacity: 1 });
-          return;
-        }
-        mapStage.classList.add("is-hidden");
-        gsap.set(mapStage, { opacity: 0 });
-      }
-
       function scheduleStoryRender() {
         const generation = ++storyRenderGeneration;
         const transitionToken = regionTransitionToken;
@@ -724,7 +627,6 @@ __DETAILS_DOM_SCRIPT__
             .then(() => {
               if (generation !== storyRenderGeneration || transitionToken !== regionTransitionToken || state.phase === "landing") return;
               __CHAPTER_RENDER_FUNCTION__();
-              scheduleScrollTriggerRefresh();
             })
             .catch((error) => console.error("Deferred payload error", error));
         });
@@ -734,10 +636,12 @@ __DETAILS_DOM_SCRIPT__
         story.classList.add("is-visible");
         // Set initial animation styles before the browser can paint the story.
         mountScrollReveal();
-        scheduleScrollTriggerRefresh();
       }
 
       function applyPhase(phase) {
+        const activeControl = document.activeElement;
+        const restoreKeyboardFocus = activeControl?.matches(":focus-visible")
+          && (stageShell.contains(activeControl) || geoMenu.contains(activeControl));
         state.phase = phase;
         stageShell.dataset.phase = phase;
         if (phase === "landing") {
@@ -751,36 +655,8 @@ __DETAILS_DOM_SCRIPT__
         renderHeaderActions();
         if (phase === "landing") {
           story.classList.remove("is-visible");
-          setMapStageMode("landing");
-        } else if (phase === "national") {
-          setMapStageMode("national");
         }
-      }
-
-      function animateFranceRipple() {
-        const transitionToken = regionTransitionToken;
-        const values = DATA.regions.map((region) => primaryHeroValue(region)).filter((value) => value != null);
-        const scale = buildScale(
-          d3.extent(values),
-          [paletteToken("map-national-low", "rgba(255,255,255,0.08)"), paletteToken("map-national-high", "rgba(120,236,203,0.92)")],
-        );
-        const center = { x: mapLayout.width / 2, y: mapLayout.height / 2 };
-        const ring = chartRefs.regionMap.focusGroup.append("circle").attr("class", "ripple-ring").attr("cx", center.x).attr("cy", center.y).attr("r", 30).attr("opacity", 0.7);
-        const timeline = gsap.timeline();
-        timeline.to(ring.node(), { attr: { r: 760 }, opacity: 0, duration: REDUCED_MOTION ? 0.01 : 1.8, ease: "power2.out" });
-        chartRefs.regionMap.pathByCode.forEach((selection, code) => {
-          const region = regionsByCode.get(code);
-          const value = primaryHeroValue(region);
-          const box = selection.node().getBBox();
-          const dx = center.x - (box.x + box.width / 2);
-          const dy = center.y - (box.y + box.height / 2);
-          const delay = Math.sqrt(dx * dx + dy * dy) / 560;
-          timeline.to(selection.node(), { fill: value != null ? scale(value) : paletteToken("map-empty", "rgba(255,255,255,0.06)"), duration: REDUCED_MOTION ? 0.01 : 0.9, ease: "power2.out" }, delay);
-        });
-        timeline.add(() => {
-          if (transitionToken === regionTransitionToken) clearFocusOverlay();
-        });
-        return timeline;
+        if (restoreKeyboardFocus) geoTrigger.focus({ preventScroll: true });
       }
 
       function transitionToLanding() {
@@ -788,74 +664,36 @@ __DETAILS_DOM_SCRIPT__
         setMapCameraMoving(false);
         clearFocusOverlay();
         gsap.killTweensOf(chartRefs.regionMap.cameraState);
-        gsap.killTweensOf(mapStage);
         state.selectedHistorical = null;
         updateVideo(null);
         resetCamera();
         setTheme(null);
         applyPhase("landing");
-        renderLandingMap();
+        resetTerritoryPreview();
         window.scrollTo({
           top: 0,
           behavior: REDUCED_MOTION ? "auto" : "smooth",
         });
       }
 
-      function transitionToNational(fromRail) {
-        const transitionToken = ++regionTransitionToken;
+      function transitionToNational() {
+        regionTransitionToken += 1;
         setMapCameraMoving(false);
         clearFocusOverlay();
         gsap.killTweensOf(chartRefs.regionMap.cameraState);
-        gsap.killTweensOf(mapStage);
-        resetCamera();
         state.selectedHistorical = null;
         updateVideo(nationalVideo);
         applyPhase("national");
         setTheme(state.selectedRegion);
-        mapStage.classList.remove("is-hidden", "is-muted");
-        gsap.set(mapStage, { opacity: 1 });
-        renderLandingMap();
         renderHero();
-        if (REDUCED_MOTION || fromRail) {
-          try {
-            animateFranceRipple();
-          } catch (error) {
-            console.error("National ripple animation error", error);
-          }
-          revealContent();
-          scheduleStoryRender();
-          setMapStageMode("national");
-          return;
-        }
-        let revealDone = false;
-        const finishReveal = () => {
-          if (revealDone || transitionToken !== regionTransitionToken) return;
-          revealDone = true;
-          revealContent();
-          scheduleStoryRender();
-          setMapStageMode("national");
-        };
-        const revealFallback = window.setTimeout(finishReveal, 1800);
-        const timeline = gsap.timeline();
-        timeline.add(() => {
-          if (transitionToken !== regionTransitionToken) return;
-          try {
-            animateFranceRipple();
-          } catch (error) {
-            console.error("National ripple animation error", error);
-            window.clearTimeout(revealFallback);
-            finishReveal();
-          }
-        }, 0.05);
-        timeline.call(() => {
-          window.clearTimeout(revealFallback);
-          finishReveal();
-        }, null, 1.45);
+        revealContent();
+        scheduleStoryRender();
       }
 
       async function transitionToRegion(regionCode, fromRail, historical = null) {
         const transitionToken = ++regionTransitionToken;
-        setMapCameraMoving(false);
+        const zoom = !REDUCED_MOTION && !fromRail && state.phase === "landing";
+        setMapCameraMoving(zoom);
         state.mapHoverLocked = true;
         stageShell.classList.add("is-map-hover-locked");
         chartRefs.regionMap.pathByCode.forEach((element) => element.classed("is-hovered", false));
@@ -864,66 +702,32 @@ __DETAILS_DOM_SCRIPT__
         state.selectedRegion = regionCode;
         state.selectedHistorical = historical;
         setTheme(regionCode);
-        hideMapLabels();
         updateVideo(historical?.src || videos.byRegion[regionCode] || currentRegion().video || videos.placeholder);
         clearFocusOverlay();
         gsap.killTweensOf(chartRefs.regionMap.cameraState);
-        gsap.killTweensOf(mapStage);
-
-        if (REDUCED_MOTION || fromRail || state.phase !== "landing") {
-          applyPhase("region");
-          renderHero();
-          setMapStageMode("region");
-          scheduleStoryRender();
-          revealContent();
-          return;
-        }
-
-        renderHero();
-        mapStage.classList.remove("is-hidden", "is-muted");
-        gsap.set(mapStage, { opacity: 1 });
-        resetCamera();
-
-        const departmentData = ensureDeferredData().catch((error) => {
-          console.error("Deferred payload error", error);
-        });
-        setMapCameraMoving(true);
-        await animateCameraToTarget(
-          getRegionCameraTarget(regionCode),
-          { duration: 1.2, ease: "power2.inOut" },
-        );
-        if (transitionToken !== regionTransitionToken) return;
-
-        await departmentData;
-        if (transitionToken !== regionTransitionToken) return;
-
-        await animateDepartmentFocus(regionCode);
-        if (transitionToken !== regionTransitionToken) return;
-
-        await animateCameraToTarget(
-          getRegionCameraTarget(regionCode, { scaleMultiplier: 1.28, maxScale: 5.1 }),
-          { duration: 1.22, ease: "power2.out" },
-        );
-        if (transitionToken !== regionTransitionToken) return;
-
-        setMapCameraMoving(false);
-        clearFocusOverlay();
-        applyPhase("region");
-        renderHero();
-        await new Promise((resolve) => {
-          gsap.to(mapStage, {
-            opacity: 0,
-            duration: 0.32,
-            ease: "power2.inOut",
-            onComplete: resolve,
+        if (zoom) {
+          resetCamera();
+          const departmentData = ensureDeferredData().catch((error) => {
+            console.error("Deferred payload error", error);
           });
-        });
-        if (transitionToken !== regionTransitionToken) return;
-
-        setMapStageMode("region");
+          await animateCameraToTarget(getRegionCameraTarget(regionCode), { duration: 1.2, ease: "power2.inOut" });
+          if (transitionToken !== regionTransitionToken) return;
+          await departmentData;
+          if (transitionToken !== regionTransitionToken) return;
+          await animateDepartmentFocus(regionCode);
+          if (transitionToken !== regionTransitionToken) return;
+          await animateCameraToTarget(
+            getRegionCameraTarget(regionCode, { scaleMultiplier: 1.28, maxScale: 5.1 }),
+            { duration: 1.22, ease: "power2.out" },
+          );
+          if (transitionToken !== regionTransitionToken) return;
+          clearFocusOverlay();
+        }
+        applyPhase("region");
+        setMapCameraMoving(false);
+        renderHero();
         revealContent();
         scheduleStoryRender();
-        clearFocusOverlay();
       }
 
       function renderMetricSwitch(containerId, items, activeKey, onChange) {
@@ -989,7 +793,9 @@ __CHAPTER_MODULES_SCRIPT__
             onComplete: () => element.classList.remove("is-scroll-revealing"),
             scrollTrigger: {
               trigger: element,
-              start: "top 82%",
+              // Le dernier chapitre reste accessible même avant le chargement de ses graphiques.
+              start: () => Math.min(element.getBoundingClientRect().top + window.scrollY - window.innerHeight * .82,
+                ScrollTrigger.maxScroll(window) - 1),
               once: true,
             },
           });
@@ -997,22 +803,18 @@ __CHAPTER_MODULES_SCRIPT__
       }
 
       function boot() {
-        window.addEventListener("resize", scheduleScrollTriggerRefresh, { passive: true });
         initGeographySelector();
         initStageMedia();
-        renderHero();
         renderHeaderActions();
-        setMapStageMode("landing");
         scheduleDeferredPreload();
-        if (document.readyState === "complete") {
-          scheduleScrollTriggerRefresh();
-        } else {
-          window.addEventListener("load", scheduleScrollTriggerRefresh, { once: true });
+        if (!REDUCED_MOTION) {
+          new ResizeObserver(refreshChapterPositions).observe(story);
+          onFontsReady(refreshChapterPositions);
         }
         map.hydrate({
           activateRegion: (code) => transitionToRegion(code, false),
+          activateTerritory: (code) => code === "national" ? transitionToNational() : transitionToRegion(code, true),
           toggleGeography: () => geoTrigger.click(),
-          formatCount,
         });
       }
 

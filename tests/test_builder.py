@@ -54,6 +54,11 @@ class VideoManifestTests(unittest.TestCase):
                 path = media / file
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.touch()
+            (media / "clips_regions_revision/SOURCES_ET_LICENCES.md").write_text(
+                "### region_bretagne.mp4\n- Légende : Ploumanac’h (22)\n"
+                "### region_ile_de_france.mp4\n- Légende : Tour Eiffel · Paris (75)\n",
+                encoding="utf-8",
+            )
             regions = {"11": {"slug": "ile-de-france"}, "53": {"slug": "bretagne"}, "06": {"slug": "mayotte"}}
             with mock.patch.object(modules, "MP4_DIR", media), mock.patch.object(utils, "ROOT", root):
                 videos = modules.build_video_manifest(regions)
@@ -68,6 +73,7 @@ class VideoManifestTests(unittest.TestCase):
             },
             "byHistorical": {"poitou-charentes": "Assets/Mp4/clips_regions_revision/anciennes_poitou_charentes.mp4"},
             "posters": {"Assets/Mp4/regions/region_bretagne.mp4": "Assets/Mp4/regions/region_bretagne.webp"},
+            "locations": {"Assets/Mp4/regions/region_bretagne.mp4": "Ploumanac’h (22)"},
             "credits": "Assets/Mp4/clips_regions_revision/SOURCES_ET_LICENCES.md",
         })
 

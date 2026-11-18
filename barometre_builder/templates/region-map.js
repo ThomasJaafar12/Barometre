@@ -12,22 +12,21 @@
       const DISPLAY_POLYGON_AREA_RATIO = 0.01;
 
       const MAINLAND_REGION_LABELS = new Map([
-        ["11", { lines: ["Île-de-", "France"], dy: 8 }],
-        ["24", { lines: ["Centre-Val", "de Loire"], dy: 4 }],
-        ["27", { lines: ["Bourgogne-", "Franche-Comté"], dx: 28, dy: 8, fontSize: 11 }],
-        ["28", { lines: ["Normandie"], dy: -6 }],
-        ["32", { lines: ["Hauts-de-", "France"], dx: 24, dy: -18 }],
-        ["44", { lines: ["Grand Est"], dx: 34, dy: -6 }],
-        ["52", { lines: ["Pays de", "la Loire"], dx: -28, dy: -4 }],
-        ["53", { lines: ["Bretagne"], dx: -18, dy: -8 }],
-        ["75", { lines: ["Nouvelle-", "Aquitaine"], dx: -26, dy: 18 }],
-        ["76", { lines: ["Occitanie"], dx: 18, dy: 28 }],
-        ["84", { lines: ["Auvergne-", "Rhône-Alpes"], dx: 22, dy: 10, fontSize: 11.2 }],
-        ["93", { lines: ["Provence-Alpes-", "Côte d'Azur"], dx: 42, dy: 20, fontSize: 10.8 }],
-        ["94", { lines: ["Corse"], dy: -42 }],
+        ["11", { lines: ["Île-de-", "France"], dy: 3 }],
+        ["24", { lines: ["Centre-Val", "de Loire"], dy: 2 }],
+        ["27", { lines: ["Bourgogne-", "Franche-Comté"], dx: 9, dy: 5 }],
+        ["28", { lines: ["Normandie"], dx: 1, dy: -5 }],
+        ["32", { lines: ["Hauts-de-", "France"], dx: 6, dy: -5 }],
+        ["44", { lines: ["Grand Est"], dx: 12, dy: -4 }],
+        ["52", { lines: ["Pays de", "la Loire"], dx: -9, dy: -2 }],
+        ["53", { lines: ["Bretagne"], dx: -8, dy: -6 }],
+        ["75", { lines: ["Nouvelle-", "Aquitaine"], dx: -12, dy: 7 }],
+        ["76", { lines: ["Occitanie"], dx: 6, dy: 15 }],
+        ["84", { lines: ["Auvergne-", "Rhône-Alpes"], dx: 10, dy: 2 }],
+        ["93", { lines: ["Provence-Alpes-", "Côte d'Azur"], dx: 16, dy: 7 }],
+        ["94", { lines: ["Corse"], dx: -1, dy: -51 }],
       ]);
 
-      const landingMapShadowSvg = d3.select("#landingMapShadow");
       const landingMapSvg = d3.select("#landingMap");
       const tooltip = document.getElementById("tooltip");
       const tooltipLabel = document.getElementById("tooltipLabel");
@@ -44,7 +43,7 @@
       let pendingIntent = window.BAROMETRE_TAKE_GEOGRAPHY_TOGGLE?.() ? { type: "geography" } : null;
       delete window.BAROMETRE_TAKE_GEOGRAPHY_TOGGLE;
       let onRegion = null;
-      let formatRegionCount = null;
+      let onTerritory = null;
 
       function queueGeographyToggle() {
         pendingIntent = pendingIntent?.type === "geography" ? null : { type: "geography" };
@@ -58,13 +57,19 @@
         }
       }
 
-      function hydrate({ activateRegion, toggleGeography, formatCount }) {
+      function selectTerritory(code) {
+        if (onTerritory) onTerritory(code);
+        else pendingIntent = { type: "territory", code };
+      }
+
+      function hydrate({ activateRegion, activateTerritory, toggleGeography }) {
         onRegion = activateRegion;
-        formatRegionCount = formatCount;
+        onTerritory = activateTerritory;
         geoTrigger.removeEventListener("click", queueGeographyToggle);
         const intent = pendingIntent;
         pendingIntent = null;
         if (intent?.type === "region") activateRegion(intent.code);
+        if (intent?.type === "territory") activateTerritory(intent.code);
         if (intent?.type === "geography") toggleGeography();
       }
 
@@ -109,17 +114,6 @@
         document.documentElement.style.setProperty("--accent-deep", theme.accentDeep);
         document.documentElement.style.setProperty("--accent-secondary", theme.secondary);
         document.documentElement.style.setProperty("--accent-glow", colorWithAlpha(theme.glow));
-      }
-
-      function mapRegionValues() {
-        if (state.phase === "national") {
-          return new Map(DATA.regions.map((region) => [region.code, primaryHeroValue(region)]));
-        }
-        return new Map();
-      }
-
-      function primaryHeroValue(region) {
-        return region.hero[detail.primaryIndicator]?.value ?? null;
       }
 
       function buildScale(domain, colors) {
@@ -170,7 +164,6 @@
       }));
       const displayRegionsGeojson = { ...DATA.geography.regions, features: displayRegionFeatures };
 
-      let tooltipMoveFrame = null;
       let tooltipClientX = 0;
       let tooltipClientY = 0;
       let tooltipFitsViewport = false;
@@ -178,7 +171,6 @@
       let tooltipHeight = 0;
 
       function applyTooltipPosition() {
-        tooltipMoveFrame = null;
         if (tooltipFitsViewport) {
           const right = document.documentElement.clientWidth - tooltipWidth - 8;
           const bottom = window.innerHeight - tooltipHeight - 8;
@@ -191,18 +183,7 @@
         tooltip.style.transform = `translate3d(${tooltipClientX}px, ${tooltipClientY}px, 0) translate(-50%, calc(-100% - 10px))`;
       }
 
-      function moveTooltip(event) {
-        tooltipClientX = event.clientX;
-        tooltipClientY = event.clientY;
-        if (tooltipMoveFrame != null) return;
-        tooltipMoveFrame = requestAnimationFrame(applyTooltipPosition);
-      }
-
       function showTooltip(event, label, value, fitViewport = false) {
-        if (tooltipMoveFrame != null) {
-          cancelAnimationFrame(tooltipMoveFrame);
-          tooltipMoveFrame = null;
-        }
         tooltipClientX = event.clientX;
         tooltipClientY = event.clientY;
         const labelChanged = tooltipLabel.textContent !== label;
@@ -219,51 +200,24 @@
       }
 
       function hideTooltip() {
-        if (tooltipMoveFrame != null) {
-          cancelAnimationFrame(tooltipMoveFrame);
-          tooltipMoveFrame = null;
-        }
         tooltip.classList.remove("is-visible");
       }
 
-      function cachedPath(generator) {
-        const projectedPaths = new WeakMap();
-        return (feature) => {
-          if (!projectedPaths.has(feature)) projectedPaths.set(feature, generator(feature));
-          return projectedPaths.get(feature);
-        };
-      }
+__COCKPIT_READOUT__
+
+__COCKPIT_MAP__
 
       function drawCompositeMap(selection, featureCollection, config) {
         const viewKey = selection.node();
-        const geometryKey = JSON.stringify([Boolean(config.showMainlandLabels), Boolean(config.isolateShadows), config.hoverClass || ""]);
-        const previousView = !config.clickable ? compositeMapViews.get(viewKey) : null;
-        if (previousView && previousView.featureCollection === featureCollection && previousView.geometryKey === geometryKey
+        const previousView = compositeMapViews.get(viewKey);
+        if (previousView && previousView.featureCollection === featureCollection
           && previousView.refs.rootGroup.node().parentNode === viewKey) {
           previousView.update(config);
           return previousView.refs;
         }
         selection.selectChildren(":not(title):not(desc)").remove();
-        if (config.shadowSelection) config.shadowSelection.selectAll("*").remove();
-        const staticShadowRoot = config.isolateShadows && config.shadowSelection
-          ? config.shadowSelection.append("g").attr("class", "map-root")
-          : null;
-        const staticShadowLayer = staticShadowRoot
-          ? staticShadowRoot.append("g").attr("class", "map-static-shadow-layer").attr("aria-hidden", "true")
-          : null;
         const root = selection.append("g").attr("class", "map-root");
         const cameraGroup = root.append("g").attr("class", "camera-group");
-        const hoverShadowLayer = config.isolateShadows
-          ? cameraGroup.append("g").attr("class", "map-hover-shadow-layer").attr("aria-hidden", "true")
-          : null;
-        const hoverEffectPaths = hoverShadowLayer
-          ? [
-              hoverShadowLayer.append("path").attr("class", "map-hover-effect-path map-hover-depth-far").attr("transform", "translate(0 12)").attr("display", "none"),
-              hoverShadowLayer.append("path").attr("class", "map-hover-effect-path map-hover-depth-near").attr("transform", "translate(0 7)").attr("display", "none"),
-              hoverShadowLayer.append("path").attr("class", "map-hover-effect-path map-hover-glow-outer").attr("display", "none"),
-              hoverShadowLayer.append("path").attr("class", "map-hover-effect-path map-hover-glow-inner").attr("display", "none"),
-            ]
-          : [];
         const featureLayer = cameraGroup.append("g").attr("class", "feature-layer");
         const focusGroup = cameraGroup.append("g").attr("class", "focus-layer");
         const features = featureCollection.features;
@@ -272,110 +226,25 @@
           [[mapLayout.mainlandExtent[0], mapLayout.mainlandExtent[1]], [mapLayout.mainlandExtent[2], mapLayout.mainlandExtent[3]]],
           { type: "FeatureCollection", features: mainlandFeatures },
         );
-        const path = d3.geoPath(projection);
-        const pathData = staticShadowLayer ? cachedPath(path) : path;
+        const path = d3.geoPath(projection).digits(config.cockpit ? 1 : 3);
         const pathByCode = new Map();
         const labelByCode = new Map();
         const pathGeneratorByCode = new Map();
-        let hoveredElement = null;
-        const clearHoverShadow = () => {
-          hoverEffectPaths.forEach((effectPath) => effectPath.attr("display", "none").attr("d", null));
-        };
-        const clearPathHover = () => {
-          if (!config.hoverClass) return;
-          if (hoveredElement) hoveredElement.classed(config.hoverClass, false);
-          hoveredElement = null;
-          clearHoverShadow();
-        };
-        const canUseHoverEffect = () => !config.canHover || config.canHover();
-        const canShowPathTooltip = () => !config.canShowTooltip || config.canShowTooltip();
-        const setPathHover = (element, datum, enabled) => {
-          if (!config.hoverClass) return;
-          if (enabled && !canUseHoverEffect()) {
-            clearPathHover();
-            return;
-          }
-          if (enabled) {
-            if (hoveredElement !== element) clearPathHover();
-            hoveredElement = element;
-            element.classed(config.hoverClass, true);
-            if (hoverEffectPaths.length) {
-              const hoverEffect = config.hoverEffectResolver ? config.hoverEffectResolver(datum) : null;
-              if (hoverEffect) {
-                const shape = element.attr("d");
-                hoverEffectPaths.forEach((effectPath) => {
-                  effectPath
-                    .attr("d", shape)
-                    .style("--region-hover-shadow", hoverEffect.shadow)
-                    .attr("display", null);
-                });
-              } else {
-                clearHoverShadow();
-              }
-            }
-            return;
-          }
-          if (hoveredElement === element) clearPathHover();
-        };
-        const bindPathInteractions = (element, key) => {
-          if (!config.clickable) return;
-          element
-            .on("mouseenter", (event, datum) => {
-              if (!canUseHoverEffect()) {
-                clearPathHover();
-              } else {
-                setPathHover(element, datum, true);
-              }
-              if (!canShowPathTooltip()) {
-                hideTooltip();
-                return;
-              }
-              const tooltipText = config.tooltipResolver(datum);
-              showTooltip(event, tooltipText.label, tooltipText.value);
-            })
-            .on("mousemove", (event) => {
-              if (!canUseHoverEffect()) clearPathHover();
-              if (!canShowPathTooltip()) {
-                hideTooltip();
-                return;
-              }
-              moveTooltip(event);
-            })
-            .on("mouseleave", (event, datum) => {
-              setPathHover(element, datum, false);
-              hideTooltip();
-            })
-            .on("click", () => {
-              clearPathHover();
-              hideTooltip();
-              config.onClick(key);
-            });
-        };
-
-        if (staticShadowLayer) {
-          const mainlandShadowGroup = staticShadowLayer.append("g").attr("class", "map-static-mainland-shadow");
-          mainlandFeatures
-            .filter((feature) => !config.shadowFeatureFilter || config.shadowFeatureFilter(feature))
-            .forEach((feature) => {
-              mainlandShadowGroup.append("path").datum(feature).attr("class", "map-static-shadow-shape").attr("d", pathData);
-            });
-        }
 
         const mainlandGroup = featureLayer.append("g").attr("class", "mainland-layer");
-        const labelLayer = config.showMainlandLabels ? featureLayer.append("g").attr("class", "mainland-label-layer") : null;
         mainlandFeatures.forEach((feature) => {
           const key = config.keyResolver(feature);
           const element = mainlandGroup.append("path")
             .datum(feature)
             .attr("class", config.className(feature))
-            .attr("d", pathData)
+            .attr("d", path)
             .attr("fill", config.fillResolver(feature))
             .attr("data-code", key);
-          bindPathInteractions(element, key);
           pathByCode.set(key, element);
           pathGeneratorByCode.set(key, path);
         });
-        if (labelLayer) {
+        if (config.cockpit) {
+          const labelLayer = featureLayer.append("g").attr("class", "mainland-label-layer");
           mainlandFeatures.forEach((feature) => {
             const code = config.regionResolver(feature);
             const region = regionsByCode.get(code);
@@ -384,50 +253,28 @@
             const [baseX, baseY] = path.centroid(feature);
             if (!Number.isFinite(baseX) || !Number.isFinite(baseY)) return;
             const x = baseX + (layout.dx || 0);
-            const lineHeight = layout.lineHeight || 14;
-            const startY = baseY + (layout.dy || 0) - ((layout.lines.length - 1) * lineHeight) / 2;
             const text = labelLayer.append("text")
-              .attr("class", "map-region-label")
+              .attr("class", "map-region-label region-name")
               .attr("x", x)
-              .attr("y", startY)
+              .attr("y", baseY + (layout.dy || 0))
               .attr("data-code", code);
-            if (layout.fontSize) {
-              text.style("font-size", `${layout.fontSize}px`);
-            }
             layout.lines.forEach((line, index) => {
-              text.append("tspan")
-                .attr("x", x)
-                .attr("y", startY + index * lineHeight)
+              text.append("tspan").attr("x", x)
+                .attr("dy", index ? "1em" : layout.lines.length === 1 ? ".34em" : "-.14em")
                 .text(line);
             });
             labelByCode.set(code, text);
           });
         }
 
-        Object.entries(mapLayout.domInsets).forEach(([regionCode, inset]) => {
+        const insets = config.cockpit ? [] : Object.entries(mapLayout.domInsets);
+        insets.forEach(([regionCode, inset]) => {
           const insetFeatures = features.filter((feature) => config.regionResolver(feature) === regionCode);
           const insetProjection = d3.geoMercator().fitExtent(
             [[inset.x + 18, inset.y + 34], [inset.x + inset.width - 18, inset.y + inset.height - 18]],
             { type: "FeatureCollection", features: insetFeatures },
           );
           const insetPath = d3.geoPath(insetProjection);
-          const insetPathData = staticShadowLayer ? cachedPath(insetPath) : insetPath;
-          if (staticShadowLayer) {
-            const insetShadowGroup = staticShadowLayer.append("g").attr("class", `map-static-inset-shadow inset-${regionCode}`);
-            insetShadowGroup.append("rect")
-              .attr("class", "map-static-inset-card-shadow")
-              .attr("x", inset.x)
-              .attr("y", inset.y)
-              .attr("width", inset.width)
-              .attr("height", inset.height)
-              .attr("rx", 24);
-            const insetPathShadowGroup = insetShadowGroup.append("g").attr("class", "map-static-inset-path-shadow");
-            insetFeatures
-              .filter((feature) => !config.shadowFeatureFilter || config.shadowFeatureFilter(feature))
-              .forEach((feature) => {
-                insetPathShadowGroup.append("path").datum(feature).attr("class", "map-static-shadow-shape").attr("d", insetPathData);
-              });
-          }
           const group = featureLayer.append("g").attr("class", `inset inset-${regionCode}`);
           group.append("rect").attr("class", "inset-card").attr("x", inset.x).attr("y", inset.y).attr("width", inset.width).attr("height", inset.height).attr("rx", 24);
           const pathGroup = group.append("g").attr("class", "inset-path-layer");
@@ -437,10 +284,9 @@
             const element = pathGroup.append("path")
               .datum(feature)
               .attr("class", config.className(feature))
-              .attr("d", insetPathData)
+              .attr("d", insetPath)
               .attr("fill", config.fillResolver(feature))
               .attr("data-code", key);
-            bindPathInteractions(element, key);
             pathByCode.set(key, element);
             pathGeneratorByCode.set(key, insetPath);
           });
@@ -449,9 +295,8 @@
         const refs = {
           rootGroup: root,
           cameraGroup,
+          mainlandProjection: projection,
           cameraState: { scale: 1, x: 0, y: 0 },
-          staticShadowLayer,
-          hoverEffectPaths,
           featureLayer,
           focusGroup,
           pathByCode,
@@ -459,10 +304,10 @@
           pathGeneratorByCode,
         };
         // Les vues départementales réutilisent les chemins quand seules les valeurs changent.
-        if (!config.clickable) {
+        if (!config.cockpit) {
           const paths = featureLayer.selectAll("path.path-department");
           config.bindDepartmentTooltip(paths, config.tooltipResolver);
-          compositeMapViews.set(viewKey, { featureCollection, geometryKey, refs, update(nextConfig) {
+          compositeMapViews.set(viewKey, { featureCollection, refs, update(nextConfig) {
             config = nextConfig;
             pathByCode.forEach((element) => {
               const feature = element.datum();
@@ -475,83 +320,25 @@
       }
 
       function renderLandingMap() {
-        const regionValues = mapRegionValues();
-        const numericValues = [...regionValues.values()].filter((value) => value != null);
-        const colorScale = numericValues.length
-          ? buildScale(d3.extent(numericValues), [paletteToken("map-national-low", "rgba(255,255,255,0.08)"), paletteToken("map-national-high", "rgba(120,236,203,0.9)")])
-          : () => paletteToken("map-national-low", "rgba(255,255,255,0.08)");
         chartRefs.regionMap = drawCompositeMap(landingMapSvg, displayRegionsGeojson, {
-          clickable: true,
-          showMainlandLabels: true,
-          hoverClass: "is-hovered",
-          isolateShadows: state.phase === "landing",
-          shadowSelection: landingMapShadowSvg,
-          shadowFeatureFilter: (feature) => regionsByCode.get(feature.properties.code).hasData,
-          hoverEffectResolver: (feature) => {
-            const region = regionsByCode.get(feature.properties.code);
-            if (!region.hasData) return null;
-            const theme = themeForRegion(feature.properties.code);
-            return { shadow: colorWithAlpha(theme.glow) };
-          },
-          canHover: () => state.phase === "landing" && !state.mapHoverLocked,
-          canShowTooltip: () => !state.mapHoverLocked,
+          cockpit: true,
           keyResolver: (feature) => feature.properties.code,
           regionResolver: (feature) => feature.properties.code,
           className: (feature) => `path-region${regionsByCode.get(feature.properties.code).hasData ? "" : " is-unavailable"}`,
-          fillResolver: (feature) => {
-            if (state.phase === "national") {
-              const value = regionValues.get(feature.properties.code);
-              return value != null ? colorScale(value) : paletteToken("map-idle", "rgba(255,255,255,0.06)");
-            }
-            const theme = themeForRegion(feature.properties.code);
-            return state.phase !== "landing" && state.selectedRegion === feature.properties.code ? theme.accent : paletteToken("map-idle", "rgba(255,255,255,0.06)");
-          },
-          tooltipResolver: (feature) => {
-            const region = regionsByCode.get(feature.properties.code);
-            if (state.phase === "national" && primaryHeroValue(region) != null) {
-              return { label: region.name, value: formatRegionCount(primaryHeroValue(region)) };
-            }
-            if (!region.hasData) return { label: region.name, value: "Données indisponibles" };
-            return { label: region.name, value: "Entrer" };
-          },
-          onClick: selectRegion,
+          fillResolver: () => null,
         });
-        chartRefs.regionMap.pathByCode.forEach((element, code) => {
-          const theme = themeForRegion(code);
-          element
-            .style("--region-hover-fill", theme.accent)
-            .style("--region-hover-shadow", colorWithAlpha(theme.glow));
-        });
-        highlightSelectedRegion();
-      }
-
-      function highlightSelectedRegion() {
-        chartRefs.regionMap.pathByCode.forEach((element, code) => {
-          const isSelected = state.phase === "region" && code === state.selectedRegion;
-          if (state.phase !== "landing") {
-            element.classed("is-hovered", false);
-          }
-          element.classed("is-selected", isSelected);
-          if (state.phase === "region") {
-            const theme = themeForRegion(code);
-            element.attr("fill", isSelected ? theme.accent : paletteToken("map-idle", "rgba(255,255,255,0.06)"));
-          }
-          if (isSelected) {
-            element.raise();
-          }
-        });
-        chartRefs.regionMap.labelByCode.forEach((element, code) => {
-          element.attr("display", state.phase === "region" ? "none" : null);
-        });
+        mountCockpitMap(chartRefs.regionMap);
       }
 
       applyColorTokens();
       setTheme(null);
+      initCockpitReadout();
       renderLandingMap();
       geoTrigger.addEventListener("click", queueGeographyToggle);
 
       window.BAROMETRE_REGION_MAP = {
         buildScale, chartRefs, colorWithAlpha, drawCompositeMap, hideTooltip, hydrate,
-        paletteToken, primaryHeroValue, regionsByCode, renderLandingMap, setTheme, showTooltip, state, themeForRegion,
+        paletteToken, regionsByCode, resetTerritoryPreview, setTheme, showTooltip, state, themeForRegion,
+        frNumber, formatCount, formatCurrency, monthLabel, quarterLabel, createIndicatorCard, updateIndicatorCard, cockpitCenter,
       };
     })();

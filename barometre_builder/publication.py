@@ -136,6 +136,8 @@ def assemble_publication(context: BuildContext, source_root: Path = ROOT) -> Pub
         videos["posters"] = {
             publish_media(video): publish_media(poster) for video, poster in videos["posters"].items()
         }
+    if "locations" in videos:
+        videos["locations"] = {publish_media(video): label for video, label in videos["locations"].items()}
     for region in boot["regions"]:
         if region.get("video"):
             region["video"] = publish_media(region["video"])

@@ -2,6 +2,42 @@
 
       const departmentMapGeometries = new WeakMap();
 
+      function treemapPalette() {
+        return {
+          negative: ["#FF967D", paletteToken("employment-treemap-negative", "#ED4766")],
+          positive: ["#62DDB1", paletteToken("employment-treemap-positive", "#10AD8D")],
+          neutral: paletteToken("employment-treemap-neutral", "#F6C65B"),
+        };
+      }
+
+      function treemapVariationColorScale(values, valueOf) {
+        const maxAbs = Math.max(1.5, d3.max(values, (row) => {
+          const value = valueOf(row);
+          return Number.isFinite(value) ? Math.abs(value) : 0;
+        }) || 0);
+        const { negative, positive, neutral } = treemapPalette();
+        const interpolateNegative = d3.interpolateRgb(...negative);
+        const interpolatePositive = d3.interpolateRgb(...positive);
+        return (value) => {
+          if (!Number.isFinite(value)) return "#E2E8F0";
+          if (Math.abs(value) <= 0.05) return neutral;
+          const intensity = Math.sqrt(Math.min(1, Math.abs(value) / maxAbs));
+          return value < 0 ? interpolateNegative(intensity) : interpolatePositive(intensity);
+        };
+      }
+
+      function treemapVariationLegend({ negative, positive, missing }) {
+        const entries = [
+          ["negative", negative], ["neutral", "Quasi stable"], ["positive", positive],
+        ];
+        if (missing) entries.push(["unknown", missing]);
+        return entries.map(([direction, label]) => {
+          const chip = textElement("span", "", "legend-chip");
+          chip.append(textElement("i", "", `employment-treemap-swatch is-${direction}`), document.createTextNode(label));
+          return chip;
+        });
+      }
+
       function departmentMapGeometry(features) {
         let geometry = departmentMapGeometries.get(features);
         if (!geometry) {

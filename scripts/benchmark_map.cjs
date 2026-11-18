@@ -69,7 +69,7 @@ async function observe(browser, variant, topic, scenario) {
         }, { capture: true });
       } else {
         const observer = new MutationObserver(() => {
-          if (document.querySelectorAll('#landingMap .path-region[d]').length !== 18) return;
+          if (document.querySelectorAll('#landingMap .mainland-layer .path-region[d]').length !== 13) return;
           observer.disconnect();
           requestAnimationFrame(() => requestAnimationFrame(() => {
             console.debug('BARO_MAP ' + JSON.stringify([performance.timeOrigin + performance.now(), performance.now()]));

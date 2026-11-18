@@ -105,7 +105,7 @@ class TopicProjectionTests(unittest.TestCase):
                     detailed_scopes = deferred["modules"]["chiffres"]["scopes"]
                     for key, series in detailed_scopes[code].items():
                         latest = series["points"][-1] if series["points"] else {}
-                        self.assertEqual(hero[key], {"value": latest.get("value"), "date": latest.get("date")})
+                        self.assertEqual(hero[key], {field: latest.get(field) for field in ("date", "value", "yearlyChange")})
                         brief_series = self.context.brief["scopes"][code][key]
                         brief_points = brief_series["points"]
                         self.assertEqual(series["points"][-len(brief_points):], brief_points)
@@ -113,21 +113,23 @@ class TopicProjectionTests(unittest.TestCase):
                 elif topic == "emploi":
                     points = scope(modules["sector"]["regional"]).get("series", {}).get("population-entiere", {}).get("points", [])
                     last = points[-1] if points else {}
-                    for key, metric in (("headcount", "effectifs_cvs"), ("payroll", "masse_cvs")):
-                        self.assertEqual(hero[key], {"value": last.get(metric), "date": last.get("date")})
+                    for key, metric, variation in (("headcount", "effectifs_cvs", "effectifs_yoy"), ("payroll", "masse_cvs", "masse_yoy")):
+                        self.assertEqual(hero[key], {"value": last.get(metric), "date": last.get("date"), "yearlyChange": last.get(variation)})
                     original_hero = self.context.boot["nationalHero"] if code == "national" else next(r["hero"] for r in self.context.boot["regions"] if r["code"] == code)
                     self.assertEqual(hero["auto"]["value"], original_hero["auto"]["value"])
                 else:
                     pcol = scope(modules["pcol"]).get("modes", {}).get("all", {}).get("population-entiere", [])
-                    last = pcol[-1] if pcol else [None, None, None]
-                    self.assertEqual(hero["pcol"], {"date": last[0], "value": last[1]})
-                    self.assertEqual(hero["jobs"], {"date": last[0], "value": last[2]})
                     dpae = scope(modules["dpae"]).get("points", [])
-                    last = dpae[-1] if dpae else {}
-                    self.assertEqual(hero["dpae"], {"date": last.get("date"), "value": last.get("value")})
                     delai = scope(modules["delai"]).get("modes", {}).get("all", {}).get("ensemble", [])
-                    last = delai[-1] if delai else [None, None]
-                    self.assertEqual(hero["delai"], {"date": last[0], "value": last[1]})
+                    for key, series in (
+                        ("pcol", {p[0]: p[1] for p in pcol}), ("jobs", {p[0]: p[2] for p in pcol}),
+                        ("dpae", {p["date"]: p["value"] for p in dpae}), ("delai", {p[0]: p[1] for p in delai}),
+                    ):
+                        date = max(series, default=None)
+                        value = series.get(date)
+                        prior = series.get(f"{int(date[:4]) - 1}{date[4:]}") if date else None
+                        change = (value / prior - 1) * 100 if value is not None and prior else None
+                        self.assertEqual(hero[key], {"date": date, "value": value, "yearlyChange": change})
 
     def test_partial_data_in_mayotte_is_available_for_health(self):
         boot, _ = project_details_payloads(self.context.boot, self.context.deferred, topic="entreprises")
@@ -163,7 +165,7 @@ class TopicProjectionTests(unittest.TestCase):
         self.assertEqual(len(national["headcount"]["points"]), len(points))
         self.assertEqual(national["headcount"]["points"][0]["date"], "2013-01-01")
         self.assertEqual(national["dpae"]["points"], [])
-        self.assertEqual(boot["nationalHero"]["payroll"], {"value": 0, "date": "2025-10-01"})
+        self.assertEqual(boot["nationalHero"]["payroll"], {"value": 0, "date": "2025-10-01", "yearlyChange": None})
         self.assertTrue(all(not region["hasData"] for region in boot["regions"]))
 
     def test_projection_does_not_mutate_shared_context(self):

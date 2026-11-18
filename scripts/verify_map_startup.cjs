@@ -19,6 +19,11 @@ const topics = {
   emploi: '#employmentEffectifsChartSvg .tick',
   entreprises: '#pcolChartSvg .tick',
 };
+const indicatorKeys = {
+  chiffres: ['payroll', 'headcount', 'dpae', 'pcol'],
+  emploi: ['headcount', 'payroll', 'auto'],
+  entreprises: ['pcol', 'jobs', 'dpae', 'delai'],
+};
 const d3 = 'assets/vendor/d3.min.js';
 const animation = ['assets/vendor/gsap.min.js', 'assets/vendor/ScrollTrigger.min.js'];
 const shared = [regionMap, d3];
@@ -50,6 +55,101 @@ function browserErrors(page) {
     if (message.type() === 'error' && /Content Security Policy/i.test(message.text())) errors.push(message.text());
   });
   return errors;
+}
+
+function readKpis(page, container) {
+  return page.locator(container + ' .kpi-card').evaluateAll(cards => cards.map(card => ({
+    key: card.dataset.indicator,
+    label: card.querySelector('.label').textContent,
+    value: card.querySelector('strong').textContent,
+    period: card.querySelector('.meta').textContent,
+  })));
+}
+
+async function waitForScope(page, selector, name) {
+  await page.waitForFunction(([id, expected]) => document.querySelector(id)?.textContent === expected,
+    [selector, name]);
+}
+
+async function checkDesktopFrame(page) {
+  // ResizeObserver fits the SVG to its grid after the browser lays out the shell.
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const layout = await page.evaluate(() => {
+    const box = selector => document.querySelector(selector).getBoundingClientRect();
+    const shell = box('.shell'), stage = box('#stageShell'), france = box('#landingMap .mainland-layer');
+    return {
+      outerGap: innerHeight - shell.bottom,
+      innerGap: shell.bottom - stage.bottom,
+      overflow: document.documentElement.scrollHeight - innerHeight,
+      overlaysClear: box('#cockpitReadout').right <= france.left && france.right <= box('#cockpitTerritories').left,
+      franceFits: france.top >= stage.top && france.bottom <= stage.bottom,
+    };
+  });
+  assert.ok(layout.outerGap >= 12 && layout.outerGap <= 20, 'Outer frame gap: ' + layout.outerGap);
+  assert.ok(layout.innerGap >= 16 && layout.innerGap <= 22, 'Map to white frame gap: ' + layout.innerGap);
+  assert.ok(layout.overflow <= 1, 'Desktop cockpit vertical overflow: ' + layout.overflow);
+  assert.ok(layout.franceFits && layout.overlaysClear, 'Mainland France and Corsica must clear both overlays');
+}
+
+async function returnToCockpit(page) {
+  await page.locator('#geoTrigger').click();
+  await page.locator('.geo-return-button').click();
+  await page.locator('#stageShell[data-phase="landing"] #cockpitScopeName').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#story').isVisible(), false);
+}
+
+async function checkCockpit(page, topic) {
+  const rail = page.locator('#cockpitTerritories button');
+  const locator = page.locator('.stage-location');
+  assert.equal(await locator.isVisible(), false);
+  assert.deepEqual(await rail.evaluateAll(buttons => buttons.map(button => button.dataset.scope)),
+    ['national', '01', '02', '03', '04']);
+  await page.mouse.move(0, 0);
+  await waitForScope(page, '#cockpitScopeName', 'France entière');
+  const national = await readKpis(page, '#cockpitKpis');
+  assert.deepEqual(national.map(card => card.key), indicatorKeys[topic]);
+  assert.ok(national.every(card => card.value !== '—' && card.label && card.period));
+
+  const region = page.locator('#landingMap .path-region[data-code="24"]');
+  await region.hover();
+  await waitForScope(page, '#cockpitScopeName', 'Centre-Val de Loire');
+  const regional = await readKpis(page, '#cockpitKpis');
+  assert.notDeepEqual(regional, national);
+  await page.locator('#geoTrigger').hover();
+  await waitForScope(page, '#cockpitScopeName', 'France entière');
+  assert.deepEqual(await readKpis(page, '#cockpitKpis'), national);
+
+  const overseas = page.locator('#cockpitTerritories button[data-scope="01"]');
+  await overseas.focus();
+  await waitForScope(page, '#cockpitScopeName', 'Guadeloupe');
+  const preview = await readKpis(page, '#cockpitKpis');
+  assert.notDeepEqual(preview, national);
+  await overseas.press('Enter');
+  await waitForScope(page, '#heroTitle', 'Guadeloupe');
+  await page.locator('#story').waitFor({ state: 'visible' });
+  assert.equal(await locator.innerText(), 'Guadeloupe');
+  assert.deepEqual(await readKpis(page, '#heroKpis'), preview);
+  await page.locator(topics[topic]).first().waitFor({ state: 'attached' });
+
+  await page.locator('#geoTrigger').click();
+  await page.getByRole('option', { name: 'Mayotte', exact: true }).click();
+  await waitForScope(page, '#heroTitle', 'Mayotte');
+  if (topic === 'entreprises') {
+    const cards = await readKpis(page, '#heroKpis');
+    assert.equal(cards.find(card => card.key === 'pcol').value, '—');
+    assert.notEqual(cards.find(card => card.key === 'delai').value, '—');
+  }
+  await returnToCockpit(page);
+  await page.locator('#cockpitTerritories button[data-scope="national"]').click();
+  await waitForScope(page, '#heroTitle', 'France entière');
+  assert.equal(await locator.innerText(), 'Tour Eiffel · Paris (75)');
+  assert.match(await page.locator('#heroKpis .hero-kpi-change').first().innerText(), /sur 1 an/);
+  assert.equal(await page.locator('#landingMap').isVisible(), false, 'The national overview must hide the region chooser map');
+  assert.equal(await page.locator('#heroKpis .kpi-card:visible').count(), national.length);
+  assert.deepEqual(await readKpis(page, '#heroKpis'), national);
+  await returnToCockpit(page);
+  await region.focus();
+  await waitForScope(page, '#cockpitScopeName', 'Centre-Val de Loire');
 }
 
 async function checkWarmCache(browser, origin) {
@@ -89,15 +189,22 @@ async function checkWarmCache(browser, origin) {
 
     for (const topic of Object.keys(topics)) {
       const destination = `barometre_${topic}.html`;
-      await page.locator(`a[href="${destination}"]`).click();
+      await page.locator(`article.topic[data-topic="${topic}"]`).getByRole('link', { name: /En détail$/ }).click();
       await page.waitForURL(`${origin}/${destination}`);
-      await page.locator('#landingMap .path-region[d]').first().waitFor({ state: 'visible' });
+      await page.locator('#landingMap .mainland-layer .path-region[d]').first().waitFor({ state: 'visible' });
       const transfers = await page.evaluate(assets => assets.map(asset => {
         const resource = performance.getEntriesByName(new URL(asset, location.href).href).find(entry => entry.entryType === 'resource');
         return resource && { transferred: resource.transferSize, encoded: resource.encodedBodySize };
       }), shared);
       assert.ok(transfers.every(transfer => transfer?.transferred === 0 && transfer.encoded > 0),
         `The detail page should reuse both prefetched assets from the HTTP cache: ${topic}`);
+      if (topic === 'chiffres') {
+        await page.setViewportSize({ width: 1947, height: 1302 });
+        await checkDesktopFrame(page);
+        await page.setViewportSize({ width: 1366, height: 768 });
+      }
+      await checkCockpit(page, topic);
+      await checkDesktopFrame(page);
       await page.goBack({ waitUntil: 'domcontentloaded' });
     }
     assert.deepEqual(requests.slice(start).filter(request => shared.includes(request.asset))
@@ -140,12 +247,21 @@ async function checkEarlyInteraction(browser, url, topic, viewport) {
       releaseStartup();
     }
     await region.waitFor({ state: 'visible' });
-    assert.equal(await page.locator('#landingMap .path-region[d]').count(), 18);
+    assert.equal(await page.locator('#landingMap .mainland-layer .path-region[d][role="button"][tabindex="0"]:visible').count(), 13);
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     assert.equal(await page.locator('#mapStage').evaluate(element => Number(getComputedStyle(element).opacity)), 1);
     assert.equal(await page.locator('#story').isVisible(), false);
     const originalRegion = await region.elementHandle();
-    if (!touch) await region.click();
+    const earlyNational = !touch && topic === 'entreprises';
+    const earlyOverseas = !touch && topic === 'emploi';
+    const selectedName = earlyNational ? 'France entière' : earlyOverseas ? 'La Réunion' : 'Île-de-France';
+    if (!touch) {
+      const control = earlyNational || earlyOverseas
+        ? page.locator(`#cockpitTerritories button[data-scope="${earlyNational ? 'national' : '04'}"]`) : region;
+      await control.focus();
+      await waitForScope(page, '#cockpitScopeName', selectedName);
+      await control.press('Space');
+    }
 
     releaseController();
     if (touch) {
@@ -155,15 +271,24 @@ async function checkEarlyInteraction(browser, url, topic, viewport) {
       assert.ok(await originalRegion.evaluate(node => node.isConnected), 'The first map survives controller hydration');
       await option.tap();
     }
-    await page.waitForFunction(() => document.querySelector('#heroTitle').textContent === 'Île-de-France');
+    await waitForScope(page, '#heroTitle', selectedName);
     await page.locator('#story').waitFor({ state: 'visible' });
     const mark = page.locator(topics[topic]).first();
     assert.equal(await mark.count(), 0, 'Regional selection should reveal the story while data is held');
     releaseCharts();
     await mark.waitFor({ state: 'attached' });
+    if (touch) {
+      await returnToCockpit(page);
+      const railButton = page.locator('#cockpitTerritories button[data-scope="02"]');
+      assert.ok(await railButton.evaluate(button => button.getBoundingClientRect().height >= 44));
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      await railButton.tap();
+      await waitForScope(page, '#heroTitle', 'Martinique');
+      await page.locator('#story').waitFor({ state: 'visible' });
+    }
     assert.deepEqual([...blocked].sort(), [...gates.keys()].sort());
     assert.deepEqual(errors, []);
-    console.log(`OK map first and early ${touch ? 'chooser tap' : 'region click'}: ${new URL(url).protocol} ${topic}`);
+    console.log(`OK cockpit selection before hydration: ${new URL(url).protocol} ${topic} (${selectedName})`);
   } finally {
     releaseStartup();
     releaseController();

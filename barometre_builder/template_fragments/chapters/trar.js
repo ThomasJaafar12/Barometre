@@ -3,13 +3,17 @@
         { key: "moisSuivant", label: "Fin du mois suivant", shortLabel: "Mois suivant", color: "#087783", dash: "8 4" },
         { key: "j90", label: "90 jours après l’échéance", shortLabel: "À 90 jours", color: "#98511F", dash: "2 5" },
       ];
-      const TRAR_SNAPSHOT_COLORS = ["#E5F0FA", "#B6D7EF", "#79B2DA", "#346FA8", "#174779"];
+      const TRAR_COLOR_MODES = [
+        { key: "annual", label: "Écart annuel" },
+        { key: "rate", label: "Taux" },
+      ];
       const TRAR_DEFAULT_SECTOR = "tous-secteurs";
       const trarSelection = {
         nationalSector: TRAR_DEFAULT_SECTOR,
         regionalSector: TRAR_DEFAULT_SECTOR,
         departmentSector: TRAR_DEFAULT_SECTOR,
         horizon: TRAR_HORIZONS[0].key,
+        colorMode: TRAR_COLOR_MODES[0].key,
         rankingHorizon: TRAR_HORIZONS[0].key,
         department: "",
       };
@@ -180,29 +184,50 @@
         const dateIndex = data.departmentSnapshots[sectorKey]?.[horizonIndex];
         const date = dateIndex == null ? null : data.dates[dateIndex];
         const values = new Map();
+        const changes = new Map();
         if (date) {
+          const previousYearDate = `${Number(date.slice(0, 4)) - 1}${date.slice(4)}`;
+          const previousYearIndex = data.dates.indexOf(previousYearDate);
           Object.entries(data.departments).forEach(([code, scope]) => {
-            const value = scope[sectorKey]?.[dateIndex]?.[horizonIndex];
-            if (Number.isFinite(value)) values.set(code, value);
+            const series = scope[sectorKey];
+            const value = series?.[dateIndex]?.[horizonIndex];
+            if (!Number.isFinite(value)) return;
+            values.set(code, value);
+            const previous = series?.[previousYearIndex]?.[horizonIndex];
+            if (Number.isFinite(previous)) changes.set(code, Number((value - previous).toFixed(2)));
           });
         }
         const rates = [...values.values()].sort(d3.ascending);
         const distinct = [...new Set(rates)];
-        const classCount = Math.min(distinct.length, TRAR_SNAPSHOT_COLORS.length);
+        const { positive: [lightGreen, green], neutral, negative: [lightRed, red] } = treemapPalette();
+        const ratePalette = [green, lightGreen, neutral, lightRed, red];
+        const classCount = Math.min(distinct.length, ratePalette.length);
         const cuts = Array.from({ length: Math.max(0, classCount - 1) }, (_, index) =>
           d3.quantileSorted(rates, (index + 1) / classCount));
         const thresholds = [...new Set(cuts)].filter((cut) => cut > rates[0]);
         if (!thresholds.length && classCount > 1) thresholds.push(distinct[1]);
-        const colors = Array.from({ length: thresholds.length + 1 }, (_, index) =>
-          TRAR_SNAPSHOT_COLORS[thresholds.length ? Math.round(index * (TRAR_SNAPSHOT_COLORS.length - 1) / thresholds.length) : 2]);
-        const color = d3.scaleThreshold(thresholds, colors);
-        const result = { date, values, thresholds, colors, color };
+        const colors = thresholds.length
+          ? Array.from({ length: thresholds.length + 1 }, (_, index) =>
+              ratePalette[Math.round(index * (ratePalette.length - 1) / thresholds.length)])
+          : [neutral];
+        const rateColor = d3.scaleThreshold(thresholds, colors);
+        const annualColor = treemapVariationColorScale(changes.values(), (change) => change);
+        const result = { date, values, changes, thresholds, colors, rateColor, annualColor };
         snapshots.set(key, result);
         return result;
       }
 
-      function renderTrarSnapshotLegend(snapshot) {
+      function renderTrarSnapshotLegend({ snapshot, annual, departments }) {
         const legend = document.getElementById("trarSnapshotLegend");
+        if (annual) {
+          const hasMissing = [...departments.values()].some(({ change }) => !Number.isFinite(change));
+          legend.replaceChildren(...treemapVariationLegend({
+            negative: "Hausse annuelle",
+            positive: "Repli annuel",
+            missing: hasMissing ? "Écart annuel indisponible" : null,
+          }));
+          return;
+        }
         const { thresholds, colors, values } = snapshot;
         const items = !values.size ? [] : colors.map((color, index) => {
           const lower = thresholds[index - 1];
@@ -221,17 +246,13 @@
         legend.replaceChildren(...items, missing);
       }
 
-      function trarDepartmentDatum(feature, snapshot, departmentSeries, sectorKey) {
+      function trarDepartmentDatum(feature, snapshot, departmentSeries, sectorKey, annual) {
         const { code, nom: name, region } = feature.properties;
-        return { code, name, region, value: snapshot.values.get(code), hasHistory: Boolean(departmentSeries[code]?.[sectorKey]) };
-      }
-
-      function trarDepartmentFill(department, snapshot) {
-        return Number.isFinite(department.value) ? snapshot.color(department.value) : "#E2E8F0";
-      }
-
-      function trarContrastColor(fill) {
-        return TRAR_SNAPSHOT_COLORS.slice(-2).includes(fill) ? "#FFFFFF" : "#0B1E36";
+        const value = snapshot.values.get(code);
+        const change = snapshot.changes.get(code);
+        // Une hausse du taux de reste à recouvrer est défavorable.
+        const fill = annual ? snapshot.annualColor(-change) : (snapshot.rateColor(value) ?? "#E2E8F0");
+        return { code, name, region, value, change, fill, hasHistory: Boolean(departmentSeries[code]?.[sectorKey]) };
       }
 
       function setTrarSelectionAppearance() {
@@ -248,18 +269,21 @@
           const region = regionsByCode.get(department.region);
           return context.national && region ? `${name} · ${region.name}` : name;
         };
+        const rateLabel = ({ value }) => Number.isFinite(value) ? formatTrarPercent(value) : "Taux indisponible";
+        const changeLabel = ({ change }) => Number.isFinite(change)
+          ? `Écart annuel : ${formatTrarChange(change)}` : "Écart annuel indisponible";
+        const period = context.snapshot.date ? ` en ${monthLabel(context.snapshot.date)}` : "";
         const label = (item) => {
           const department = datum(item);
-          const rate = Number.isFinite(department.value) ? formatTrarPercent(department.value) : "Donnée indisponible";
-          return `${place(department)}. ${rate}${context.snapshot.date ? ` en ${monthLabel(context.snapshot.date)}` : ""}.`;
+          return `${place(department)}. ${rateLabel(department)}${period}.${context.annual ? ` ${changeLabel(department)}.` : ""}`;
         };
         marks.attr("aria-disabled", (item) => datum(item).hasHistory ? null : "true");
         bindVizTooltip(marks, {
           label,
           show: (position, item) => {
             const department = datum(item);
-            showTooltip(position, place(department), Number.isFinite(department.value)
-              ? formatTrarPercent(department.value) : "Donnée indisponible", true);
+            const rate = rateLabel(department);
+            showTooltip(position, place(department), context.annual ? `${rate} · ${changeLabel(department)}` : rate, true);
           },
           hide: hideTooltip,
           arrowNavigation: true,
@@ -317,22 +341,27 @@
             tile.append("rect").attr("rx", 3).attr("aria-hidden", "true");
             tile.append("text").attr("class", "trar-tile-code").attr("aria-hidden", "true");
             tile.append("text").attr("class", "trar-tile-rate").attr("aria-hidden", "true");
+            tile.append("text").attr("class", "trar-tile-change").attr("aria-hidden", "true");
             return tile;
           });
         tiles.attr("data-code", (node) => node.data.code)
-          .attr("transform", (node) => `translate(${node.x0 - node.parent.x0},${node.y0 - node.parent.y0})`);
+          .attr("transform", (node) => `translate(${node.x0 - node.parent.x0},${node.y0 - node.parent.y0})`)
+          .attr("fill", "#0B1E36");
         tiles.select("rect").attr("width", (node) => node.x1 - node.x0).attr("height", (node) => node.y1 - node.y0)
-          .attr("fill", (node) => trarDepartmentFill(getDepartment(node), context.snapshot));
+          .attr("fill", (node) => getDepartment(node).fill);
+        const center = (node) => (node.x1 - node.x0) / 2;
         const offset = (node) => (node.y1 - node.y0) / 2;
         const showRate = (node) => node.x1 - node.x0 >= 51 && node.y1 - node.y0 >= 35;
-        tiles.select(".trar-tile-code").attr("x", (node) => (node.x1 - node.x0) / 2)
-          .attr("y", (node) => offset(node) - (showRate(node) ? 5 : 0))
-          .attr("fill", (node) => trarContrastColor(trarDepartmentFill(getDepartment(node), context.snapshot)))
+        const showChange = (node) => context.annual && node.x1 - node.x0 >= 58 && node.y1 - node.y0 >= 46;
+        tiles.select(".trar-tile-code").attr("x", center)
+          .attr("y", (node) => offset(node) - (showChange(node) ? 13 : showRate(node) ? 5 : 0))
           .text((node) => node.x1 - node.x0 >= 19 && node.y1 - node.y0 >= 15 ? node.data.code : "");
-        tiles.select(".trar-tile-rate").attr("x", (node) => (node.x1 - node.x0) / 2)
-          .attr("y", (node) => offset(node) + 9)
-          .attr("fill", (node) => trarContrastColor(trarDepartmentFill(getDepartment(node), context.snapshot)))
+        tiles.select(".trar-tile-rate").attr("x", center)
+          .attr("y", (node) => offset(node) + (showChange(node) ? 1 : 9))
           .text((node) => showRate(node) ? formatTrarPercent(getDepartment(node).value) : "");
+        tiles.select(".trar-tile-change").attr("x", center)
+          .attr("y", (node) => offset(node) + 14)
+          .text((node) => showChange(node) ? formatTrarChange(getDepartment(node).change) : "");
         bindTrarDepartmentMarks(tiles, getDepartment, context);
       }
 
@@ -342,7 +371,7 @@
         const marks = renderDepartmentMapPaths(svg, context.features)
           .classed("path-department trar-map-department", true)
           .attr("data-code", ({ properties }) => properties.code)
-          .attr("fill", (feature) => trarDepartmentFill(getDepartment(feature), context.snapshot));
+          .attr("fill", (feature) => getDepartment(feature).fill);
         bindTrarDepartmentMarks(marks, getDepartment, context);
       }
 
@@ -374,11 +403,12 @@
         const horizonIndex = TRAR_HORIZONS.findIndex(({ key }) => key === trarSelection.horizon);
         const horizon = TRAR_HORIZONS[horizonIndex];
         const snapshot = trarSnapshot(data, departmentSector.key, horizonIndex);
+        const annual = trarSelection.colorMode === "annual";
         const features = national ? DATA.geography.departments.features
           : geographyIndex(DATA.geography).departmentsByRegion.get(state.selectedRegion) || [];
         const departments = new Map(features.map((feature) => [feature.properties.code,
-          trarDepartmentDatum(feature, snapshot, data.departments, departmentSector.key)]));
-        const context = { departments, features, snapshot, national };
+          trarDepartmentDatum(feature, snapshot, data.departments, departmentSector.key, annual)]));
+        const context = { departments, features, snapshot, national, annual };
         const metadata = document.getElementById("trarDepartmentContext");
         const periodLabel = snapshot.date ? monthLabel(snapshot.date) : "Données indisponibles";
         metadata.textContent = `${scopeLabel()} · ${departmentSector.label} · ${horizon.label} · ${periodLabel}`;
@@ -387,12 +417,22 @@
             trarSelection.horizon = key;
             renderTrarDepartmentSnapshot(data, national);
           }, { ariaPressed: true, skipActive: true });
+        renderButtonOptions(document.getElementById("trarColorSwitch"),
+          TRAR_COLOR_MODES, trarSelection.colorMode, (key) => {
+            trarSelection.colorMode = key;
+            renderTrarDepartmentSnapshot(data, national);
+          }, { ariaPressed: true, skipActive: true });
         const treemapShell = document.getElementById("trarTreemapShell");
         const mapShell = document.getElementById("trarMapShell");
         dismissVizTooltip(document.getElementById(national ? "trarMapSvg" : "trarTreemapSvg"));
         treemapShell.hidden = !national;
         mapShell.hidden = national;
-        document.getElementById("trarTreemapNote").hidden = !national;
+        const note = document.getElementById("trarTreemapNote");
+        const weight = national ? "Chaque département a le même poids dans le treemap. " : "";
+        note.textContent = weight + (annual
+          ? "La couleur représente l’écart avec le même mois de l’année précédente, en points de pourcentage."
+          : "La couleur représente le taux.");
+        note.hidden = !national && !annual;
         if (national) {
           const width = trarTreemapWidth();
           trarTreemapView = { context, width };
@@ -413,7 +453,7 @@
           trarTreemapView = null;
           renderTrarMap(context);
         }
-        renderTrarSnapshotLegend(snapshot);
+        renderTrarSnapshotLegend(context);
         setTrarSelectionAppearance();
         return departments;
       }

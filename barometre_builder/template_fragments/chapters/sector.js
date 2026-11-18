@@ -430,19 +430,6 @@
         return rows;
       }
 
-      function sectorTreemapColorScale(rows) {
-        const maxAbs = Math.max(1.5, d3.max(rows, (row) => Number.isFinite(row.yoy) ? Math.abs(row.yoy) : 0) || 0);
-        const negative = d3.interpolateRgb("#FF967D", paletteToken("employment-treemap-negative", "#ED4766"));
-        const positive = d3.interpolateRgb("#62DDB1", paletteToken("employment-treemap-positive", "#10AD8D"));
-        const neutral = paletteToken("employment-treemap-neutral", "#F6C65B");
-        return (value) => {
-          if (!Number.isFinite(value)) return "#E2E8F0";
-          if (Math.abs(value) <= 0.05) return neutral;
-          const intensity = Math.sqrt(Math.min(1, Math.abs(value) / maxAbs));
-          return value < 0 ? negative(intensity) : positive(intensity);
-        };
-      }
-
       function sectorTreemapTrimLabel(label) {
         return String(label || "")
           .replace(/^[A-Z]{1,3}[a-z]?(?:-[A-Z]{1,3}[a-z]?)*\s+/, "")
@@ -627,25 +614,16 @@
         const previousViewBox = rootSvg.attr("viewBox");
         const { width, height } = sectorTreemapDimensions(shell);
         const padding = width < 640 ? 10 : 14;
-        const color = sectorTreemapColorScale(rows);
+        const color = treemapVariationColorScale(rows, (row) => row.yoy);
         const latestDate = rows[0].date;
         const layoutRows = sectorTreemapLayoutRows(rows, width - padding * 2, height - padding * 2);
 
         meta.textContent = `${scopeLabel()} / ${quarterLabel(latestDate)}`;
-        const legendChip = (stateName, label) => {
-          const chip = document.createElement("span");
-          chip.className = "legend-chip";
-          chip.append(textElement("i", "", `employment-treemap-swatch is-${stateName}`), document.createTextNode(label));
-          return chip;
-        };
-        legend.replaceChildren(
-          legendChip("negative", "Repli annuel"),
-          legendChip("neutral", "Quasi stable"),
-          legendChip("positive", "Hausse annuelle"),
-        );
-        if (rows.some((row) => !Number.isFinite(row.yoy))) {
-          legend.append(legendChip("unknown", "GA indisponible"));
-        }
+        legend.replaceChildren(...treemapVariationLegend({
+          negative: "Repli annuel",
+          positive: "Hausse annuelle",
+          missing: rows.some((row) => !Number.isFinite(row.yoy)) ? "GA indisponible" : null,
+        }));
         rootSvg.attr("viewBox", `0 0 ${width} ${height}`);
         rootSvg.append("title").attr("id", "employmentTreemapTitleSvg")
           .text(`Composition sectorielle des ${metric.label.toLowerCase()} en ${scopeLabel()}`);

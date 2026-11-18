@@ -18,6 +18,7 @@ from .utils import build_slug_index, compact_number, load_csv, normalize_code, s
 TRAR_ALL_SECTORS = "tous-secteurs"
 TRAR_DISPLAY_START = "2014-01-01"
 RATE_COLUMNS = ("TRAR_CVS", "TRAR30J_CVS", "TRAR90J_CVS")
+TRAR_90_DAY_INDEX = RATE_COLUMNS.index("TRAR90J_CVS")
 AGGREGATE_GEOGRAPHIES = {"france-entiere", "metropole"}
 Rates = list[int | float | None]
 WorkbookSeries = dict[str, dict[str, dict[str, Rates]]]
@@ -245,3 +246,28 @@ def build_trar_module(
         cache_path, fingerprint, lambda: _prepare_trar(paths, regions, departments),
         ("dates", "displayStartDate", "sectors", "national", "regions", "departments", "departmentSnapshots", "dashboards"),
     )
+
+
+def build_trar90_scopes(trar: dict) -> dict:
+    def scope(sectors: dict) -> dict:
+        rates = sectors.get(TRAR_ALL_SECTORS, ())
+        available = [index for index, row in enumerate(rates) if row[TRAR_90_DAY_INDEX] is not None]
+        points = [{"date": trar["dates"][index], "value": rates[index][TRAR_90_DAY_INDEX]}
+                  for index in range(available[0], available[-1] + 1)] if available else []
+        return {"points": points}
+
+    return {"national": scope(trar["national"]),
+            "regions": {code: scope(sectors) for code, sectors in trar["regions"].items()}}
+
+
+def project_trar90(trar: dict) -> dict:
+    """Isoler l’échéance à 90 jours pour les ventilations des Chiffres du mois."""
+    def scope(sectors: dict) -> dict:
+        return {key: [row[TRAR_90_DAY_INDEX] for row in rates] for key, rates in sectors.items()}
+
+    return {
+        "dates": trar.get("dates", []), "sectors": trar.get("sectors", {}),
+        "national": scope(trar.get("national", {})),
+        "regions": {code: scope(sectors) for code, sectors in trar.get("regions", {}).items()},
+        "departments": {code: scope(sectors) for code, sectors in trar.get("departments", {}).items()},
+    }

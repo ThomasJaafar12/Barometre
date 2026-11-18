@@ -21,10 +21,15 @@ async function checkRegionalHandoff(page, reducedMotion) {
   await region.evaluate(node => {
     const stage = document.getElementById('stageShell');
     const map = document.getElementById('landingMap');
+    const camera = map.querySelector('.camera-group');
     const rail = document.getElementById('cockpitTerritories');
     const startWidth = node.getBoundingClientRect().width;
-    const frames = { zoom: 0, region: 0, visibleRail: 0, visibleRegionalMap: 0 };
+    const frames = {
+      zoom: 0, region: 0, visibleRail: 0, visibleRegionalMap: 0, zoomOutline: null,
+      borderTrace: false, zoomDuringTrace: false, closeup: false,
+    };
     const visible = element => element.checkVisibility({ opacityProperty: true, visibilityProperty: true });
+    let approachTransform;
     let frame;
     function sample() {
       if (visible(rail) || (rail.checkVisibility({ visibilityProperty: true }) && !rail.closest('[inert]'))) {
@@ -35,6 +40,19 @@ async function checkRegionalHandoff(page, reducedMotion) {
         if (visible(map)) frames.visibleRegionalMap++;
       } else if (visible(map) && node.getBoundingClientRect().width > startWidth * 1.05) {
         frames.zoom++;
+        if (frames.zoom === 1) frames.zoomOutline = getComputedStyle(node).outlineStyle;
+        const offsets = Array.from(map.querySelectorAll('.focus-department-path'), path =>
+          Number(path.getAttribute('stroke-dashoffset')));
+        if (offsets.length) {
+          const transform = camera.getAttribute('transform');
+          if (offsets.some(offset => offset > 0)) {
+            approachTransform ??= transform;
+            frames.borderTrace ||= offsets.some(offset => offset > 0 && offset < 1);
+            frames.zoomDuringTrace ||= transform !== approachTransform;
+          } else if (approachTransform && transform !== approachTransform) {
+            frames.closeup = true;
+          }
+        }
       }
       frame = requestAnimationFrame(sample);
     }
@@ -49,7 +67,13 @@ async function checkRegionalHandoff(page, reducedMotion) {
     return window.finishRegionHandoffCheck();
   });
   assert.ok(frames.region > 0);
-  if (reducedMotion !== 'reduce') assert.ok(frames.zoom > 0, 'The regional camera zoom must remain visible');
+  if (reducedMotion !== 'reduce') {
+    assert.ok(frames.zoom > 0, 'The regional camera zoom must remain visible');
+    assert.equal(frames.zoomOutline, 'none', 'The clicked SVG region must not draw a rectangular focus outline');
+    assert.ok(frames.borderTrace, 'The regional zoom must animate the department borders');
+    assert.equal(frames.zoomDuringTrace, false, 'The camera must hold while the borders are drawn');
+    assert.ok(frames.closeup, 'The second zoom must follow the completed border trace');
+  }
   assert.deepEqual({ visibleRail: frames.visibleRail, visibleRegionalMap: frames.visibleRegionalMap },
     { visibleRail: 0, visibleRegionalMap: 0 }, 'Regional transitions must keep the rail hidden and the regional page clear of the map');
   await page.locator('#geoTrigger').click();

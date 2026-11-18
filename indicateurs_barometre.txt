@@ -3,10 +3,13 @@ France et régions sauf mention contraire. CVS = corrigé des variations saisonn
 
 Indicateur                                   │ Période │ Ventilation
 ──────────────────────────────────────────── │ ─────── │ ────────────────────────────────────────────────────────
-01  LES CHIFFRES DU MOIS · EN BREF
-Masse salariale et effectifs privés (CVS)    │ Trim.   │ Tous secteurs
-Procédures collectives                       │ Trim.   │ Toutes procédures et tous secteurs
-Déclarations préalables à l’embauche (DPAE)  │ Mois    │ Tous contrats
+01  LES CHIFFRES DU MOIS · EN BREF ET EN DÉTAIL
+Masse salariale précoce (brute)              │ Mois    │ Tous secteurs, France hors Mayotte et régions couvertes
+Taux d’impayés à 90 jours (CVS)               │ Mois    │ Tous secteurs en bref et dans l’aperçu du détail
+                                             │         │ Détail par secteur en France (NACE 88)
+                                             │         │ et en région (NACE 28), par grand secteur au département
+Déclarations préalables à l’embauche (DPAE)  │ Mois    │ CDI et CDD de plus d’un mois
+                                             │         │ France (CVS), régions selon le classeur fourni
 02  SANTÉ DES ENTREPRISES
 Procédures et emplois menacés ou détruits    │ Trim.   │ NACE 17 × sauvegardes, redressements, liquidations
 DPAE                                         │ Mois    │ CDI, CDD longs, CDD courts, total et CDI + CDD longs

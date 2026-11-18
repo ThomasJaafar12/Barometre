@@ -38,6 +38,7 @@ function createIndicatorCharts(container, hasCharts) {
   };
   const valueLabel = (value, unit) => {
     if (!isValue(value)) return "Données indisponibles";
+    if (unit === "percent") return `${number(value, 2)} %`;
     if (unit === "euros") {
       if (value >= 1e9) return `${number(value / 1e9, 1)} milliards d’euros`;
       if (value >= 1e6) return `${number(value / 1e6, 1)} millions d’euros`;
@@ -47,7 +48,7 @@ function createIndicatorCharts(container, hasCharts) {
   };
   const headlineValue = (value, unit) => {
     const headline = element("strong", "", "indicator-value");
-    if (!isValue(value) || unit === "euros") {
+    if (!isValue(value) || unit === "euros" || unit === "percent") {
       headline.textContent = valueLabel(value, unit);
       return headline;
     }
@@ -63,15 +64,24 @@ function createIndicatorCharts(container, hasCharts) {
     headline.append(element("span", amount.replaceAll("\u202f", "\u00a0"), "indicator-amount"), document.createTextNode(" "), element("span", label, "indicator-unit"));
     return headline;
   };
-  const changeLabel = value => !isValue(value) ? "Comparaison annuelle indisponible"
-    : value === 0 ? "Stable sur un an" : `${value > 0 ? "Hausse" : "Baisse"} de ${number(Math.abs(value), 1)} % sur un an`;
+  const changeAmount = (value, unit) => {
+    if (unit === "percent") {
+      const suffix = Math.abs(value) >= 2 ? "points" : "point";
+      return `${number(value || 0, 2)} ${suffix}`;
+    }
+    return `${number(value || 0, 1)} %`;
+  };
+  const signedChange = (value, unit) => isValue(value)
+    ? `${value > 0 ? "+" : ""}${changeAmount(value, unit)}` : "Indisponible";
+  const changeLabel = (value, unit) => !isValue(value) ? "Comparaison annuelle indisponible"
+    : value === 0 ? "Stable sur un an" : `${value > 0 ? "Hausse" : "Baisse"} de ${changeAmount(Math.abs(value), unit)} sur un an`;
 
   function chartHover(plot, svg, indicator, data, x, y) {
     const svgNode = svg.node();
     const labels = data.map(point => ({
       date: period(point.date, indicator.frequency),
       value: valueLabel(point.value, indicator.unit),
-      change: isValue(point.yearlyChange) ? `${point.yearlyChange > 0 ? "+" : ""}${number(point.yearlyChange === 0 ? 0 : point.yearlyChange, 1)} %` : "Indisponible",
+      change: signedChange(point.yearlyChange, indicator.unit),
       trend: !isValue(point.yearlyChange) || point.yearlyChange === 0 ? "neutral" : point.yearlyChange > 0 ? "up" : "down",
     }));
     const tooltip = element("div", "", "chart-tooltip");
@@ -170,10 +180,12 @@ function createIndicatorCharts(container, hasCharts) {
     svgNode.setAttribute("aria-label", `Évolution de ${indicator.label.toLowerCase()}, de ${period(points[0].date, indicator.frequency)} à ${period(points[points.length - 1].date, indicator.frequency)}`);
     svgNode.classList.add("chart");
     card.append(svgNode);
+    const isRate = indicator.unit === "percent";
     const maximum = Math.max(...points.filter(point => isValue(point.value)).map(point => point.value));
-    const divisor = indicator.unit === "euros" ? 1e9 : maximum >= 1e6 ? 1e6 : maximum >= 1e3 ? 1e3 : 1;
+    const divisor = isRate ? 1 : indicator.unit === "euros" ? 1e9 : maximum >= 1e6 ? 1e6 : maximum >= 1e3 ? 1e3 : 1;
     const noun = indicator.unit === "salaries" ? "salariés" : indicator.unit === "declarations" ? "déclarations" : "procédures";
-    const unit = indicator.unit === "euros" ? "milliards d’euros" : `${divisor === 1e6 ? "millions de " : divisor === 1e3 ? "milliers de " : ""}${noun}`;
+    const unit = isRate ? "pourcentage" : indicator.unit === "euros" ? "milliards d’euros"
+      : `${divisor === 1e6 ? "millions de " : divisor === 1e3 ? "milliers de " : ""}${noun}`;
     const data = points.map(point => ({ ...point, time: new Date(point.date + "T00:00:00"), level: isValue(point.value) ? point.value / divisor : null }));
     const svg = d3.select(svgNode);
     const descriptionId = "brief-chart-description-" + indicator.key;
@@ -182,9 +194,10 @@ function createIndicatorCharts(container, hasCharts) {
     const x = d3.scaleTime().domain(d3.extent(data, point => point.time)).range([64, width - 10]);
     const levels = data.filter(point => isValue(point.level)).map(point => point.level);
     const bounds = d3.extent(levels);
-    const padding = Math.max((bounds[1] - bounds[0]) * .2, bounds[1] * .015, divisor > 1 ? .001 : 1);
-    const y = d3.scaleLinear().domain([Math.max(0, bounds[0] - padding), bounds[1] + padding]).nice().range([194, 16]);
-    svg.append("g").attr("class", "chart-y-axis").attr("transform", "translate(64,0)").call(d3.axisLeft(y).ticks(4).tickSize(-(width - 74)).tickFormat(value => number(value, divisor > 1 ? 2 : 0)));
+    const padding = Math.max((bounds[1] - bounds[0]) * .2, Math.abs(bounds[1]) * .015, isRate ? .01 : divisor > 1 ? .001 : 1);
+    const minimum = isRate ? bounds[0] - padding : Math.max(0, bounds[0] - padding);
+    const y = d3.scaleLinear().domain([minimum, bounds[1] + padding]).nice().range([194, 16]);
+    svg.append("g").attr("class", "chart-y-axis").attr("transform", "translate(64,0)").call(d3.axisLeft(y).ticks(4).tickSize(-(width - 74)).tickFormat(value => number(value, isRate || divisor > 1 ? 2 : 0)));
     const tickDates = data.length > 1 ? [data[0].time, data[Math.floor((data.length - 1) / 2)].time, data[data.length - 1].time] : [data[0].time];
     const axis = svg.append("g").attr("class", "chart-x-axis").attr("transform", "translate(0,194)").call(d3.axisBottom(x).tickValues(tickDates).tickFormat(date => axisDateFormat.format(date)).tickPadding(10));
     axis.selectAll("text").attr("text-anchor", (_, index) => index === 0 ? "start" : index === tickDates.length - 1 ? "end" : "middle");
@@ -217,7 +230,10 @@ function createIndicatorCharts(container, hasCharts) {
       const body = element("tbody");
       [...points].reverse().forEach(point => {
         const row = element("tr");
-        row.append(element("td", period(point.date, indicator.frequency)), element("td", isValue(point.value) ? number(point.value) + (indicator.unit === "euros" ? " €" : "") : "Indisponible"), element("td", isValue(point.yearlyChange) ? `${point.yearlyChange > 0 ? "+" : ""}${number(point.yearlyChange, 1)} %` : "Indisponible"));
+        const unit = indicator.unit;
+        const value = unit === "percent" ? valueLabel(point.value, unit)
+          : isValue(point.value) ? number(point.value) + (unit === "euros" ? " €" : "") : "Indisponible";
+        row.append(element("td", period(point.date, indicator.frequency)), element("td", value), element("td", signedChange(point.yearlyChange, unit)));
         body.append(row);
       });
       table.append(caption, head, body); shell.append(table); details.append(shell);
@@ -256,6 +272,7 @@ function createIndicatorCharts(container, hasCharts) {
       const card = element("article", "", "indicator");
       card.id = "indicateur-" + indicator.key;
       card.dataset.indicator = indicator.key;
+      card.dataset.unit = indicator.unit;
       const title = element("h3", indicator.label);
       title.id = card.id + "-titre";
       card.setAttribute("aria-labelledby", title.id);
@@ -270,7 +287,7 @@ function createIndicatorCharts(container, hasCharts) {
       const trend = isValue(latest?.yearlyChange) && latest.yearlyChange !== 0 ? latest.yearlyChange > 0 ? "up" : "down" : "neutral";
       const change = element("span", "", "indicator-change trend-" + trend);
       if (trend !== "neutral") change.append(icon(trend));
-      change.append(element("span", changeLabel(latest?.yearlyChange)));
+      change.append(element("span", changeLabel(latest?.yearlyChange, indicator.unit)));
       subline.append(date, change);
       metric.append(headlineValue(latest?.value, indicator.unit), subline);
       card.append(heading, element("p", indicator.definition, "definition"), metric);

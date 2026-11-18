@@ -1,3 +1,17 @@
         <section class="section-card chapter-section brief-section" id="module-chiffres" aria-label="Historique des indicateurs">
           <div class="indicator-grid" id="chiffresIndicators"></div>
+          <details class="chiffres-arrears" id="chiffresArrears" hidden>
+            <summary>Ventilation du taux d’impayés par secteur et département</summary>
+            <div class="chiffres-arrears-controls">
+              <div>
+                <label for="chiffresArrearsTerritory">Territoire</label>
+                <select id="chiffresArrearsTerritory"></select>
+              </div>
+              <div>
+                <label for="chiffresArrearsSector" id="chiffresArrearsSectorLabel">Secteur d’activité</label>
+                <select id="chiffresArrearsSector"></select>
+              </div>
+            </div>
+            <div id="chiffresArrearsHistory"></div>
+          </details>
         </section>

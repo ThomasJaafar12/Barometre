@@ -19,6 +19,11 @@ const published = path.resolve(root, option('--site-dir') || 'dist');
 const artifacts = path.resolve(root, option('--artifacts-dir') || '.cache/browser-verification');
 const pages = ['index.html', 'barometre_bref.html', 'barometre_emploi.html', 'barometre_entreprises.html', 'barometre_chiffres.html'];
 const detailTopics = ['emploi', 'entreprises', 'chiffres'];
+const monthlyIndicators = [
+  { key: 'payrollEarly', title: 'Masse salariale précoce', period: 'juin 2026', value: /65,8 milliards d’euros/ },
+  { key: 'trar90', title: 'Taux d’impayés 90 jours après l’échéance', period: 'juillet 2026', value: /0,94\s+%/ },
+  { key: 'dpae', title: 'Déclarations préalables à l’embauche', period: 'septembre 2026', value: /669\s+517\s+déclarations/ },
+];
 const fingerprint = directory => Object.fromEntries(['site_manifest.json', ...pages, 'assets/js/brief.js',
   ...detailTopics.flatMap(topic => [`assets/js/${topic}.js`, `assets/js/${topic}-data.js`])]
   .filter(filename => fs.existsSync(path.join(directory, filename)))
@@ -140,10 +145,11 @@ async function snapshot(pair, label, screenshot = false, screenshotTarget = null
       'employmentTreemapMetricSwitch', 'employmentDeptMetricSwitch', 'autoMetricSwitch',
       'employmentEffectifsSeriesPicker', 'employmentPayrollSeriesPicker', 'employmentDeptSectorPicker',
       'autoSectorPicker', 'pcolSectorPicker', 'delaiSectorPicker', 'trarChartSvg', 'trarLatest',
-      'trarSectorSelect', 'trarRankingHorizon', 'trarTopSectorsTable', 'trarTopSectorsMeta',
-      'trarHorizonSwitch', 'trarDepartmentSectorSelect', 'trarTreemapSvg',
-      'trarMapSvg', 'trarDepartmentSelect', 'trarDepartmentChartSvg', 'indicateur-payroll',
-      'indicateur-headcount', 'indicateur-dpae', 'indicateur-pcol'];
+      'trarSectorPicker', 'trarMainHorizonSwitch', 'trarTopSectorsTable', 'trarTopSectorsMeta',
+      'trarHorizonSwitch', 'trarDepartmentSectorPicker', 'trarTreemapSvg',
+      'trarMapSvg', 'trarHistoryPeriod', 'trarDepartmentKpis', 'trarDepartmentChartSvg', 'indicateur-payroll',
+      'indicateur-headcount', 'indicateur-dpae', 'indicateur-pcol', 'indicateur-payrollEarly', 'indicateur-trar90',
+      'chiffresArrears'];
     return Object.fromEntries(ids.map(id => [id, document.getElementById(id)]).filter(([, node]) => node)
       .map(([id, node]) => [id, visit(node)]));
   })));
@@ -191,171 +197,235 @@ function detailScopeOption(page, label) {
   return page.locator('#geoMenu button[role="option"]:not([data-historical-territory])').filter({ hasText: label });
 }
 
+async function checkMonthlyCards(page, container, scope) {
+  const cards = page.locator(container).locator('article.indicator');
+  await cards.last().waitFor({ state: 'visible' });
+  assert.deepEqual(await cards.evaluateAll(nodes => nodes.map(node => node.dataset.indicator)),
+    monthlyIndicators.map(({ key }) => key));
+  assert.deepEqual(await cards.locator('h3').allTextContents(), monthlyIndicators.map(({ title }) => title));
+
+  if (scope === 'national') {
+    for (const { key, period, value } of monthlyIndicators) {
+      const card = page.locator(`${container} [data-indicator="${key}"]`);
+      assert.match(await card.locator('.indicator-value').innerText(), value);
+      assert.equal(await card.locator('.indicator-period').innerText(), period);
+    }
+    const arrears = page.locator(`${container} [data-indicator="trar90"]`);
+    assert.match(await arrears.locator('.indicator-change').innerText(), /Baisse de 0,03\s+point sur un an/);
+  } else if (scope === 'mayotte') {
+    const values = await cards.locator('.indicator-value').allTextContents();
+    assert.equal(values[0], 'Données indisponibles');
+    assert.match(values[1], /25,28\s+%/);
+    assert.equal(values[2], 'Données indisponibles');
+  } else {
+    const dpae = page.locator(`${container} [data-indicator="dpae"]`);
+    assert.equal(await dpae.locator('.indicator-period').innerText(), 'mai 2026');
+  }
+}
+
+async function checkMonthlyArrearsBreakdown(page, region) {
+  const disclosure = page.locator('#chiffresArrears');
+  const summary = disclosure.locator(':scope > summary');
+  const territory = disclosure.locator('#chiffresArrearsTerritory');
+  const sector = disclosure.locator('#chiffresArrearsSector');
+  const sectorLabel = disclosure.locator('#chiffresArrearsSectorLabel');
+  const history = disclosure.locator('#indicateur-trar90Breakdown');
+  await summary.click();
+  await history.waitFor({ state: 'visible' });
+  assert.match(await sectorLabel.innerText(), region === 'France entière' ? /NACE 88/ : /NACE 28/);
+  assert.ok(await sector.locator('option').count() > 20);
+  const firstSector = sector.locator('option').nth(1);
+  await sector.selectOption({ index: 1 });
+  assert.ok((await history.locator('h3').innerText()).includes(await firstSector.innerText()));
+  if (region === 'Mayotte') {
+    assert.deepEqual(await territory.locator('option').allTextContents(), ['Mayotte']);
+  } else {
+    await territory.selectOption('75');
+    assert.equal(await sectorLabel.innerText(), 'Grand secteur d’activité');
+    await sector.selectOption({ index: 1 });
+    assert.match(await history.locator('h3').innerText(), /Paris \(75\)/);
+  }
+  assert.match(await history.locator('.indicator-value').innerText(), /%/);
+  assert.ok(await history.locator('svg .tick').count() > 0);
+  await summary.click();
+  await history.waitFor({ state: 'hidden' });
+}
+
+function trarPickerOption(picker, key) {
+  return picker.locator(`[role="option"][data-sector-key="${key}"]`);
+}
+
+async function assertTrarPeriod(page, full) {
+  const active = page.locator('#trarHistoryPeriod');
+  assert.match(await active.innerText(), full ? /Série complète/ : /3 dernières années/);
+  const dates = await page.locator('#trarDepartmentChartSvg .tick')
+    .evaluateAll(nodes => nodes.map(node => node.__data__).filter(date => /^\d{4}-\d{2}-01$/.test(date)));
+  assert.ok(dates.length > 1, 'L’historique doit afficher des périodes mensuelles.');
+  if (!full) {
+    const month = date => Number(date.slice(0, 4)) * 12 + Number(date.slice(5, 7));
+    assert.equal(month(dates.at(-1)) - month(dates[0]), 35);
+  }
+  return dates[0];
+}
+
 async function checkTrarRanking(page, touch) {
   const latest = page.locator('#trarLatest');
-  const horizon = page.locator('#trarRankingHorizon');
-  const sector = page.locator('#trarSectorSelect');
+  const horizons = page.locator('#trarMainHorizonSwitch button');
+  const sector = page.locator('#trarSectorPicker');
   const rows = page.locator('#trarTopSectorsTable tbody tr');
   const rankingDate = page.locator('#trarTopSectorsMeta');
-  await sector.selectOption('tous-secteurs');
-  assert.ok(await latest.locator('[data-horizon]').evaluateAll(cards => cards.every(card => {
-    const style = getComputedStyle(card);
-    return style.borderInlineStart === style.borderBlockStart;
-  })), 'Les cartes TRAR utilisent le même contour sur tous les côtés.');
-  assert.equal(await latest.getByText('Gliss. annuel', { exact: true }).count(), 3);
-  assert.equal(await latest.getByText('Gliss. mensuel', { exact: true }).count(), 3);
+  assert.equal(await latest.getByText('Gliss. annuel', { exact: true }).count(), 1);
+  assert.equal(await latest.getByText('Gliss. mensuel', { exact: true }).count(), 1);
   assert.match(await latest.innerText(), /\bpt\b/u);
-  const firstMonth = await page.locator('#trarChartSvg .tick text').filter({ hasText: /\p{L}+\.?\s+\d{4}/u }).first().textContent();
-  assert.ok((await page.locator('#trarChartScope').innerText()).includes(`Historique depuis ${firstMonth}`));
+  assert.equal(await horizons.count(), 3);
+  assert.equal(await horizons.first().getAttribute('aria-pressed'), 'true');
 
-  assert.equal(await horizon.inputValue(), 'fin');
-  for (const key of ['fin', 'moisSuivant', 'j90']) {
-    await horizon.selectOption(key);
-    assert.equal(await rankingDate.getAttribute('datetime'), await latest.locator(`[data-horizon="${key}"] time`).getAttribute('datetime'));
+  const departmentContext = await page.locator('#trarDepartmentContext').innerText();
+  for (const index of [2, 1, 0]) {
+    const horizon = horizons.nth(index);
+    await horizon.click();
+    assert.equal(await horizon.getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('#trarChartSvg .quarterly-series').count(), 1);
+    assert.equal(await page.locator('#trarChartSvg .trar-reference-series').count(), 0);
+    assert.equal(await rankingDate.getAttribute('datetime'), await latest.locator('time[datetime]').getAttribute('datetime'));
     assert.equal(await rows.count(), 5);
     const rates = (await rows.locator('.delai-td-mt').allTextContents()).map(value =>
       Number.parseFloat(value.replace(/\s/g, '').replace('−', '-').replace(',', '.')));
     assert.ok(rates.every(Number.isFinite));
     assert.deepEqual(rates, [...rates].sort((left, right) => right - left));
   }
-  const leaders = rows.locator('.sector-ranking-link');
-  const leader = leaders.first();
+  assert.equal(await page.locator('#trarDepartmentContext').innerText(), departmentContext);
+
+  const trigger = sector.locator('.employment-sector-trigger');
+  await trigger.click();
+  const nationalOption = trarPickerOption(sector, '01');
+  const search = sector.locator('input[type="search"]');
+  await search.fill('culture et production animale');
+  assert.match(await nationalOption.innerText(), /Culture et production animale/);
+  assert.match(await nationalOption.locator('.picker-rate-pill').innerText(), /%/);
+  assert.equal(await trarPickerOption(sector, '02').isVisible(), false);
+  await nationalOption.click();
+  assert.equal(await nationalOption.getAttribute('aria-selected'), 'true');
+  assert.equal(await trigger.getAttribute('aria-expanded'), 'false');
+  assert.equal(await page.locator('#trarChartSvg .quarterly-series').count(), 1);
+  assert.equal(await page.locator('#trarChartSvg .trar-reference-series').count(), 1);
+  assert.match(await latest.locator('.trar-benchmark-gap').innerText(), /Tous secteurs.*pt/s);
+
+  const leader = rows.locator('.sector-ranking-link').first();
   const label = await leader.getAttribute('title');
   if (touch) await leader.tap();
   else await leader.press('Enter');
-  assert.equal(await sector.locator('option:checked').textContent(), label);
+  assert.ok((await trigger.innerText()).includes(label));
   assert.equal(await leader.getAttribute('aria-pressed'), 'true');
-  await page.waitForFunction(() => document.activeElement?.id === 'trarSectorSelect');
-  assert.equal(await horizon.inputValue(), 'j90');
+  assert.equal(await horizons.first().getAttribute('aria-pressed'), 'true');
+  assert.equal(await page.locator('#trarDepartmentContext').innerText(), departmentContext);
 }
 
 async function checkTrar(page, touch) {
-  const sector = page.locator('#trarSectorSelect');
-  const deptSector = page.locator('#trarDepartmentSectorSelect');
-  const department = page.locator('#trarDepartmentSelect');
-  const horizon90 = page.locator('#trarHorizonSwitch').getByRole('button', { name: /90/ });
-  const colorSwitch = page.locator('#trarColorSwitch');
-  const annual = colorSwitch.getByRole('button', { name: 'Écart annuel', exact: true });
-  const rate = colorSwitch.getByRole('button', { name: 'Taux', exact: true });
+  const module = page.locator('#module-trar');
+  const sector = page.locator('#trarSectorPicker');
+  const departmentSector = page.locator('#trarDepartmentSectorPicker');
+  const departmentHorizon = page.locator('#trarHorizonSwitch button');
   const legend = page.locator('#trarSnapshotLegend');
   const treemap = page.locator('#trarTreemapSvg');
   const map = page.locator('#trarMapSvg');
-  const detail = page.locator('#trarDepartmentDetail');
+  const history = page.locator('#trarDepartmentDetail');
+  const historyTitle = page.locator('#trarDepartmentChartTitle');
+  const historyChart = page.locator('#trarDepartmentChartSvg');
+  const period = page.locator('#trarHistoryPeriod');
   await treemap.waitFor({ state: 'visible' });
-  assert.equal(await sector.inputValue(), 'tous-secteurs');
+  assert.equal(await module.locator('#trarRankingHorizon, #trarColorSwitch, #trarDepartmentSelect, .trar-horizon-badge').count(), 0);
   assert.equal(await treemap.locator('[data-code]').count(), 101);
-  assert.equal(await page.locator('#trarLatest time[datetime]').count(), 3);
-  assert.equal(await annual.getAttribute('aria-pressed'), 'true');
-  const annualLegend = await legend.innerText();
-  assert.match(annualLegend, /Hausse annuelle/);
-  assert.match(annualLegend, /Quasi stable/);
-  assert.match(annualLegend, /Repli annuel/);
-  const tiles = await treemap.locator('[data-code]').evaluateAll(nodes => nodes.map(node => ({
-    label: node.getAttribute('aria-label'),
-    fill: getComputedStyle(node.querySelector('rect')).fill,
-  })));
-  const expectedColors = new Set(['hausse', 'repli', 'stable', 'indisponible']);
-  for (const { label, fill } of tiles) {
-    if (/Écart annuel indisponible/i.test(label)) {
-      assert.equal(fill, 'rgb(226, 232, 240)', label);
-      assert.match(annualLegend, /Écart annuel indisponible/i);
-      expectedColors.delete('indisponible');
-      continue;
-    }
-    const match = label.match(/Écart annuel\s*:\s*([+−]?[0-9]+,[0-9]{2})\s*pt/i);
-    assert.ok(match, label);
-    const change = Number(match[1].replace('−', '-').replace(',', '.'));
-    if (Math.abs(change) <= 0.05) {
-      assert.equal(fill, 'rgb(246, 198, 91)', label);
-      expectedColors.delete('stable');
-    } else {
-      const [red, green] = fill.match(/\d+/g)?.map(Number) || [];
-      assert.ok(change > 0 ? red >= 237 && green <= 150 : red <= 98 && green >= 173, `${label} (${fill})`);
-      expectedColors.delete(change > 0 ? 'hausse' : 'repli');
-    }
-  }
-  assert.deepEqual([...expectedColors], []);
-  await rate.click();
-  assert.equal(await rate.getAttribute('aria-pressed'), 'true');
+  assert.equal(await treemap.locator('[aria-pressed="true"]').count(), 1);
+  assert.equal(await page.locator('#trarLatest time[datetime]').count(), 1);
   assert.match(await legend.innerText(), /%/);
-  const rateSwatches = await legend.locator('.trar-color-key i')
-    .evaluateAll(nodes => nodes.map(node => getComputedStyle(node).backgroundColor));
-  assert.deepEqual(rateSwatches, [
-    'rgb(16, 173, 141)', 'rgb(98, 221, 177)', 'rgb(246, 198, 91)',
-    'rgb(255, 150, 125)', 'rgb(237, 71, 102)', 'rgb(226, 232, 240)',
-  ]);
-  const rateTiles = await treemap.locator('[data-code="43"], [data-code="26"], [data-code="971"], [data-code="976"]')
-    .evaluateAll(nodes => Object.fromEntries(nodes.map(node => [node.dataset.code, getComputedStyle(node.querySelector('rect')).fill])));
-  // Haute-Loire has a low but rising rate, while Guadeloupe has a high but falling rate.
-  assert.deepEqual(rateTiles, {
-    43: rateSwatches[0], 26: rateSwatches[2], 971: rateSwatches[4], 976: rateSwatches[5],
-  });
-  await annual.click();
-  assert.equal(await annual.getAttribute('aria-pressed'), 'true');
-
-  const nationalOption = sector.locator('option[value="01"]');
-  assert.match(await nationalOption.textContent(), /Culture et production animale/);
-  await sector.selectOption('01');
-  assert.equal(await page.locator('#trarChartSvg .quarterly-series').count(), 3);
-
-  await deptSector.selectOption('btp');
-  await horizon90.click();
-  assert.equal(await horizon90.getAttribute('aria-pressed'), 'true');
-  const parisTile = treemap.locator('[data-code="75"]');
-  const parisLabel = await parisTile.getAttribute('aria-label');
-  assert.match(parisLabel, /Paris.*\d.*%/);
-  const parisColor = await parisTile.locator('rect').getAttribute('fill');
-  const nationalSnapshot = await page.locator('#trarDepartmentContext').innerText();
-  if (touch) await parisTile.tap();
-  else await parisTile.press('Enter');
-  await detail.waitFor({ state: 'visible' });
-  assert.equal(await department.inputValue(), '75');
-  assert.match(await page.locator('#trarDepartmentChartTitle').innerText(), /Paris/);
-  assert.equal(await page.locator('#trarDepartmentChartSvg .quarterly-series').count(), 3);
-  assert.equal(await sector.inputValue(), '01');
-  if (!touch) assert.ok(await parisTile.evaluate(node => node === document.activeElement));
+  assert.match(await treemap.locator('[data-code="976"]').getAttribute('aria-label'), /indisponible/i);
 
   await checkTrarRanking(page, touch);
-  assert.equal(await department.inputValue(), '75');
-  assert.equal(await deptSector.inputValue(), 'btp');
-  assert.equal(await horizon90.getAttribute('aria-pressed'), 'true');
-  assert.equal(await page.locator('#trarDepartmentContext').innerText(), nationalSnapshot);
+  const mainLines = page.locator('#trarChartSvg :is(.quarterly-series, .trar-reference-series)');
+  const mainChart = await mainLines.evaluateAll(lines => lines.map(line => line.getAttribute('d')));
+  const mainRate = await page.locator('#trarLatest .delai-level-value').innerText();
+  await departmentSector.locator('.employment-sector-trigger').click();
+  const btpOption = trarPickerOption(departmentSector, 'btp');
+  await btpOption.click();
+  assert.equal(await btpOption.getAttribute('aria-selected'), 'true');
+  await departmentHorizon.last().click();
+  assert.equal(await departmentHorizon.last().getAttribute('aria-pressed'), 'true');
+  const parisTile = treemap.locator('[data-code="75"]');
+  assert.match(await parisTile.getAttribute('aria-label'), /Paris.*\d.*%/);
+  if (touch) await parisTile.tap();
+  else {
+    await parisTile.press('Enter');
+    assert.ok(await parisTile.evaluate(node => node === document.activeElement));
+  }
+  await history.waitFor({ state: 'visible' });
+  assert.equal(await parisTile.getAttribute('aria-pressed'), 'true');
+  assert.equal(await parisTile.evaluate(node => getComputedStyle(node).outlineStyle), 'none');
+  assert.match(await historyTitle.innerText(), /Paris/);
+  assert.equal(await historyChart.locator('.quarterly-series').count(), 1);
+  assert.equal(await historyChart.locator('.trar-reference-series').count(), 1);
 
-  await rate.click();
-  const parisRateColor = await parisTile.locator('rect').getAttribute('fill');
+  const recentStart = await assertTrarPeriod(page, false);
+  const departmentContext = await page.locator('#trarDepartmentContext').innerText();
+  const kpis = await page.locator('#trarDepartmentKpis').innerText();
+  if (touch) await period.tap();
+  else {
+    await period.press('Space');
+    assert.ok(await period.evaluate(node => node === document.activeElement));
+  }
+  const fullStart = await assertTrarPeriod(page, true);
+  assert.ok(fullStart < recentStart, 'La série complète doit remonter au-delà de la période récente.');
+  assert.equal(await page.locator('#trarDepartmentKpis').innerText(), kpis);
+  assert.equal(await page.locator('#trarDepartmentContext').innerText(), departmentContext);
+  assert.equal(await parisTile.getAttribute('aria-pressed'), 'true');
+  await period.click();
+  assert.equal(await assertTrarPeriod(page, false), recentStart);
+  assert.deepEqual(await mainLines.evaluateAll(lines => lines.map(line => line.getAttribute('d'))), mainChart);
+  assert.equal(await page.locator('#trarLatest .delai-level-value').innerText(), mainRate);
+
+  if (!touch) {
+    await historyChart.locator('rect[pointer-events="all"]').hover();
+    const tooltip = page.locator('#trarDepartmentChartTooltip[aria-hidden="false"]');
+    await tooltip.waitFor({ state: 'visible' });
+    assert.match(await tooltip.innerText(), /Écart annuel.*pt/s);
+    assert.match(await tooltip.innerText(), /France entière|Moyenne nationale/);
+    await page.mouse.move(0, 0);
+  }
+
   await selectDetailScope(page, 'Île-de-France');
   await map.waitFor({ state: 'visible' });
   assert.equal(await treemap.isVisible(), false);
   assert.equal(await map.locator('[data-code]').count(), 8);
-  assert.equal(await sector.inputValue(), 'tous-secteurs');
-  assert.equal(await sector.locator('option[value="01"]').count(), 0);
-  const regionalLeader = page.locator('#trarTopSectorsTable tbody .sector-ranking-link').first();
-  assert.ok((await sector.locator('option').allTextContents()).includes(await regionalLeader.getAttribute('title')));
-  assert.equal(await department.inputValue(), '75');
-  assert.equal(await deptSector.inputValue(), 'btp');
-  assert.equal(await horizon90.getAttribute('aria-pressed'), 'true');
+  assert.equal(await trarPickerOption(sector, 'tous-secteurs').getAttribute('aria-selected'), 'true');
+  assert.equal(await trarPickerOption(sector, '01').count(), 0);
+  assert.equal(await btpOption.getAttribute('aria-selected'), 'true');
+  assert.equal(await departmentHorizon.last().getAttribute('aria-pressed'), 'true');
+  assert.match(await page.locator('#trarChartLegend').innerText(), /France entière/);
+  assert.match(await page.locator('#trarDepartmentChartLegend').innerText(), /Île-de-France/);
   const parisPath = map.locator('[data-code="75"]');
-  assert.equal(await rate.getAttribute('aria-pressed'), 'true');
-  assert.equal(await parisPath.getAttribute('fill'), parisRateColor);
-  await annual.click();
-  assert.equal(await annual.getAttribute('aria-pressed'), 'true');
-  assert.equal(await parisPath.getAttribute('fill'), parisColor);
-  const datePattern = /\p{L}{3,}\.?\s+\d{4}/u;
-  const referenceMonth = nationalSnapshot.match(datePattern)?.[0];
-  assert.ok(referenceMonth, nationalSnapshot);
-  assert.ok((await page.locator('#trarDepartmentContext').innerText()).includes(referenceMonth));
-
-  await department.selectOption({ index: 0 });
-  await detail.waitFor({ state: 'hidden' });
   if (touch) await parisPath.tap();
-  else await parisPath.press('Space');
-  await detail.waitFor({ state: 'visible' });
-  assert.equal(await department.inputValue(), '75');
+  else {
+    await parisPath.focus();
+    await page.keyboard.press('Home');
+    const firstDepartment = await map.locator('[data-code]:focus').getAttribute('data-code');
+    await page.keyboard.press('ArrowRight');
+    assert.notEqual(await map.locator('[data-code]:focus').getAttribute('data-code'), firstDepartment);
+    await parisPath.press('Space');
+    assert.ok(await parisPath.evaluate(node => node === document.activeElement));
+    const yvelines = map.locator('[data-code="78"]');
+    await yvelines.click();
+    assert.equal(await yvelines.getAttribute('aria-pressed'), 'true');
+    assert.equal(await yvelines.evaluate(node => getComputedStyle(node).outlineStyle), 'none');
+    await parisPath.press('Space');
+  }
+  assert.equal(await parisPath.getAttribute('aria-pressed'), 'true');
+  assert.equal(await parisPath.evaluate(node => getComputedStyle(node).outlineStyle), 'none');
+  assert.match(await historyTitle.innerText(), /Paris/);
+
   await selectDetailScope(page, 'Mayotte');
-  await detail.waitFor({ state: 'hidden' });
-  assert.equal(await department.inputValue(), '');
   assert.match(await map.locator('[data-code="976"]').getAttribute('aria-label'), /indisponible/i);
-  assert.equal(await page.locator('#trarChartSvg .quarterly-series').count(), 3);
+  assert.equal(await map.locator('[aria-pressed="true"]').count(), 0);
+  assert.equal(await historyChart.locator('.quarterly-series:visible').count(), 0);
 }
 
 async function checkEmploymentTooltips(page, touch) {
@@ -437,7 +507,11 @@ async function checkPair(browser, transport, viewport, filename, origin) {
     }
   } else if (filename === 'barometre_bref.html') {
     for (const code of ['national', '11', '28', '04', '06']) {
-      await forBoth(pair, page => page.locator('#regionSelect').selectOption(code));
+      await forBoth(pair, async page => {
+        await page.locator('#regionSelect').selectOption(code);
+        await checkMonthlyCards(page, '#indicators',
+          code === '06' ? 'mayotte' : code === 'national' ? code : 'region');
+      });
       await snapshot(pair, `${label}-${code}`, code === '06');
       await forBoth(pair, async page => {
         const summaries = page.locator('#indicators details summary');
@@ -446,13 +520,11 @@ async function checkPair(browser, transport, viewport, filename, origin) {
       await snapshot(pair, `${label}-${code}-tables`);
     }
   } else if (filename === 'barometre_chiffres.html') {
-    const indicators = ['payroll', 'headcount', 'dpae', 'pcol'];
-    for (const region of ['France entière', 'Île-de-France', 'Mayotte']) {
+    for (const [region, scope] of [['France entière', 'national'], ['Île-de-France', 'region'], ['Mayotte', 'mayotte']]) {
       await forBoth(pair, async page => {
         await selectDetailScope(page, region);
-        const cards = page.locator('#module-chiffres article.indicator');
-        await cards.last().waitFor({ state: 'visible' });
-        assert.deepEqual(await cards.evaluateAll(nodes => nodes.map(node => node.dataset.indicator)), indicators);
+        await checkMonthlyCards(page, '#chiffresIndicators', scope);
+        await checkMonthlyArrearsBreakdown(page, region);
       });
       await snapshot(pair, `${label}-${region}`);
     }

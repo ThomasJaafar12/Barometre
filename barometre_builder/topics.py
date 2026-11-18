@@ -4,7 +4,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from operator import itemgetter
 
-from .brief import build_bref_payload, finite_value, percent_change
+from .brief import MONTHLY_INDICATORS, build_monthly_payload, finite_value, percent_change
+from .trar import project_trar90
 
 
 @dataclass(frozen=True)
@@ -21,13 +22,14 @@ class DetailTopic:
         return f"barometre_{self.key}.html"
 
 
+MONTHLY_FORMATS = {"euros": "currency", "percent": "percent", "declarations": "count"}
+MONTHLY_DATE_LABELS = {"payrollEarly": "Masse salariale", "trar90": "Impayés à 90 jours", "dpae": "DPAE"}
+
 TOPICS = {
     "chiffres": DetailTopic(
         "chiffres", "Les chiffres du mois", "chiffres", ("chiffres",), (),
-        (("payroll", "Masse salariale privée", "currency", "quarter", "Masse salariale"),
-         ("headcount", "Effectifs salariés privés", "count", "quarter", "Effectifs"),
-         ("dpae", "DPAE · Tous contrats", "count", "month", "DPAE"),
-         ("pcol", "Procédures collectives", "count", "quarter", "Procédures")),
+        tuple((indicator["key"], indicator["label"], MONTHLY_FORMATS[indicator["unit"]],
+               indicator["frequency"], MONTHLY_DATE_LABELS[indicator["key"]]) for indicator in MONTHLY_INDICATORS),
     ),
     "emploi": DetailTopic(
         "emploi", "Conjoncture de l’emploi", "sector", ("sector", "auto"), ("auto.js",),
@@ -60,9 +62,9 @@ def project_details_payloads(boot: dict, deferred: dict, *, topic: str = "emploi
     topic_modules = {key: modules[key] for key in config.modules if key in modules}
     monthly_scopes = {}
     if topic == "chiffres":
-        monthly = build_bref_payload(boot, deferred, modules.get("dpae", {}), history_years=None)
+        monthly = build_monthly_payload(boot, deferred, history_years=None)
         monthly_scopes = monthly["scopes"]
-        topic_modules["chiffres"] = {"indicators": monthly["indicators"], "scopes": monthly_scopes}
+        topic_modules["chiffres"] = {**monthly, "arrears": project_trar90(modules.get("trar", {}))}
 
     def scope(module: dict, code: str) -> dict:
         return module.get("national", {}) if code == "national" else module.get("regions", {}).get(code, {})

@@ -8,20 +8,23 @@ __INDICATOR_CHARTS__
   for (const header of headers) header.hidden = header !== activeHeader;
 
   const topic = activeHeader.dataset.briefTopic;
+  const { indicators: topicIndicators, scopes } = topic === "chiffres" ? data.monthly : data;
   const { indicatorKeys } = activeHeader.dataset;
   const keys = new Set(indicatorKeys.split(" "));
-  const indicators = indicatorKeys ? data.indicators.filter(indicator => keys.has(indicator.key)) : data.indicators;
+  const indicators = indicatorKeys ? topicIndicators.filter(indicator => keys.has(indicator.key)) : topicIndicators;
   document.title = `${activeHeader.querySelector("h1").textContent} · En bref · Urssaf`;
   document.getElementById("briefDetailLink").href = `barometre_${topic}.html`;
 
   const selector = document.getElementById("regionSelect");
   const scopeLabel = document.getElementById("scopeLabel");
-  const renderIndicators = createIndicatorCharts(document.getElementById("indicators"), barometreDependenciesAvailable());
+  const chartGrid = document.getElementById("indicators");
+  chartGrid.dataset.topic = topic;
+  const renderIndicators = createIndicatorCharts(chartGrid, barometreDependenciesAvailable());
 
   function render() {
-    const code = Object.hasOwn(data.scopes, selector.value) ? selector.value : "national";
+    const code = Object.hasOwn(scopes, selector.value) ? selector.value : "national";
     scopeLabel.textContent = code === "national" ? "France entière" : data.regions.find(region => region.code === code).name;
-    renderIndicators(indicators, data.scopes[code]);
+    renderIndicators(indicators, scopes[code]);
   }
 
   selector.addEventListener("change", render);

@@ -32,6 +32,10 @@ def render_region_map(geography: dict | None = None) -> str:
 def render_details_payloads(boot: dict, deferred: dict, *, topic: str = "emploi") -> str:
     config = get_topic(topic)
     boot, deferred = project_details_payloads(boot, deferred, topic=topic)
+    geography = dict(deferred.get("geography") or {})
+    departments = geography.pop("departments", {"type": "FeatureCollection", "features": []})
+    if "geography" in deferred:
+        deferred = {**deferred, "geography": geography}
     try:
         template = TEMPLATE_PATH.read_text(encoding="utf-8")
     except OSError as error:
@@ -57,6 +61,7 @@ def render_details_payloads(boot: dict, deferred: dict, *, topic: str = "emploi"
             description=TOPIC_DESCRIPTIONS[topic], description_id="topicDescription",
         ),
         "__BOOT_JSON__": script_json(boot),
+        "__DEPARTMENT_GEOGRAPHY_B64__": script_json(gzip_base64_json(departments)),
         "__DEFERRED_B64__": gzip_base64_json(deferred),
         "__CHAPTER_SECTIONS_HTML__": chapters["sections_html"],
         "__CHAPTER_RENDER_FUNCTION__": chapters["render_function"],

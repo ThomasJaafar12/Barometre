@@ -150,7 +150,10 @@ class GeneratedPayloadTests(unittest.TestCase):
         cls.boot, cls.deferred = build_payloads()
 
     def test_payload_contract(self) -> None:
-        self.assertEqual(set(self.deferred["modules"]), {"sector", "payroll", "auto", "rar", "delai", "pcol", "dpae", "trar"})
+        self.assertEqual(set(self.deferred["modules"]), {
+            "sector", "payroll", "auto", "rar", "delai", "pcol", "dpae", "trar",
+            "payrollEarly", "dpaeMonthly", "trar90",
+        })
         self.assertEqual(
             [region["code"] for region in self.boot["regions"]],
             EXPERIENCE_REGION_CODES,

@@ -240,15 +240,20 @@ class OrchestrationTests(unittest.TestCase):
         departments = {"features": [{"properties": {"code": "75", "nom": "Paris"}}]}
         bundle = {"videos": context.boot["assets"]["videos"], "modules": context.deferred["modules"]}
         hero = {"regions": context.boot["regions"], "national": {}}
-        trar = {"dates": []}
+        trar = {"dates": [], "national": {}, "regions": {}}
+        monthly = {"national": {"points": []}, "regions": {}}
         with mock.patch("barometre_builder.payloads.build_geographies", return_value=({}, departments, regions)), \
              mock.patch("barometre_builder.payloads.build_modules", return_value=(bundle, hero)), \
              mock.patch("barometre_builder.payloads.build_dpae_module", return_value=module) as prepare, \
-             mock.patch("barometre_builder.payloads.build_trar_module", return_value=trar) as prepare_trar:
+             mock.patch("barometre_builder.payloads.build_trar_module", return_value=trar) as prepare_trar, \
+             mock.patch("barometre_builder.payloads.build_monthly_payroll", return_value=monthly) as prepare_payroll, \
+             mock.patch("barometre_builder.payloads.build_monthly_dpae", return_value=monthly) as prepare_monthly_dpae:
             result = build_context()
         prepare.assert_called_once()
         self.assertEqual(prepare_trar.call_args.args, (regions, {"75": "Paris"}))
         prepare_trar.assert_called_once()
+        prepare_payroll.assert_called_once_with()
+        prepare_monthly_dpae.assert_called_once_with(module)
         self.assertEqual(result.deferred["modules"]["dpae"], compact_dpae_payload(module))
         self.assertIs(result.deferred["modules"]["trar"], trar)
         self.assertEqual(result.brief["scopes"]["national"]["dpae"]["points"][-1]["value"], module["national"]["points"][-1]["value"])

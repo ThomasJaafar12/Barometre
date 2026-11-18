@@ -8,7 +8,7 @@ from .topic_header import render_topic_header
 
 
 BRIEF_TOPICS = (
-    ("chiffres", "", "Les indicateurs essentiels pour comprendre l’économie de la France et de ses régions."),
+    ("chiffres", "", "Suivez les rémunérations, les impayés de cotisations et les intentions d’embauche en France et dans les régions."),
     ("entreprises", "dpae pcol", "Suivez les embauches déclarées et les difficultés des entreprises."),
     ("emploi", "payroll headcount", "Suivez les effectifs et les rémunérations du secteur privé."),
 )

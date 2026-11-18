@@ -20,7 +20,7 @@ const topics = {
   entreprises: '#pcolChartSvg .tick',
 };
 const indicatorKeys = {
-  chiffres: ['payroll', 'headcount', 'dpae', 'pcol'],
+  chiffres: ['payrollEarly', 'trar90', 'dpae'],
   emploi: ['headcount', 'payroll', 'auto'],
   entreprises: ['pcol', 'jobs', 'dpae', 'delai'],
 };
@@ -58,12 +58,17 @@ function browserErrors(page) {
 }
 
 function readKpis(page, container) {
-  return page.locator(container + ' .kpi-card').evaluateAll(cards => cards.map(card => ({
-    key: card.dataset.indicator,
-    label: card.querySelector('.label').textContent,
-    value: card.querySelector('strong').textContent,
-    period: card.querySelector('.meta').textContent,
-  })));
+  return page.locator(container + ' .kpi-card').evaluateAll(cards => cards.map(card => {
+    const badge = card.querySelector('.hero-kpi-change');
+    return {
+      key: card.dataset.indicator,
+      label: card.querySelector('.label').textContent,
+      highlight: getComputedStyle(card.querySelector('.text-highlight')).backgroundColor,
+      value: card.querySelector('strong').textContent,
+      period: card.querySelector('.meta').textContent,
+      change: badge?.checkVisibility() ? { text: badge.textContent, trend: badge.dataset.trend } : null,
+    };
+  }));
 }
 
 async function waitForScope(page, selector, name) {
@@ -109,6 +114,11 @@ async function checkCockpit(page, topic) {
   const national = await readKpis(page, '#cockpitKpis');
   assert.deepEqual(national.map(card => card.key), indicatorKeys[topic]);
   assert.ok(national.every(card => card.value !== '—' && card.label && card.period));
+  assert.ok(national.every(card => card.highlight !== 'rgba(0, 0, 0, 0)'), `KPI label highlights: ${topic}`);
+  if (topic === 'chiffres') {
+    const units = national.map(card => card.change?.text.match(/ (pt|%) sur 1 an$/)?.[1]);
+    assert.deepEqual(units, ['%', 'pt', '%'], 'All three monthly indicators show their annual change');
+  }
 
   const region = page.locator('#landingMap .path-region[data-code="24"]');
   await region.hover();

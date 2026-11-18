@@ -1,4 +1,4 @@
-"""Génère la maquette HTML à 5 variantes pour la refonte du module TRAR."""
+"""Génère la maquette HTML du taux de reste à recouvrer."""
 from __future__ import annotations
 
 import base64
@@ -59,7 +59,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Taux de reste à recouvrer · 5 Variantes — Santé des entreprises Urssaf</title>
+  <title>Taux de reste à recouvrer — Santé des entreprises Urssaf</title>
   <link rel="icon" href="data:,">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -76,7 +76,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       --navy: #0B1D3A;
       --text: #0F172A;
       --muted: #475569;
-      --muted-soft: #64748B;
       --line: #E2E8F0;
       --line-strong: #CBD5E1;
       --paper-bg: #F6F8FB;
@@ -89,7 +88,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       --topic-highlight: #CCECE6;
 
       /* Palette officielle du treemap sectoriel Conjoncture */
-      --treemap-pos-deep: #10AD8D;
       --treemap-pos-soft: #62DDB1;
       --treemap-neutral: #F6C65B;
       --treemap-neg-soft: #FF967D;
@@ -151,7 +149,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     /* ======================================================================
-       BARRE DE NAVIGATION PRODUIT & STUDIO COMPARATEUR
+       NAVIGATION ET MISE EN PAGE
        ====================================================================== */
     .page-links {
       position: absolute;
@@ -186,124 +184,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       background: rgba(255, 255, 255, 0.96);
       border: 1px solid #D9E2EC;
       box-shadow: var(--shadow-shell);
-    }
-
-    /* Studio switcher bar */
-    .studio-bar {
-      position: relative;
-      z-index: 95;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 10px 14px;
-      padding: 10px 14px;
-      margin-bottom: 14px;
-      border-radius: 12px;
-      background: #F8FAFC;
-      border: 1px solid #D4DEE9;
-    }
-
-    .studio-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .studio-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: var(--topic-accent);
-      box-shadow: 0 0 0 4px rgba(0, 129, 109, 0.14);
-      flex: none;
-    }
-
-    .studio-brand strong {
-      font: 800 0.86rem/1.2 var(--font-display);
-      color: var(--ink);
-      letter-spacing: -0.02em;
-    }
-
-    .studio-brand span {
-      display: block;
-      font-size: 0.72rem;
-      color: var(--muted-soft);
-    }
-
-    .studio-tabs {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 5px;
-      padding: 4px;
-      border-radius: 10px;
-      background: #F1F5F9;
-      border: 1px solid #E2E8F0;
-    }
-
-    .studio-tab {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      min-height: 34px;
-      padding: 6px 11px;
-      border: 1px solid transparent;
-      border-radius: 7px;
-      background: transparent;
-      color: #475569;
-      font: 700 0.78rem/1.2 var(--font-sans);
-      transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
-    }
-
-    .studio-tab:hover {
-      color: var(--ink);
-      background: rgba(255, 255, 255, 0.72);
-    }
-
-    .studio-tab.is-active {
-      color: #FFFFFF;
-      background: #0B1D3A;
-      border-color: #0B1D3A;
-      box-shadow: 0 4px 12px rgba(11, 29, 58, 0.18);
-    }
-
-    .studio-tab-num {
-      font-variant-numeric: tabular-nums;
-      opacity: 0.78;
-      font-size: 0.72rem;
-    }
-
-    .studio-actions {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .studio-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      min-height: 34px;
-      padding: 6px 11px;
-      border-radius: 8px;
-      border: 1px solid #CBD5E1;
-      background: #FFFFFF;
-      color: var(--ink);
-      font: 600 0.76rem/1.2 var(--font-sans);
-      transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
-    }
-
-    .studio-pill:hover {
-      background: #F8FAFC;
-      border-color: #94A3B8;
-    }
-
-    .studio-pill.is-active {
-      color: #075953;
-      background: #E6F5F2;
-      border-color: #99D5C9;
     }
 
     /* ======================================================================
@@ -627,91 +507,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     /* ======================================================================
-       FRAMES VARIANTES & BANNIÈRES
-       ====================================================================== */
-    .variant-frame {
-      display: none;
-    }
-
-    .variant-frame.is-visible {
-      display: block;
-    }
-
-    body.is-showcase .variant-frame {
-      display: block;
-      margin-bottom: 48px;
-      padding-bottom: 36px;
-      border-bottom: 2px dashed #CBD5E1;
-    }
-
-    body.is-showcase .variant-frame:last-child {
-      margin-bottom: 0;
-      padding-bottom: 0;
-      border-bottom: 0;
-    }
-
-    .variant-banner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 14px;
-      padding: 12px 16px;
-      border-radius: 12px;
-      background: #F8FAFC;
-      border: 1px solid #D9E2EC;
-    }
-
-    .variant-banner-main {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0;
-    }
-
-    .variant-num {
-      display: inline-grid;
-      place-items: center;
-      width: 34px;
-      height: 34px;
-      border-radius: 9px;
-      background: #0B1D3A;
-      color: #FFFFFF;
-      font: 800 13px/1 var(--font-display);
-      flex: none;
-    }
-
-    .variant-banner h2 {
-      margin: 0;
-      font: 800 1rem/1.25 var(--font-display);
-      color: var(--ink);
-      letter-spacing: -0.02em;
-    }
-
-    .variant-banner p {
-      margin: 2px 0 0;
-      font-size: 0.8rem;
-      color: #475569;
-    }
-
-    .variant-tags {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .variant-tag {
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: #FFFFFF;
-      border: 1px solid #CBD5E1;
-      color: #1E293B;
-      font: 600 0.72rem/1.2 var(--font-sans);
-    }
-
-    /* ======================================================================
        COMPOSANTS PARTAGÉS DES CARTES (alignés sur details.css)
        ====================================================================== */
     .trar-stack {
@@ -755,8 +550,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       gap: 14px;
     }
 
-    .employment-title h3,
-    .employment-title h4 {
+    .employment-title h2 {
       margin: 0;
       color: #0B1E36;
       font: 700 clamp(1.15rem, 1.45vw, 1.42rem)/1.28 var(--font-display);
@@ -1120,8 +914,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     .employment-grand-sector-picker {
       --sector-picker-active: #7000FF;
-      width: min(100%, 220px);
-      flex: 0 1 220px;
+      width: 220px;
+      max-width: 100%;
+      flex: none;
+    }
+
+    .employment-grand-sector-picker .employment-sector-trigger {
+      min-height: 46px;
     }
 
     .employment-grand-sector-picker .employment-sector-menu {
@@ -1138,34 +937,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     .employment-grand-sector-picker .employment-sector-column::after {
-      display: none;
-    }
-
-    .trar-dept-picker {
-      --sector-picker-active: #004B9B;
-      width: min(100%, 285px);
-      flex: 0 1 285px;
-    }
-
-    .trar-dept-picker .employment-sector-menu {
-      width: min(410px, calc(100vw - 60px));
-      padding: 20px 22px;
-    }
-
-    .trar-dept-picker.align-right .employment-sector-menu {
-      left: auto;
-      right: 0;
-    }
-
-    .trar-dept-picker .employment-sector-grid {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    .trar-dept-picker .employment-sector-column {
-      padding-right: 0;
-    }
-
-    .trar-dept-picker .employment-sector-column::after {
       display: none;
     }
 
@@ -1255,16 +1026,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       display: inline-block;
     }
 
-    .employment-swatch {
-      display: inline-block;
-      width: 12px;
-      height: 12px;
-      border-radius: 3px;
-    }
-
-    .employment-swatch-positive { background: var(--treemap-pos-deep); }
-    .employment-swatch-negative { background: var(--treemap-neg-deep); }
-
     /* ======================================================================
        PANNEAU DROIT (SINGLE TAUX KPI + TOP 5 SECTEURS)
        ====================================================================== */
@@ -1329,30 +1090,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       box-shadow: 0 3px 10px rgba(11, 29, 58, 0.03);
     }
 
-    .trar-kpi-kicker {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-
     .employment-dashboard-level-label {
+      display: block;
+      margin-bottom: 6px;
       color: var(--dashboard-muted);
       font: 700 0.76rem/1.3 var(--font-sans);
       letter-spacing: 0.05em;
       text-transform: uppercase;
-    }
-
-    .trar-horizon-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      font: 700 0.7rem/1.2 var(--font-sans);
-      background: #F1F5F9;
-      color: #0B1E36;
     }
 
     .trar-rate-level {
@@ -1423,32 +1167,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     .employment-dashboard-trend.is-negative svg { transform: rotate(180deg); }
     .employment-dashboard-trend.is-neutral svg { transform: rotate(90deg); }
     .employment-dashboard-trend.is-unknown svg { display: none; }
-
-    .trar-interpretation {
-      position: relative;
-      z-index: 1;
-      margin: 0;
-      padding: 10px 12px 10px 32px;
-      border-radius: 10px;
-      background: #FFFFFF;
-      border: 1px solid #E2E8F0;
-      color: #475569;
-      font: 500 0.8rem/1.5 var(--font-sans);
-    }
-
-    .trar-interpretation::before {
-      content: "i";
-      position: absolute;
-      left: 11px;
-      top: 11px;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: rgba(0, 158, 219, 0.14);
-      color: #0284C7;
-      font: 800 11px/16px var(--font-sans);
-      text-align: center;
-    }
 
     .delai-top-sectors-block {
       position: relative;
@@ -1582,7 +1300,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     .trar-panel-head .employment-title {
-      flex: 1 1 260px;
+      flex: 1 1 26rem;
+      min-width: 0;
     }
 
     .trar-panel-controls {
@@ -1592,16 +1311,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       gap: 10px;
     }
 
+    .trar-panel-head .trar-panel-controls {
+      flex: none;
+      max-width: 100%;
+    }
+
     .trar-split-grid {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 18px;
       align-items: stretch;
     }
-
-    .trar-split-grid--46-54 { grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); }
-    .trar-split-grid--48-52 { grid-template-columns: minmax(0, 0.96fr) minmax(0, 1.04fr); }
-    .trar-split-grid--44-56 { grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr); }
 
     .trar-map-column,
     .trar-history-column {
@@ -1621,27 +1341,29 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     .trar-map-shell {
       position: relative;
-      display: grid;
-      place-items: center;
-      min-height: 360px;
+      flex: 1 0 auto;
+      min-height: clamp(240px, 62vw, 430px);
       background: #FFFFFF;
       border: 1px solid #E2E8F0;
       border-radius: 12px;
-      padding: 10px;
       overflow: hidden;
     }
 
-    .trar-map-shell svg {
+    .trar-map-shell > svg {
+      position: absolute;
+      inset: 0;
       width: 100%;
-      height: auto;
-      max-height: 430px;
+      height: 100%;
       display: block;
+    }
+
+    .trar-map-shell > .employment-tooltip {
+      min-width: min(196px, calc(100% - 24px));
     }
 
     .trar-map-department {
       stroke: #FFFFFF;
       stroke-width: 1.5px;
-      cursor: pointer;
       transition: fill 180ms ease, stroke 160ms ease, stroke-width 160ms ease, opacity 160ms ease;
     }
 
@@ -1699,8 +1421,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       pointer-events: none;
     }
 
-    .trar-department-tile {
+    .trar-map-department[role="button"],
+    .trar-department-tile[role="button"] {
       cursor: pointer;
+      outline: none;
     }
 
     .trar-department-tile rect {
@@ -1712,6 +1436,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     .trar-department-tile:hover rect {
       stroke: #0B1E36;
       stroke-width: 2.4px;
+    }
+
+    .trar-map-department:focus-visible,
+    .trar-department-tile:focus-visible rect {
+      stroke: #004B9B;
+      stroke-width: 3.5px;
     }
 
     .trar-department-tile text {
@@ -1744,13 +1474,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       white-space: nowrap;
     }
 
-    .employment-treemap-swatch {
-      display: inline-block;
-      width: 18px;
-      height: 9px;
-      border-radius: 999px;
-    }
-
     .trar-color-key i.is-square {
       width: 13px;
       height: 13px;
@@ -1760,16 +1483,29 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     .trar-history-head {
-      position: relative;
-      z-index: 30;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 8px 12px;
     }
 
-    .trar-history-meta h5 {
+    .trar-history-period {
+      flex: none;
+      min-height: 36px;
+      padding: 6px 12px;
+      border: 1px solid #CBD5E1;
+      border-radius: 8px;
+      background: #F1F5F9;
+      color: #004B9B;
+      font: 700 0.8rem/1.2 var(--font-sans);
+    }
+
+    .trar-history-period:hover {
+      background: #E2E8F0;
+    }
+
+    .trar-history-meta h3 {
       margin: 0;
       font: 800 1.08rem/1.25 var(--font-display);
       color: #0B1E36;
@@ -1833,168 +1569,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       background: var(--treemap-neg-deep);
     }
 
-    /* ======================================================================
-       STYLES SPÉCIFIQUES AUX 5 VARIANTES
-       ====================================================================== */
-    /* Variant 2 : Podium départemental + Sparkline KPI + Zoom 2022 */
-    .v2-spark-box {
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px solid #F1F5F9;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .v2-spark-box span {
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: #64748B;
-    }
-
-    .v2-podium {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .v2-podium-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid #CBD5E1;
-      background: #FFFFFF;
-      color: #1E293B;
-      font: 600 0.76rem/1.2 var(--font-sans);
-      transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
-    }
-
-    .v2-podium-btn:hover {
-      border-color: #0B1D3A;
-      transform: translateY(-1px);
-    }
-
-    .v2-podium-btn.is-active {
-      background: #0B1D3A;
-      border-color: #0B1D3A;
-      color: #FFFFFF;
-      box-shadow: 0 6px 14px rgba(11, 29, 58, 0.16);
-    }
-
-    .v2-podium-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      flex: none;
-    }
-
-    /* Variant 3 : Inline bars dans Top 5 */
-    .v3-bar-cell {
-      position: relative;
-    }
-
-    .v3-rate-bar {
-      height: 4px;
-      border-radius: 999px;
-      background: #E2E8F0;
-      margin-top: 4px;
-      overflow: hidden;
-    }
-
-    .v3-rate-bar > i {
-      display: block;
-      height: 100%;
-      border-radius: 999px;
-      background: var(--treemap-neg-deep);
-    }
-
-    /* Variant 4 : Executive Horizon Tabs + Dept Leaderboard */
-    .v4-kpi-tabs {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 4px;
-      padding: 4px;
-      border-radius: 10px;
-      background: #E2E8F0;
-    }
-
-    .v4-kpi-tab {
-      padding: 7px 6px;
-      border: 0;
-      border-radius: 7px;
-      background: transparent;
-      color: #334155;
-      font: 700 0.74rem/1.2 var(--font-sans);
-      text-align: center;
-    }
-
-    .v4-kpi-tab.is-active {
-      background: #FFFFFF;
-      color: #0B1D3A;
-      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
-    }
-
-    .v4-leaderboard {
-      display: grid;
-      gap: 6px;
-      max-height: 215px;
-      overflow-y: auto;
-      padding-right: 4px;
-    }
-
-    .v4-leader-row {
-      display: grid;
-      grid-template-columns: 24px 12px minmax(0, 1fr) auto;
-      align-items: center;
-      gap: 9px;
-      width: 100%;
-      padding: 8px 10px;
-      border-radius: 9px;
-      border: 1px solid #E2E8F0;
-      background: #FFFFFF;
-      text-align: left;
-      transition: border-color 140ms ease, background-color 140ms ease;
-    }
-
-    .v4-leader-row:hover {
-      border-color: #94A3B8;
-      background: #F8FAFC;
-    }
-
-    .v4-leader-row.is-active {
-      border-color: #0B1D3A;
-      background: #EFF6FF;
-    }
-
-    .v4-leader-rank {
-      font: 800 0.76rem/1 var(--font-display);
-      color: #64748B;
-      text-align: center;
-    }
-
-    .v4-leader-row.is-active .v4-leader-rank {
-      color: #0B1D3A;
-    }
-
-    .v4-leader-name {
-      font: 700 0.8rem/1.25 var(--font-sans);
-      color: #0B1E36;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .v4-leader-val {
-      font: 800 0.82rem/1.2 var(--font-sans);
-      font-variant-numeric: tabular-nums;
-      color: #0B1E36;
-    }
-
-    /* Variant 5 : Spread comparison badge */
-    .v5-spread-pill {
+    /* Écart par rapport au taux de référence */
+    .trar-benchmark-gap {
       display: inline-flex;
       align-items: center;
       gap: 6px;
@@ -2006,16 +1582,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       font: 600 0.76rem/1.3 var(--font-sans);
     }
 
-    .v5-spread-pill strong {
+    .trar-benchmark-gap strong {
       font-variant-numeric: tabular-nums;
     }
 
-    .v5-spread-pill.is-higher {
+    .trar-benchmark-gap.is-higher {
       background: #FFF1F2;
       color: #9F1239;
     }
 
-    .v5-spread-pill.is-lower {
+    .trar-benchmark-gap.is-lower {
       background: #ECFDF5;
       color: #065F46;
     }
@@ -2025,10 +1601,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
        ====================================================================== */
     @media (max-width: 1120px) {
       .employment-grid,
-      .trar-split-grid,
-      .trar-split-grid--46-54,
-      .trar-split-grid--48-52,
-      .trar-split-grid--44-56 {
+      .trar-split-grid {
         grid-template-columns: 1fr;
       }
 
@@ -2077,6 +1650,36 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         padding: 18px;
       }
     }
+
+    @media (max-width: 720px) {
+      .trar-panel-head .trar-panel-controls,
+      .employment-grand-sector-picker,
+      .trar-panel-head .metric-switch {
+        width: 100%;
+      }
+
+      .employment-grand-sector-picker .employment-sector-menu {
+        width: min(380px, 100%);
+      }
+
+      .trar-panel-head .metric-switch {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .trar-panel-head .metric-button {
+        gap: 4px;
+        padding-inline: 4px;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .trar-panel-head .metric-button {
+        flex-direction: column;
+        font-size: 0.75rem;
+      }
+    }
   </style>
 </head>
 <body data-topic="entreprises">
@@ -2087,39 +1690,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
   <div class="page">
     <div class="shell">
-      <aside class="studio-bar" aria-label="Comparateur des 5 variantes">
-        <div class="studio-brand">
-          <span class="studio-dot" aria-hidden="true"></span>
-          <div>
-            <strong>Maquette TRAR · 5 Variantes</strong>
-            <span>Refonte Taux de reste à recouvrer &amp; Carte départementale</span>
-          </div>
-        </div>
-        <div class="studio-tabs" role="tablist" aria-label="Choisir une variante">
-          <button type="button" class="studio-tab is-active" role="tab" aria-selected="true" data-variant="1">
-            <span class="studio-tab-num">01</span> Tech Dashboard
-          </button>
-          <button type="button" class="studio-tab" role="tab" aria-selected="false" data-variant="2">
-            <span class="studio-tab-num">02</span> Focus &amp; Podium
-          </button>
-          <button type="button" class="studio-tab" role="tab" aria-selected="false" data-variant="3">
-            <span class="studio-tab-num">03</span> Style Conjoncture
-          </button>
-          <button type="button" class="studio-tab" role="tab" aria-selected="false" data-variant="4">
-            <span class="studio-tab-num">04</span> Cockpit Exécutif
-          </button>
-          <button type="button" class="studio-tab" role="tab" aria-selected="false" data-variant="5">
-            <span class="studio-tab-num">05</span> Atelier Comparatif
-          </button>
-        </div>
-        <div class="studio-actions">
-          <button type="button" class="studio-pill" data-quick-geo="24">Centre-Val de Loire</button>
-          <button type="button" class="studio-pill" data-quick-geo="11">Île-de-France</button>
-          <button type="button" class="studio-pill" data-quick-geo="national">France entière</button>
-          <button type="button" class="studio-pill" id="toggleShowcaseBtn">Comparer les 5</button>
-        </div>
-      </aside>
-
       <header class="topic-header" data-topic="entreprises">
         <div class="topic-header-main">
           <span class="topic-header-number" aria-hidden="true">02</span>
@@ -2145,7 +1715,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
       </header>
 
-      <main id="variantsRoot"></main>
+      <main id="trarRoot"></main>
     </div>
   </div>
 
@@ -2159,7 +1729,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const REGIONS_BY_CODE = new Map(REGIONS.map((region) => [region.code, region]));
       const DEPTS_GEO = PAYLOAD.departmentsGeo;
       const DEPT_FEATURES = DEPTS_GEO.features;
-      const DEPT_BY_CODE = new Map(DEPT_FEATURES.map((feature) => [feature.properties.code, feature]));
       const DEPTS_BY_REGION = d3.group(DEPT_FEATURES, (feature) => feature.properties.region);
 
       const CONJONCTURE_COLORS = ["#10AD8D", "#62DDB1", "#F6C65B", "#FF967D", "#ED4766"];
@@ -2168,11 +1737,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         { key: "moisSuivant", index: 1, label: "Fin du mois suivant", shortLabel: "Mois suivant", color: "#087783" },
         { key: "fin", index: 0, label: "Fin du mois d’échéance", shortLabel: "À l’échéance", color: "#004B9B" },
       ];
-      const TRAR_COLOR_MODES = [
-        { key: "rate", label: "Taux" },
-        { key: "annual", label: "Écart annuel" },
-      ];
-
       const REGIONAL_SECTOR_GROUPS = [
         {
           key: "industry",
@@ -2225,51 +1789,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         { key: "collective", label: "Services collectifs", match: (n) => n >= 84 && n <= 96 },
       ];
 
-      const VARIANTS = [
-        {
-          id: 1,
-          title: "Variante 01 · Tech Dashboard Unifié (Standard Produit)",
-          desc: "Un seul taux sur le graphique (À 90 jours par défaut) et un seul KPI actif à droite. Carte départementale colorée comme le treemap Conjoncture côte à côte avec l’historique du plus fort taux actif.",
-          tags: ["À 90 jours par défaut", "KPI unique synchronisé", "Dropdown NACE 4 colonnes", "Carte + Graphe 50/50"],
-        },
-        {
-          id: 2,
-          title: "Variante 02 · Focus Post-Covid & Podium Départemental",
-          desc: "Ajoute une bascule de fenêtre temporelle (Depuis 2022 vs 2019) pour lire les variations récentes sans écrasement par le pic 2020, une sparkline 12 mois dans le KPI unique et un podium cliquable sous la carte.",
-          tags: ["Zoom 2022–2026", "Sparkline KPI 12 mois", "Podium départements", "Référence régionale"],
-        },
-        {
-          id: 3,
-          title: "Variante 03 · Style Conjoncture (Courbe de taux + Barres d’écart annuel)",
-          desc: "La courbe foncée indique le taux sur l’axe de gauche. Les barres vertes et corail indiquent le glissement annuel sur l’axe de droite.",
-          tags: ["Courbe + Histogramme YoY", "Palette Conjoncture intégrale", "Étiquettes sur carte", "Barres Top 5"],
-        },
-        {
-          id: 4,
-          title: "Variante 04 · Cockpit Exécutif & Classement Éclair",
-          desc: "Onglets d’échéance intégrés directement au sommet du KPI unique à droite, ligne de moyenne historique sur le graphe et classement complet des départements couplé à la carte.",
-          tags: ["Onglets KPI synchronisés", "Ligne de moyenne", "Leaderboard départements", "Bandeau 3 KPIs dépt."],
-        },
-        {
-          id: 5,
-          title: "Variante 05 · Atelier Comparatif (Secteur & Département vs Moyenne)",
-          desc: "Affiche les taux en direct dans le sélecteur de secteur et superpose en pointillés la référence « Tous secteurs » (bloc 1) ou la moyenne régionale (bloc 2) pour situer l’écart en points.",
-          tags: ["Taux dans le sélecteur", "Courbe de référence", "Badge d’écart en pt", "Comparaison temps réel"],
-        },
-      ];
-
       const appState = {
-        variant: 1,
-        showcase: false,
         scope: PAYLOAD.meta.defaultRegion || "24", // "national" or region code
         mainHorizon: "j90",
         nationalSector: "tous-secteurs",
         regionalSector: "tous-secteurs",
         deptSector: "tous-secteurs",
         deptHorizon: "j90",
-        deptColorMode: "rate",
+        showFullDeptHistory: false,
         selectedDeptByScope: {},
-        v2Window: "since2022", // "since2022" or "full"
       };
 
       const trarSeriesCache = new WeakMap();
@@ -2359,20 +1887,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         return result;
       }
 
-      function treemapVariationColorScale(values, valueOf) {
-        const maxAbs = Math.max(1.5, d3.max(values, (row) => {
-          const v = valueOf(row);
-          return Number.isFinite(v) ? Math.abs(v) : 0;
-        }) || 0);
-        const negative = d3.interpolateRgb("#FF967D", "#ED4766");
-        const positive = d3.interpolateRgb("#62DDB1", "#10AD8D");
-        const neutral = "#F6C65B";
-        return (value) => {
-          if (!Number.isFinite(value)) return "#E2E8F0";
-          if (Math.abs(value) <= 0.05) return neutral;
-          const intensity = Math.sqrt(Math.min(1, Math.abs(value) / maxAbs));
-          return value < 0 ? negative(intensity) : positive(intensity);
-        };
+      function lastThreeYears({ points, latest }, horizonKey) {
+        const endDate = latest[horizonKey]?.date;
+        if (!endDate) return [];
+        const start = new Date(endDate);
+        start.setUTCMonth(start.getUTCMonth() - 35);
+        const startDate = start.toISOString().slice(0, 10);
+        return points.filter(({ date }) => date >= startDate && date <= endDate);
       }
 
       function getSnapshot(sectorKey, horizonKey, scopeKey) {
@@ -2424,20 +1945,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             ? Math.round(idx * (CONJONCTURE_COLORS.length - 1) / thresholds.length)
             : 2]);
         const rateColor = d3.scaleThreshold(thresholds, colors);
-        const annualColor = treemapVariationColorScale(changes.values(), (c) => c);
 
-        const result = { date, values, changes, thresholds, colors, rateColor, annualColor };
+        const result = { date, values, changes, thresholds, colors, rateColor };
         snapshotCache.set(cacheKey, result);
         return result;
-      }
-
-      function getRegionalAverageForDept(sectorKey, horizonKey, regionCode) {
-        if (regionCode === "national") {
-          const scopeSeries = TRAR.national?.["tous-secteurs"];
-          return getTrarSeries(scopeSeries).points;
-        }
-        const scopeSeries = TRAR.regions?.[regionCode]?.["tous-secteurs"];
-        return getTrarSeries(scopeSeries).points;
       }
 
       function buildDepartmentEntries(snapshot, features, sectorKey) {
@@ -2445,45 +1956,31 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           const { code, nom: name, region } = feature.properties;
           const value = snapshot.values.get(code);
           const change = snapshot.changes.get(code);
-          const annual = appState.deptColorMode === "annual";
-          const fill = annual
-            ? (Number.isFinite(change) ? snapshot.annualColor(-change) : "#E2E8F0")
-            : (Number.isFinite(value) ? snapshot.rateColor(value) : "#E2E8F0");
+          const fill = Number.isFinite(value) ? snapshot.rateColor(value) : "#E2E8F0";
           const hasHistory = Boolean(TRAR.departments[code]?.[sectorKey]);
-          return { code, name, region, value, change, fill, hasHistory, feature };
+          return { code, name, region, value, change, fill, hasHistory };
         });
         return entries;
       }
 
-      function findBiggestDeptCode(entries, colorMode) {
+      function findHighestRateDept(entries) {
         const candidates = entries.filter((d) => d.hasHistory && Number.isFinite(d.value));
-        if (!candidates.length) {
-          return entries.find((d) => d.hasHistory)?.code || "";
-        }
-        const sorted = [...candidates].sort((a, b) => {
-          if (colorMode === "annual") {
-            const ac = Number.isFinite(a.change) ? a.change : -Infinity;
-            const bc = Number.isFinite(b.change) ? b.change : -Infinity;
-            if (bc !== ac) return bc - ac;
-          }
-          return (b.value - a.value) || a.name.localeCompare(b.name, "fr");
-        });
-        return sorted[0].code;
+        return d3.least(candidates, (a, b) => (b.value - a.value) || a.name.localeCompare(b.name, "fr"));
       }
 
-      function ensureActiveDeptCode(entries) {
-        const key = `${appState.scope}:${appState.deptSector}:${appState.deptHorizon}:${appState.deptColorMode}`;
+      function ensureActiveDeptCode(entries, highestRateDept) {
+        const key = `${appState.scope}:${appState.deptSector}:${appState.deptHorizon}`;
         const saved = appState.selectedDeptByScope[key];
         if (saved && entries.some((d) => d.code === saved && d.hasHistory)) {
           return saved;
         }
-        const biggest = findBiggestDeptCode(entries, appState.deptColorMode);
-        appState.selectedDeptByScope[key] = biggest;
-        return biggest;
+        const code = highestRateDept?.code ?? entries.find((d) => d.hasHistory)?.code ?? "";
+        appState.selectedDeptByScope[key] = code;
+        return code;
       }
 
       function setActiveDeptCode(code) {
-        const key = `${appState.scope}:${appState.deptSector}:${appState.deptHorizon}:${appState.deptColorMode}`;
+        const key = `${appState.scope}:${appState.deptSector}:${appState.deptHorizon}`;
         appState.selectedDeptByScope[key] = code;
       }
 
@@ -2501,9 +1998,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           currentEl.textContent = name;
           document.getElementById("topicDescription").textContent =
             `Analysez la vitalité du tissu économique et la situation des entreprises · ${name}`;
-          document.querySelectorAll("[data-quick-geo]").forEach((btn) => {
-            btn.classList.toggle("is-active", btn.dataset.quickGeo === appState.scope);
-          });
           menu.querySelectorAll(".geo-national-card, .geo-selector-row").forEach((btn) => {
             const active = btn.dataset.geoCode === appState.scope;
             btn.classList.toggle("is-active", active);
@@ -2589,7 +2083,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           appState.scope = code;
           setOpen(false);
           updateLabel();
-          renderActiveViews();
+          renderMockup();
         }
 
         buildMenu();
@@ -2604,10 +2098,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         document.addEventListener("click", (e) => {
           if (!control.contains(e.target)) setOpen(false);
         });
-
-        document.querySelectorAll("[data-quick-geo]").forEach((btn) => {
-          btn.addEventListener("click", () => selectScope(btn.dataset.quickGeo));
-        });
       }
 
       /* ====================================================================
@@ -2618,7 +2108,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           if (picker === except) return;
           picker.classList.remove("is-open");
           picker.querySelector(".employment-sector-trigger")?.setAttribute("aria-expanded", "false");
-          picker.closest(".employment-main, .trar-panel-head, .trar-history-head")?.classList.remove("has-open-sector-picker");
+          picker.closest(".employment-main, .trar-panel-head")?.classList.remove("has-open-sector-picker");
         });
       }
 
@@ -2654,7 +2144,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         const allOptions = [...(allOption ? [allOption] : []), ...groups.flatMap((g) => g.options)];
         const activeOption = allOptions.find((o) => o.key === selectedKey) || allOptions[0];
-        const triggerVal = el("span", "employment-sector-trigger-value", activeOption ? activeOption.displayLabel || activeOption.label : "—");
+        const triggerVal = el("span", "employment-sector-trigger-value", activeOption?.label ?? "—");
         const chev = svgEl("svg", { viewBox: "0 0 20 20", "aria-hidden": "true" });
         chev.append(svgEl("path", { d: "m5 7.5 5 5 5-5" }));
         trigger.append(triggerVal, chev);
@@ -2686,9 +2176,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           btn.append(el("span", "", opt.label));
           const right = el("span", "employment-sector-option-right");
           if (showRateBadge && opt.badgeText) {
-            const pill = el("span", "picker-rate-pill", opt.badgeText);
-            if (opt.badgeBg) pill.style.background = opt.badgeBg;
-            right.append(pill);
+            right.append(el("span", "picker-rate-pill", opt.badgeText));
           }
           const dot = el("span", "employment-sector-active-dot");
           dot.setAttribute("aria-hidden", "true");
@@ -2750,7 +2238,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           closeAllPickers(wrapper);
           wrapper.classList.toggle("is-open", willOpen);
           trigger.setAttribute("aria-expanded", String(willOpen));
-          wrapper.closest(".employment-main, .trar-panel-head, .trar-history-head")
+          wrapper.closest(".employment-main, .trar-panel-head")
             ?.classList.toggle("has-open-sector-picker", willOpen);
           if (willOpen && searchInput) {
             requestAnimationFrame(() => searchInput.focus());
@@ -2761,16 +2249,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         return wrapper;
       }
 
-      function buildMainSectorPicker({ selectedKey, onSelect, showRates = false, horizonIndex = 2 }) {
+      function buildMainSectorPicker({ selectedKey, onSelect, horizonKey }) {
         const isNational = appState.scope === "national";
         const options = isNational ? TRAR.sectors.national : TRAR.sectors.regional;
         const scopeSeries = isNational ? TRAR.national : TRAR.regions[appState.scope];
 
         const decorate = (opt) => {
-          if (!showRates || !scopeSeries?.[opt.key]) return opt;
-          const pts = getTrarSeries(scopeSeries[opt.key]).points;
-          const hKey = TRAR_HORIZONS.find((h) => h.index === horizonIndex)?.key || "j90";
-          const lastVal = [...pts].reverse().find((p) => Number.isFinite(p[hKey]))?.[hKey];
+          if (!scopeSeries?.[opt.key]) return opt;
+          const lastVal = getTrarSeries(scopeSeries[opt.key]).latest[horizonKey]?.value;
           return {
             ...opt,
             badgeText: Number.isFinite(lastVal) ? formatTrarPercent(lastVal) : null,
@@ -2803,7 +2289,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           allOption: allOpt,
           groups,
           searchable: true,
-          showRateBadge: showRates,
+          showRateBadge: true,
           onSelect,
         });
       }
@@ -2820,29 +2306,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           allOption: allOpt,
           groups: [{ key: "grand", label: "Grands secteurs", options: rest }],
           searchable: false,
-          onSelect,
-        });
-      }
-
-      function buildDepartmentPicker({ entries, selectedCode, onSelect, alignRight = true }) {
-        const sorted = entries
-          .filter((d) => d.hasHistory)
-          .sort((a, b) => (b.value ?? -1) - (a.value ?? -1) || a.name.localeCompare(b.name, "fr"));
-        const options = sorted.map((d, idx) => ({
-          key: d.code,
-          label: `${idx + 1}. ${d.name} (${d.code})`,
-          displayLabel: `${d.name} (${d.code})`,
-          badgeText: Number.isFinite(d.value) ? formatTrarPercent(d.value) : "—",
-          badgeBg: d.fill,
-        }));
-        return createCustomPicker({
-          label: "Département à suivre",
-          extraClass: `trar-dept-picker${alignRight ? " align-right" : ""}`,
-          menuTitle: "Départements triés par taux actif",
-          selectedKey: selectedCode,
-          groups: [{ key: "dept", label: currentScopeLabel(), options }],
-          searchable: sorted.length > 12,
-          showRateBadge: true,
           onSelect,
         });
       }
@@ -2864,20 +2327,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         return wrap;
       }
 
-      function buildColorModeSwitch(activeKey, onChange) {
-        const wrap = el("div", "metric-switch");
-        wrap.setAttribute("role", "group");
-        wrap.setAttribute("aria-label", "Mode de couleur de la carte");
-        TRAR_COLOR_MODES.forEach((mode) => {
-          const btn = el("button", `metric-button${mode.key === activeKey ? " is-active" : ""}`, mode.label);
-          btn.type = "button";
-          btn.setAttribute("aria-pressed", String(mode.key === activeKey));
-          btn.addEventListener("click", () => onChange(mode.key));
-          wrap.append(btn);
-        });
-        return wrap;
-      }
-
       /* ====================================================================
          COMPOSANTS KPI & CLASSEMENT DROIT (SINGLE TAUX)
          ==================================================================== */
@@ -2892,33 +2341,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         return stat;
       }
 
-      function trarInterpretationText(yoy, mom, horizon) {
-        const dirYoy = !Number.isFinite(yoy) ? "u" : yoy > 0.05 ? "up" : yoy < -0.05 ? "down" : "flat";
-        const dirMom = !Number.isFinite(mom) ? "u" : mom > 0.05 ? "up" : mom < -0.05 ? "down" : "flat";
-        const map = {
-          "down-down": `À ${horizon.shortLabel.toLowerCase()}, le taux de reste à recouvrer recule sur un an comme sur le mois : le recouvrement s’améliore.`,
-          "up-up": `À ${horizon.shortLabel.toLowerCase()}, le taux progresse sur un mois et sur un an, signalant une tension accrue sur la trésorerie.`,
-          "down-up": `En repli sur un an malgré une légère hausse mensuelle : la situation reste globalement mieux orientée qu’il y a un an.`,
-          "up-down": `En hausse sur un an mais en repli sur le dernier mois : amorce d’accalmie récente à confirmer.`,
-          "flat-down": `Quasi stable sur un an, avec un repli mensuel favorable sur la dernière observation.`,
-          "flat-up": `Quasi stable sur un an, mais en légère remontée sur le dernier mois disponible.`,
-        };
-        return map[`${dirYoy}-${dirMom}`]
-          || `Lecture active sur l’échéance « ${horizon.label} » (${formatTrarChange(yoy)} sur un an).`;
-      }
-
-      function buildSingleKpiCard({ horizon, latestPoint, changes, extraTop = null, extraBottom = null }) {
+      function buildSingleKpiCard({ horizon, latestPoint, changes, comparison }) {
         const card = el("div", "delai-kpi-block");
-        if (extraTop) card.append(extraTop);
-
-        const kicker = el("div", "trar-kpi-kicker");
-        kicker.append(el("span", "employment-dashboard-level-label", horizon.label));
-        const pill = el("span", "trar-horizon-badge");
-        const dot = el("span", "horizon-dot");
-        dot.style.background = horizon.color;
-        pill.append(dot, document.createTextNode(horizon.shortLabel));
-        kicker.append(pill);
-        card.append(kicker);
+        card.append(el("span", "employment-dashboard-level-label", horizon.label));
 
         const level = el("div", "trar-rate-level");
         level.append(el("strong", "delai-level-value", formatTrarPercent(latestPoint?.value)));
@@ -2934,33 +2359,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         stats.append(buildTrendBox("Gliss. annuel", yoy), buildTrendBox("Gliss. mensuel", mom));
         card.append(stats);
 
-        if (extraBottom) card.append(extraBottom);
+        if (comparison) card.append(comparison);
         return card;
       }
 
-      function buildSparklineSvg(points, horizonKey, color) {
-        const recent = points.filter((p) => Number.isFinite(p[horizonKey])).slice(-12);
-        const svg = svgEl("svg", { viewBox: "0 0 130 34", width: "130", height: "34", "aria-hidden": "true" });
-        if (recent.length < 2) return svg;
-        const vals = recent.map((p) => p[horizonKey]);
-        const x = d3.scaleLinear().domain([0, recent.length - 1]).range([4, 126]);
-        const minV = d3.min(vals);
-        const maxV = d3.max(vals);
-        const y = d3.scaleLinear().domain([minV - (maxV - minV) * 0.12, maxV + (maxV - minV) * 0.12 || 1]).range([30, 4]);
-        const line = d3.line().x((_, i) => x(i)).y((v) => y(v)).curve(d3.curveMonotoneX);
-        svg.append(svgEl("path", { d: line(vals), fill: "none", stroke: color, "stroke-width": 2.4, "stroke-linecap": "round" }));
-        svg.append(svgEl("circle", { cx: x(vals.length - 1), cy: y(vals[vals.length - 1]), r: 3.2, fill: color, stroke: "#FFFFFF", "stroke-width": 1.4 }));
-        return svg;
-      }
-
-      function buildTopSectorsBlock({ options, dashboard, horizonIndex, selectedKey, onSelect, inlineBars = false }) {
+      function buildTopSectorsBlock({ options, dashboard, horizonIndex, selectedKey, onSelect }) {
         const block = el("section", "delai-top-sectors-block");
         const snapshot = dashboard?.rankings?.[horizonIndex];
         const date = snapshot?.date;
 
         const head = el("div", "delai-top-sectors-head");
         head.append(
-          el("h4", "delai-top-sectors-title", "5 taux sectoriels les plus élevés"),
+          el("h3", "delai-top-sectors-title", "5 taux sectoriels les plus élevés"),
           el("time", "delai-top-sectors-meta", date ? monthLabel(date) : "—")
         );
         block.append(head);
@@ -2977,7 +2387,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           return block;
         }
 
-        const maxVal = d3.max(rows, (r) => r.value) || 1;
         const table = el("table", "delai-top-table");
         const thead = el("thead");
         const htr = el("tr");
@@ -2992,19 +2401,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         rows.forEach((row, idx) => {
           const tr = el("tr", `delai-top-row${row.key === selectedKey ? " is-active" : ""}`);
           const tdRank = el("td", "delai-td-rank", String(idx + 1));
-          const tdSec = el("td", inlineBars ? "v3-bar-cell" : "");
+          const tdSec = el("td");
           const btn = el("button", "sector-ranking-link", row.label);
           btn.type = "button";
           btn.title = row.label;
           btn.addEventListener("click", () => onSelect(row.key));
           tdSec.append(btn);
-          if (inlineBars) {
-            const track = el("div", "v3-rate-bar");
-            const fill = el("i");
-            fill.style.width = `${Math.max(8, Math.round((row.value / maxVal) * 100))}%`;
-            track.append(fill);
-            tdSec.append(track);
-          }
           const tdVal = el("td", "delai-td-mt", formatTrarPercent(row.value));
           const yoyCls = row.yoy > 0 ? "trend-up" : row.yoy < 0 ? "trend-down" : "trend-flat";
           const tdYoy = el("td", `delai-td-yoy ${yoyCls}`, formatTrarChange(row.yoy));
@@ -3040,9 +2442,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         scopeLabelText,
         benchmarkPoints = null,
         benchmarkLabel = "",
-        showArea = true,
-        showMeanLine = false,
-        showExtrema = false,
         viewBoxWidth = 940,
         compactHeight = 460,
       }) {
@@ -3085,22 +2484,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             ax.selectAll("line").attr("stroke", "rgba(148,163,184,0.22)").attr("stroke-dasharray", "3 3");
           });
 
-        // Area
-        if (showArea) {
-          const gradId = `grad-${Math.random().toString(36).slice(2, 9)}`;
-          const defs = svg.append("defs");
-          const grad = defs.append("linearGradient").attr("id", gradId).attr("x1", "0%").attr("x2", "0%").attr("y1", "0%").attr("y2", "100%");
-          grad.append("stop").attr("offset", "0%").attr("stop-color", horizon.color).attr("stop-opacity", 0.22);
-          grad.append("stop").attr("offset", "100%").attr("stop-color", horizon.color).attr("stop-opacity", 0.01);
-          const area = d3.area()
-            .defined((p) => Number.isFinite(p[horizon.key]))
-            .x((p) => x(p.date))
-            .y0(innerH)
-            .y1((p) => y(p[horizon.key]))
-            .curve(d3.curveMonotoneX);
-          g.append("path").attr("d", area(points)).attr("fill", `url(#${gradId})`);
-        }
-
         // Benchmark curve (if provided)
         let benchByDate = null;
         if (benchmarkPoints) {
@@ -3117,21 +2500,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             .attr("stroke-width", 2)
             .attr("stroke-dasharray", "5 5")
             .attr("opacity", 0.78);
-        }
-
-        // Optional period mean line
-        if (showMeanLine) {
-          const meanVal = d3.mean(valid, (p) => p[horizon.key]);
-          if (Number.isFinite(meanVal)) {
-            const my = y(meanVal);
-            g.append("line")
-              .attr("x1", 0).attr("x2", innerW).attr("y1", my).attr("y2", my)
-              .attr("stroke", "#64748B").attr("stroke-width", 1.5).attr("stroke-dasharray", "4 4");
-            g.append("text")
-              .attr("x", innerW - 4).attr("y", my - 6).attr("text-anchor", "end")
-              .attr("fill", "#475569").style("font-size", "11px").style("font-weight", "600")
-              .text(`Moy. période : ${formatTrarPercent(meanVal)}`);
-          }
         }
 
         // Main line
@@ -3155,24 +2523,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           .attr("fill", (_, i) => (i === valid.length - 1 ? "#FFFFFF" : horizon.color))
           .attr("stroke", horizon.color)
           .attr("stroke-width", (_, i) => (i === valid.length - 1 ? 2.8 : 1));
-
-        // Optional min/max/latest annotations
-        if (showExtrema && valid.length > 2) {
-          const maxPt = valid.reduce((a, b) => (b[horizon.key] > a[horizon.key] ? b : a));
-          const lastPt = valid[valid.length - 1];
-          const drawTag = (pt, txt, dy = -12, align = "middle") => {
-            const cx = x(pt.date);
-            const cy = y(pt[horizon.key]);
-            g.append("text")
-              .attr("x", cx).attr("y", Math.max(12, cy + dy))
-              .attr("text-anchor", align)
-              .attr("fill", "#0B1E36")
-              .style("font-size", "11px").style("font-weight", "700")
-              .text(txt);
-          };
-          if (maxPt !== lastPt) drawTag(maxPt, `Pic : ${formatTrarPercent(maxPt[horizon.key])}`, -12, "middle");
-          drawTag(lastPt, formatTrarPercent(lastPt[horizon.key]), -12, "end");
-        }
 
         // Axes
         const yAxis = g.append("g").call(d3.axisLeft(y).ticks(6).tickFormat(formatTrarPercent));
@@ -3256,201 +2606,34 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           .on("pointermove", show).on("pointerleave", hide);
       }
 
-      /* Style Conjoncture (Variante 3) : Barres YoY + Courbe de Taux */
-      function drawConjonctureComboChart({ svgNode, tooltipNode, points, horizon, scopeLabelText, viewBoxWidth = 940, compactHeight = 460 }) {
-        const svg = d3.select(svgNode);
-        svg.selectAll("*").remove();
-        const width = viewBoxWidth;
-        const height = compactHeight;
-        const margin = { top: 32, right: 66, bottom: 48, left: 70 };
-        const innerW = width - margin.left - margin.right;
-        const innerH = height - margin.top - margin.bottom;
-        svg.attr("viewBox", `0 0 ${width} ${height}`);
-
-        const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-        const valid = points.filter((p) => Number.isFinite(p[horizon.key]));
-        if (!valid.length) {
-          g.append("text").attr("x", innerW / 2).attr("y", innerH / 2).attr("text-anchor", "middle")
-            .attr("fill", "#64748B").text("Données indisponibles.");
-          return;
-        }
-
-        const dates = points.map((p) => p.date);
-        const x = d3.scalePoint().domain(dates).range([0, innerW]).padding(0.25);
-        const yoyKey = `${horizon.key}_yoy`;
-        const yoyVals = points.map((p) => p[yoyKey]).filter(Number.isFinite);
-        let yoyMin = d3.min(yoyVals) ?? -1;
-        let yoyMax = d3.max(yoyVals) ?? 1;
-        const yoyPad = Math.max(0.4, (yoyMax - yoyMin) * 0.12);
-        yoyMin = Math.min(0, yoyMin - yoyPad);
-        yoyMax = Math.max(0, yoyMax + yoyPad);
-
-        const rateVals = valid.map((p) => p[horizon.key]);
-        const rateMax = (d3.max(rateVals) ?? 1) * 1.1;
-
-        const yYoY = d3.scaleLinear().domain([yoyMin, yoyMax]).nice().range([innerH, 0]);
-        const yRate = d3.scaleLinear().domain([0, rateMax]).nice().range([innerH, 0]);
-
-        // Grid on YoY
-        g.append("g")
-          .selectAll("line")
-          .data(yYoY.ticks(6))
-          .join("line")
-          .attr("x1", 0).attr("x2", innerW)
-          .attr("y1", (v) => yYoY(v)).attr("y2", (v) => yYoY(v))
-          .attr("stroke", (v) => (v === 0 ? "rgba(100,116,139,0.35)" : "rgba(148,163,184,0.22)"))
-          .attr("stroke-width", (v) => (v === 0 ? 1.4 : 1));
-
-        const stepPx = dates.length > 1 ? x(dates[1]) - x(dates[0]) : innerW;
-        const barW = Math.max(3, Math.min(10, stepPx * 0.68));
-        const zeroY = yYoY(0);
-
-        g.append("g")
-          .selectAll("rect")
-          .data(points.filter((p) => Number.isFinite(p[yoyKey])))
-          .join("rect")
-          .attr("x", (p) => x(p.date) - barW / 2)
-          .attr("y", (p) => (p[yoyKey] >= 0 ? yYoY(p[yoyKey]) : zeroY))
-          .attr("width", barW)
-          .attr("height", (p) => Math.max(1, Math.abs(yYoY(p[yoyKey]) - zeroY)))
-          .attr("rx", 1.5)
-          .attr("fill", (p) => (p[yoyKey] > 0 ? "#ED4766" : "#10AD8D"))
-          .attr("opacity", 0.85);
-
-        const line = d3.line()
-          .defined((p) => Number.isFinite(p[horizon.key]))
-          .x((p) => x(p.date))
-          .y((p) => yRate(p[horizon.key]))
-          .curve(d3.curveMonotoneX);
-
-        g.append("path")
-          .attr("d", line(points))
-          .attr("fill", "none")
-          .attr("stroke", "#0B1D3A")
-          .attr("stroke-width", 3.2)
-          .attr("stroke-linecap", "round");
-
-        const lastPt = valid[valid.length - 1];
-        g.append("circle")
-          .attr("cx", x(lastPt.date))
-          .attr("cy", yRate(lastPt[horizon.key]))
-          .attr("r", 5.2)
-          .attr("fill", "#FFFFFF")
-          .attr("stroke", "#0B1D3A")
-          .attr("stroke-width", 2.8);
-
-        const rateAxis = g.append("g").call(d3.axisLeft(yRate).ticks(6).tickFormat(formatTrarPercent));
-        rateAxis.select(".domain").attr("stroke", "rgba(11,29,58,0.22)");
-        rateAxis.selectAll("text").attr("fill", "#0B1D3A").style("font-size", "11px").style("font-weight", "700");
-        rateAxis.append("text").attr("x", 0).attr("y", -14).attr("fill", "#0B1D3A")
-          .attr("text-anchor", "start").style("font-size", "11px").style("font-weight", "700")
-          .text(`Taux (%) · ${horizon.shortLabel}`);
-
-        const yoyAxis = g.append("g").attr("transform", `translate(${innerW},0)`)
-          .call(d3.axisRight(yYoY).ticks(6).tickFormat((v) => `${frNumber(v, 1)} pt`));
-        yoyAxis.select(".domain").remove();
-        yoyAxis.selectAll("line").remove();
-        yoyAxis.selectAll("text").attr("fill", "#64748B").style("font-size", "11px");
-        yoyAxis.append("text").attr("x", 0).attr("y", -14).attr("fill", "#0F172A")
-          .attr("text-anchor", "end").style("font-size", "11px").style("font-weight", "700")
-          .text("Glissement annuel (pt)");
-
-        const tickDates = buildChartTickDates(dates, x);
-        const xAxis = g.append("g").attr("transform", `translate(0,${innerH})`)
-          .call(d3.axisBottom(x).tickValues(tickDates).tickFormat(monthLabel));
-        xAxis.selectAll("path,line").attr("stroke", "#CBD5E1");
-        xAxis.selectAll("text").attr("fill", "#64748B").style("font-size", "11.5px").attr("dy", "1.2em");
-
-        // Tooltip
-        const crosshair = g.append("line").attr("y1", 0).attr("y2", innerH)
-          .attr("stroke", "#64748B").attr("stroke-width", 1.2).attr("stroke-dasharray", "4 4").style("opacity", 0);
-        const marker = g.append("circle").attr("r", 5.8).attr("fill", "#0B1D3A")
-          .attr("stroke", "#FFFFFF").attr("stroke-width", 2.5).style("opacity", 0);
-        const shell = tooltipNode.parentElement;
-
-        const hide = () => {
-          crosshair.style("opacity", 0);
-          marker.style("opacity", 0);
-          tooltipNode.classList.remove("is-visible");
-          tooltipNode.setAttribute("aria-hidden", "true");
-        };
-
-        const show = (event) => {
-          const [mx] = d3.pointer(event, g.node());
-          const idx = Math.max(0, Math.min(points.length - 1, Math.round((mx - x(dates[0])) / (x.step() || 1))));
-          const pt = points[idx];
-          const px = x(pt.date);
-          const val = pt[horizon.key];
-          crosshair.attr("x1", px).attr("x2", px).style("opacity", 0.65);
-          if (Number.isFinite(val)) marker.attr("cx", px).attr("cy", yRate(val)).style("opacity", 1);
-          else marker.style("opacity", 0);
-
-          tooltipNode.querySelector(".tooltip-overline").textContent = `${monthLabel(pt.date)} · ${scopeLabelText}`;
-          const body = tooltipNode.querySelector(".tooltip-body");
-          body.replaceChildren();
-          const r1 = el("div", "tooltip-row");
-          r1.append(el("span", "", `${horizon.shortLabel} :`), el("strong", "", formatTrarPercent(val)));
-          const r2 = el("div", "tooltip-row");
-          r2.append(el("span", "", "Écart annuel :"), el("strong", "", formatTrarChange(pt[yoyKey])));
-          body.append(r1, r2);
-
-          tooltipNode.classList.add("is-visible");
-          tooltipNode.setAttribute("aria-hidden", "false");
-          const shellBounds = shell.getBoundingClientRect();
-          const svgBounds = svgNode.getBoundingClientRect();
-          const sx = svgBounds.left - shellBounds.left + (margin.left + px) * svgBounds.width / width;
-          const sy = svgBounds.top - shellBounds.top + (margin.top + (Number.isFinite(val) ? yRate(val) : innerH / 2)) * svgBounds.height / height;
-          const tw = tooltipNode.offsetWidth;
-          const th = tooltipNode.offsetHeight;
-          const left = sx + 16 + tw <= shellBounds.width ? sx + 16 : sx - tw - 16;
-          tooltipNode.style.left = `${Math.max(8, Math.min(shellBounds.width - tw - 8, left))}px`;
-          tooltipNode.style.top = `${Math.max(8, Math.min(shellBounds.height - th - 8, sy - th - 12))}px`;
-        };
-
-        g.append("rect").attr("width", innerW).attr("height", innerH).attr("fill", "none").attr("pointer-events", "all")
-          .on("pointermove", show).on("pointerleave", hide);
-      }
-
       /* ====================================================================
          CARTE DÉPARTEMENTALE / TREEMAP NATIONAL (COULEURS CONJONCTURE)
          ==================================================================== */
       function getDeptGeometry(features) {
         let geom = deptGeomCache.get(features);
         if (!geom) {
-          const projection = d3.geoMercator().fitExtent([[28, 28], [672, 492]], { type: "FeatureCollection", features });
+          const collection = { type: "FeatureCollection", features };
+          const projection = d3.geoMercator().fitSize([700, 520], collection);
           const pathGen = d3.geoPath(projection);
+          const [[x0, y0], [x1, y1]] = pathGen.bounds(collection);
+          const inset = 26;
+          const viewBox = Number.isFinite(x0)
+            ? [x0 - inset, y0 - inset, x1 - x0 + 2 * inset, y1 - y0 + 2 * inset].join(" ")
+            : "0 0 700 520";
           const paths = new Map();
           const centroids = new Map();
           features.forEach((f) => {
             paths.set(f.properties.code, pathGen(f));
             centroids.set(f.properties.code, pathGen.centroid(f));
           });
-          geom = { paths, centroids };
+          geom = { viewBox, paths, centroids };
           deptGeomCache.set(features, geom);
         }
         return geom;
       }
 
-      function renderConjonctureLegend(snapshot, annual, entries) {
+      function renderConjonctureLegend(snapshot) {
         const legend = el("div", "trar-snapshot-legend");
-        if (annual) {
-          const items = [
-            ["#10AD8D", "Repli annuel (favorable)"],
-            ["#F6C65B", "Quasi stable"],
-            ["#ED4766", "Hausse annuelle (tension)"],
-          ];
-          if (entries.some((d) => !Number.isFinite(d.change))) {
-            items.push(["#E2E8F0", "Indisponible"]);
-          }
-          items.forEach(([bg, text]) => {
-            const key = el("span", "trar-color-key");
-            const swatch = el("i", "employment-treemap-swatch");
-            swatch.style.backgroundColor = bg;
-            key.append(swatch, document.createTextNode(text));
-            legend.append(key);
-          });
-          return legend;
-        }
         const { thresholds, colors, values } = snapshot;
         if (values.size) {
           colors.forEach((color, idx) => {
@@ -3473,10 +2656,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
 
       function renderDeptMapOrTreemap({
+        features,
         entries,
         activeCode,
         onSelectDept,
-        showFullLabels = false,
       }) {
         const isNational = appState.scope === "national";
         const shell = el("div", isNational ? "trar-treemap-shell" : "trar-map-shell");
@@ -3510,6 +2693,26 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const hideDeptTooltip = () => {
           tooltip.classList.remove("is-visible");
           tooltip.setAttribute("aria-hidden", "true");
+        };
+
+        const enableSelection = (selection, entryOf) => {
+          selection.filter((datum) => entryOf(datum)?.hasHistory)
+            .attr("role", "button")
+            .attr("tabindex", 0)
+            .attr("data-department-code", (datum) => entryOf(datum).code)
+            .attr("aria-pressed", (datum) => String(entryOf(datum).code === activeCode))
+            .attr("aria-label", (datum) => {
+              const { name, code, value } = entryOf(datum);
+              return `${name} (${code}) · ${Number.isFinite(value) ? formatTrarPercent(value) : "Taux indisponible"}`;
+            })
+            .on("click", (event, datum) => {
+              onSelectDept(entryOf(datum).code, event.currentTarget === document.activeElement);
+            })
+            .on("keydown", (event, datum) => {
+              if (event.key !== "Enter" && event.key !== " ") return;
+              event.preventDefault();
+              if (!event.repeat) onSelectDept(entryOf(datum).code, true);
+            });
         };
 
         if (isNational) {
@@ -3546,15 +2749,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           const tiles = groups.selectAll("g.trar-department-tile").data((n) => n.children).join("g")
             .attr("class", (n) => `trar-department-tile${n.data.code === activeCode ? " is-selected" : ""}`)
             .attr("transform", (n) => `translate(${n.x0 - n.parent.x0},${n.y0 - n.parent.y0})`)
-            .on("click", (_, n) => {
-              const entry = byCode.get(n.data.code);
-              if (entry?.hasHistory) onSelectDept(entry.code);
-            })
             .on("pointermove", (event, n) => {
               const entry = byCode.get(n.data.code);
               if (entry) showDeptTooltip(event, entry);
             })
             .on("pointerleave", hideDeptTooltip);
+          enableSelection(tiles, (n) => byCode.get(n.data.code));
           tiles.append("rect").attr("rx", 3)
             .attr("width", (n) => n.x1 - n.x0).attr("height", (n) => n.y1 - n.y0)
             .attr("fill", (n) => byCode.get(n.data.code)?.fill || "#E2E8F0");
@@ -3571,40 +2771,31 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         // Regional SVG map
-        const features = entries.map((e) => e.feature);
-        const { paths, centroids } = getDeptGeometry(features);
-        const svg = svgEl("svg", { viewBox: "0 0 700 520", role: "group", "aria-label": `Carte départementale · ${currentScopeLabel()}` });
+        const { viewBox, paths, centroids } = getDeptGeometry(features);
+        const svg = svgEl("svg", { viewBox, role: "group", "aria-label": `Carte départementale · ${currentScopeLabel()}` });
         const d3Svg = d3.select(svg);
         const sortedEntries = [...entries].sort((a, b) => (a.code === activeCode ? 1 : b.code === activeCode ? -1 : 0));
 
-        d3Svg.selectAll("path.trar-map-department").data(sortedEntries).join("path")
+        const departments = d3Svg.selectAll("path.trar-map-department").data(sortedEntries).join("path")
           .attr("class", (d) => `trar-map-department${d.code === activeCode ? " is-selected" : ""}`)
           .attr("d", (d) => paths.get(d.code))
           .attr("fill", (d) => d.fill)
-          .on("click", (_, d) => { if (d.hasHistory) onSelectDept(d.code); })
           .on("pointermove", (event, d) => showDeptTooltip(event, d))
           .on("pointerleave", hideDeptTooltip);
+        enableSelection(departments, (d) => d);
 
         // Labels on map
         entries.forEach((d) => {
           const [cx, cy] = centroids.get(d.code) || [];
           if (!Number.isFinite(cx) || !Number.isFinite(cy)) return;
           const isSelected = d.code === activeCode;
-          if (showFullLabels) {
-            const codeTxt = svgEl("text", { x: cx, y: cy - 7, class: "trar-map-label" });
-            codeTxt.textContent = `${d.code}`;
-            const valTxt = svgEl("text", { x: cx, y: cy + 8, class: "trar-map-sublabel" });
-            valTxt.textContent = Number.isFinite(d.value) ? formatTrarPercent(d.value) : "—";
-            svg.append(codeTxt, valTxt);
-          } else {
-            const lbl = svgEl("text", { x: cx, y: cy - (isSelected ? 7 : 0), class: "trar-map-label" });
-            lbl.textContent = d.code;
-            svg.append(lbl);
-            if (isSelected && Number.isFinite(d.value)) {
-              const val = svgEl("text", { x: cx, y: cy + 9, class: "trar-map-sublabel" });
-              val.textContent = formatTrarPercent(d.value);
-              svg.append(val);
-            }
+          const lbl = svgEl("text", { x: cx, y: cy - (isSelected ? 7 : 0), class: "trar-map-label" });
+          lbl.textContent = d.code;
+          svg.append(lbl);
+          if (isSelected && Number.isFinite(d.value)) {
+            const val = svgEl("text", { x: cx, y: cy + 9, class: "trar-map-sublabel" });
+            val.textContent = formatTrarPercent(d.value);
+            svg.append(val);
           }
         });
 
@@ -3613,10 +2804,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
 
       /* ====================================================================
-         RENDU DES 5 VARIANTES
+         RENDU DE LA MAQUETTE TRAR
          ==================================================================== */
-      function renderVariant(variantId, mountNode) {
-        mountNode.replaceChildren();
+      const root = document.getElementById("trarRoot");
+
+      function renderMockup() {
+        root.replaceChildren();
         const isNational = appState.scope === "national";
         const mainSectorKey = isNational ? appState.nationalSector : appState.regionalSector;
         const mainOptions = isNational ? TRAR.sectors.national : TRAR.sectors.regional;
@@ -3628,33 +2821,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const mainLatest = mainSeriesData.latest[mainHorizon.key];
         const mainChanges = mainDashboard?.changes?.[mainSector.key]?.[mainHorizon.index];
 
-        let mainPoints = mainSeriesData.points;
-        if (variantId === 2 && appState.v2Window === "since2022") {
-          mainPoints = mainPoints.filter((p) => p.date >= "2022-01-01");
-        }
-
-        // Benchmark for Variant 5 (Tous secteurs if specific sector chosen, or France entière on regional Tous secteurs)
-        let mainBenchmarkPts = null;
-        let mainBenchmarkLbl = "";
-        if (variantId === 5) {
-          if (mainSector.key !== "tous-secteurs") {
-            mainBenchmarkPts = getTrarSeries(mainScope?.["tous-secteurs"]).points;
-            mainBenchmarkLbl = "Tous secteurs";
-          } else if (!isNational) {
-            mainBenchmarkPts = getTrarSeries(TRAR.national?.["tous-secteurs"]).points;
-            mainBenchmarkLbl = "France entière · Tous secteurs";
-          }
-        }
+        const compareWithAllSectors = mainSector.key !== "tous-secteurs";
+        const mainBenchmark = compareWithAllSectors
+          ? getTrarSeries(mainScope?.["tous-secteurs"])
+          : isNational ? null : getTrarSeries(TRAR.national?.["tous-secteurs"]);
+        const mainBenchmarkLabel = compareWithAllSectors ? "Tous secteurs" : "France entière · Tous secteurs";
 
         const setMainSector = (key) => {
           if (isNational) appState.nationalSector = key;
           else appState.regionalSector = key;
-          renderActiveViews();
+          renderMockup();
         };
 
         const setMainHorizon = (key) => {
           appState.mainHorizon = key;
-          renderActiveViews();
+          renderMockup();
         };
 
         /* ---------------- BLOC 1 : GRAPHIQUE PRINCIPAL + KPI DROIT ---------------- */
@@ -3666,7 +2847,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const intro1 = el("div", "employment-intro");
         const title1 = el("div", "employment-title");
         title1.append(
-          el("h3", "", "Taux de reste à recouvrer"),
+          el("h2", "", "Taux de reste à recouvrer"),
           el("span", "", `${currentScopeLabel()} · ${mainSector.label} · ${mainHorizon.label}`)
         );
 
@@ -3675,25 +2856,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           buildMainSectorPicker({
             selectedKey: mainSector.key,
             onSelect: setMainSector,
-            showRates: variantId === 5,
-            horizonIndex: mainHorizon.index,
+            horizonKey: mainHorizon.key,
           })
         );
 
         const rightControls1 = el("div", "trar-panel-controls");
-        if (variantId === 2) {
-          const winSwitch = el("div", "metric-switch");
-          [["since2022", "Focus 2022–2026"], ["full", "Depuis 2019"]].forEach(([wk, wl]) => {
-            const b = el("button", `metric-button${appState.v2Window === wk ? " is-active" : ""}`, wl);
-            b.type = "button";
-            b.addEventListener("click", () => {
-              appState.v2Window = wk;
-              renderActiveViews();
-            });
-            winSwitch.append(b);
-          });
-          rightControls1.append(winSwitch);
-        }
         rightControls1.append(buildHorizonSwitch(mainHorizon.key, setMainHorizon));
         controls1.append(rightControls1);
         intro1.append(title1, controls1);
@@ -3706,26 +2873,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         chartShell1.append(chartSvg1, chartTip1);
 
         const legend1 = el("div", "legend-row");
-        if (variantId === 3) {
-          legend1.append(
-            (() => { const c = el("span", "legend-chip"); c.append(el("i", "employment-swatch employment-swatch-negative"), document.createTextNode("Hausse annuelle (pt)")); return c; })(),
-            (() => { const c = el("span", "legend-chip"); c.append(el("i", "employment-swatch employment-swatch-positive"), document.createTextNode("Repli annuel (pt)")); return c; })(),
-            (() => { const c = el("span", "legend-chip"); const l = el("i", "trar-line-sample"); l.style.borderColor = "#0B1D3A"; c.append(l, document.createTextNode(mainHorizon.label)); return c; })()
-          );
-        } else {
-          const chip = el("span", "legend-chip");
-          const lineSample = el("i", "trar-line-sample");
-          lineSample.style.borderColor = mainHorizon.color;
-          chip.append(lineSample, document.createTextNode(`${mainHorizon.label} (${mainSector.label})`));
-          legend1.append(chip);
-          if (mainBenchmarkPts) {
-            const bChip = el("span", "legend-chip");
-            const bLine = el("i", "trar-line-sample");
-            bLine.style.borderColor = "#64748B";
-            bLine.style.borderTopStyle = "dashed";
-            bChip.append(bLine, document.createTextNode(`Référence · ${mainBenchmarkLbl}`));
-            legend1.append(bChip);
-          }
+        const chip = el("span", "legend-chip");
+        const lineSample = el("i", "trar-line-sample");
+        lineSample.style.borderColor = mainHorizon.color;
+        chip.append(lineSample, document.createTextNode(`${mainHorizon.label} (${mainSector.label})`));
+        legend1.append(chip);
+        if (mainBenchmark) {
+          const bChip = el("span", "legend-chip");
+          const bLine = el("i", "trar-line-sample");
+          bLine.style.borderColor = "#64748B";
+          bLine.style.borderTopStyle = "dashed";
+          bChip.append(bLine, document.createTextNode(`Référence · ${mainBenchmarkLabel}`));
+          legend1.append(bChip);
         }
 
         mainPanel.append(intro1, chartShell1, legend1);
@@ -3739,53 +2898,23 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         );
         side1.append(ctx1);
 
-        let kpiExtraTop = null;
-        if (variantId === 4) {
-          const tabs = el("div", "v4-kpi-tabs");
-          TRAR_HORIZONS.forEach((h) => {
-            const tb = el("button", `v4-kpi-tab${h.key === mainHorizon.key ? " is-active" : ""}`, h.shortLabel);
-            tb.type = "button";
-            tb.addEventListener("click", () => setMainHorizon(h.key));
-            tabs.append(tb);
-          });
-          kpiExtraTop = tabs;
-        }
-
-        let kpiExtraBottom = null;
-        if (variantId === 2) {
-          const sparkBox = el("div", "v2-spark-box");
-          sparkBox.append(
-            el("span", "", "Tendance 12 derniers mois"),
-            buildSparklineSvg(mainSeriesData.points, mainHorizon.key, mainHorizon.color)
+        const reference = mainBenchmark?.latest[mainHorizon.key];
+        let comparison = null;
+        if (mainLatest && reference) {
+          const diff = Number((mainLatest.value - reference.value).toFixed(2));
+          comparison = el("div", `trar-benchmark-gap ${diff > 0 ? "is-higher" : diff < 0 ? "is-lower" : ""}`);
+          comparison.append(
+            document.createTextNode(`Écart vs ${mainBenchmarkLabel} : `),
+            el("strong", "", formatTrarChange(diff))
           );
-          kpiExtraBottom = sparkBox;
-        } else if (variantId === 5 && mainBenchmarkPts) {
-          const refPts = mainSector.key !== "tous-secteurs"
-            ? getTrarSeries(mainScope?.["tous-secteurs"]).latest[mainHorizon.key]
-            : getTrarSeries(TRAR.national?.["tous-secteurs"]).latest[mainHorizon.key];
-          if (mainLatest && refPts) {
-            const diff = Number((mainLatest.value - refPts.value).toFixed(2));
-            const spread = el("div", `v5-spread-pill ${diff > 0 ? "is-higher" : diff < 0 ? "is-lower" : ""}`);
-            spread.append(
-              document.createTextNode(`Écart vs ${mainBenchmarkLbl} : `),
-              el("strong", "", formatTrarChange(diff))
-            );
-            kpiExtraBottom = spread;
-          }
         }
 
         side1.append(buildSingleKpiCard({
           horizon: mainHorizon,
           latestPoint: mainLatest,
           changes: mainChanges,
-          extraTop: kpiExtraTop,
-          extraBottom: kpiExtraBottom,
+          comparison,
         }));
-
-        if (variantId === 1) {
-          const [yoy, mom] = mainChanges || [];
-          side1.append(el("p", "trar-interpretation", trarInterpretationText(yoy, mom, mainHorizon)));
-        }
 
         side1.append(buildTopSectorsBlock({
           options: mainOptions,
@@ -3793,36 +2922,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           horizonIndex: mainHorizon.index,
           selectedKey: mainSector.key,
           onSelect: setMainSector,
-          inlineBars: variantId === 3,
         }));
 
         grid1.append(mainPanel, side1);
         block1.append(grid1);
         stack.append(block1);
 
-        // Draw Block 1 Chart
-        if (variantId === 3) {
-          drawConjonctureComboChart({
-            svgNode: chartSvg1,
-            tooltipNode: chartTip1,
-            points: mainPoints,
-            horizon: mainHorizon,
-            scopeLabelText: `${currentScopeLabel()} · ${mainSector.label}`,
-          });
-        } else {
-          drawSingleLineChart({
-            svgNode: chartSvg1,
-            tooltipNode: chartTip1,
-            points: mainPoints,
-            horizon: mainHorizon,
-            scopeLabelText: `${currentScopeLabel()} · ${mainSector.label}`,
-            benchmarkPoints: mainBenchmarkPts,
-            benchmarkLabel: mainBenchmarkLbl,
-            showArea: variantId === 1 || variantId === 2,
-            showMeanLine: variantId === 4,
-            showExtrema: variantId === 2,
-          });
-        }
+        drawSingleLineChart({
+          svgNode: chartSvg1,
+          tooltipNode: chartTip1,
+          points: mainSeriesData.points,
+          horizon: mainHorizon,
+          scopeLabelText: `${currentScopeLabel()} · ${mainSector.label}`,
+          benchmarkPoints: mainBenchmark?.points,
+          benchmarkLabel: mainBenchmarkLabel,
+        });
 
         /* ---------------- BLOC 2 : CARTE DÉPARTEMENTALE + HISTORIQUE CÔTE À CÔTE ---------------- */
         const deptSector = TRAR.sectors.departmental.find((s) => s.key === appState.deptSector) || TRAR.sectors.departmental[0];
@@ -3830,9 +2944,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const snapshot = getSnapshot(deptSector.key, deptHorizon.key, appState.scope);
         const features = isNational ? DEPT_FEATURES : (DEPTS_BY_REGION.get(appState.scope) || []);
         const entries = buildDepartmentEntries(snapshot, features, deptSector.key);
-        const activeDeptCode = ensureActiveDeptCode(entries);
+        const highestRateDept = findHighestRateDept(entries);
+        const activeDeptCode = ensureActiveDeptCode(entries, highestRateDept);
         const activeDept = entries.find((d) => d.code === activeDeptCode) || entries[0];
-        const biggestDept = entries.find((d) => d.code === findBiggestDeptCode(entries, appState.deptColorMode));
 
         const block2 = el("article", "trar-card");
         const panel2 = el("div", "trar-dept-panel");
@@ -3840,7 +2954,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const head2 = el("div", "trar-panel-head");
         const title2 = el("div", "employment-title");
         title2.append(
-          el("h4", "", "Taux de reste à recouvrer par département"),
+          el("h2", "", "Taux de reste à recouvrer par département"),
           el("span", "", `${currentScopeLabel()} · ${deptSector.label} · ${deptHorizon.label} · ${snapshot.date ? monthLabel(snapshot.date) : "—"}`)
         );
 
@@ -3848,113 +2962,68 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         controls2.append(
           buildGrandSectorPicker({
             selectedKey: deptSector.key,
-            onSelect: (key) => { appState.deptSector = key; renderActiveViews(); },
+            onSelect: (key) => { appState.deptSector = key; renderMockup(); },
           }),
-          buildHorizonSwitch(deptHorizon.key, (key) => { appState.deptHorizon = key; renderActiveViews(); }),
-          buildColorModeSwitch(appState.deptColorMode, (key) => { appState.deptColorMode = key; renderActiveViews(); })
+          buildHorizonSwitch(deptHorizon.key, (key) => { appState.deptHorizon = key; renderMockup(); })
         );
         head2.append(title2, controls2);
         panel2.append(head2);
 
-        const splitClass = variantId === 2 ? "trar-split-grid trar-split-grid--46-54"
-          : variantId === 3 ? "trar-split-grid trar-split-grid--48-52"
-          : variantId === 4 ? "trar-split-grid trar-split-grid--44-56"
-          : "trar-split-grid";
-        const splitGrid = el("div", splitClass);
+        const splitGrid = el("div", "trar-split-grid");
 
-        // LEFT COLUMN : MAP + LEGEND + (PODIUM OR LEADERBOARD)
+        // Carte départementale et légende
         const mapCol = el("div", "trar-map-column");
-        if (biggestDept && Number.isFinite(biggestDept.value)) {
+        if (highestRateDept) {
           const maxChip = el("div", "trar-max-chip");
           maxChip.append(
             el("span", "trar-max-chip-dot"),
             document.createTextNode(
-              appState.deptColorMode === "annual" && Number.isFinite(biggestDept.change)
-                ? `Plus forte tension : ${biggestDept.name} (${biggestDept.code}) · ${formatTrarChange(biggestDept.change)}`
-                : `Plus fort taux : ${biggestDept.name} (${biggestDept.code}) · ${formatTrarPercent(biggestDept.value)}`
+              `Plus fort taux : ${highestRateDept.name} (${highestRateDept.code}) · ${formatTrarPercent(highestRateDept.value)}`
             )
           );
           mapCol.append(maxChip);
         }
 
-        const onSelectDept = (code) => {
+        const onSelectDept = (code, keepFocus) => {
           setActiveDeptCode(code);
-          renderActiveViews();
+          renderMockup();
+          if (keepFocus) {
+            root.querySelector(`[data-department-code="${CSS.escape(code)}"]`)?.focus({ preventScroll: true });
+          }
         };
 
         mapCol.append(
           renderDeptMapOrTreemap({
+            features,
             entries,
             activeCode: activeDeptCode,
             onSelectDept,
-            showFullLabels: variantId === 3,
           }),
-          renderConjonctureLegend(snapshot, appState.deptColorMode === "annual", entries)
+          renderConjonctureLegend(snapshot)
         );
 
-        if (variantId === 2) {
-          const podium = el("div", "v2-podium");
-          const sorted = [...entries].filter((d) => d.hasHistory && Number.isFinite(d.value))
-            .sort((a, b) => b.value - a.value).slice(0, 8);
-          sorted.forEach((d, idx) => {
-            const btn = el("button", `v2-podium-btn${d.code === activeDeptCode ? " is-active" : ""}`);
-            btn.type = "button";
-            const dot = el("span", "v2-podium-dot");
-            dot.style.backgroundColor = d.fill;
-            btn.append(dot, document.createTextNode(`#${idx + 1} ${d.name} · ${formatTrarPercent(d.value)}`));
-            btn.addEventListener("click", () => onSelectDept(d.code));
-            podium.append(btn);
-          });
-          mapCol.append(podium);
-        } else if (variantId === 4) {
-          const board = el("div", "v4-leaderboard");
-          const sorted = [...entries].filter((d) => d.hasHistory && Number.isFinite(d.value))
-            .sort((a, b) => b.value - a.value);
-          sorted.forEach((d, idx) => {
-            const row = el("button", `v4-leader-row${d.code === activeDeptCode ? " is-active" : ""}`);
-            row.type = "button";
-            const dot = el("span", "v2-podium-dot");
-            dot.style.backgroundColor = d.fill;
-            row.append(
-              el("span", "v4-leader-rank", String(idx + 1)),
-              dot,
-              el("span", "v4-leader-name", `${d.name} (${d.code})`),
-              el("span", "v4-leader-val", formatTrarPercent(d.value))
-            );
-            row.addEventListener("click", () => onSelectDept(d.code));
-            board.append(row);
-          });
-          mapCol.append(board);
-        }
-
-        // RIGHT COLUMN : CUSTOM DEPT PICKER + MINI KPIs + HISTORICAL CHART
         const histCol = el("div", "trar-history-column");
-        const deptSeriesObj = activeDept ? getTrarSeries(TRAR.departments[activeDept.code]?.[deptSector.key]) : { points: [], latest: {} };
-        let deptPoints = deptSeriesObj.points;
-        if (variantId === 2 && appState.v2Window === "since2022") {
-          deptPoints = deptPoints.filter((p) => p.date >= "2022-01-01");
-        }
+        const deptSeries = getTrarSeries(TRAR.departments[activeDept?.code]?.[deptSector.key]);
+        const recentDeptPoints = lastThreeYears(deptSeries, deptHorizon.key);
+        const deptBenchmark = getTrarSeries(mainScope?.["tous-secteurs"]);
 
         const histHead = el("div", "trar-history-head");
         const histMeta = el("div", "trar-history-meta");
+        const histPeriod = el("span");
+        histPeriod.setAttribute("aria-live", "polite");
         histMeta.append(
-          el("h5", "", activeDept ? `Historique · ${activeDept.name} (${activeDept.code})` : "Historique départemental"),
-          el("span", "", `${deptSector.label} · ${deptHorizon.label}${deptPoints.length ? ` · depuis ${monthLabel(deptPoints[0].date)}` : ""}`)
+          el("h3", "", activeDept ? `Historique · ${activeDept.name} (${activeDept.code})` : "Historique départemental"),
+          histPeriod
         );
-        histHead.append(
-          histMeta,
-          buildDepartmentPicker({
-            entries,
-            selectedCode: activeDeptCode,
-            onSelect: onSelectDept,
-          })
-        );
+        const periodButton = el("button", "trar-history-period");
+        periodButton.type = "button";
+        periodButton.setAttribute("aria-controls", "trar-dept-history-chart");
+        histHead.append(histMeta, periodButton);
         histCol.append(histHead);
 
         // Department Mini KPI Strip
         if (activeDept) {
-          const avgRegionPts = getRegionalAverageForDept(deptSector.key, deptHorizon.key, appState.scope);
-          const avgLast = [...avgRegionPts].reverse().find((p) => Number.isFinite(p[deptHorizon.key]))?.[deptHorizon.key];
+          const avgLast = deptBenchmark.latest[deptHorizon.key]?.value;
           const gapVsRegion = (Number.isFinite(activeDept.value) && Number.isFinite(avgLast))
             ? Number((activeDept.value - avgLast).toFixed(2))
             : null;
@@ -3980,6 +3049,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         const deptChartShell = el("div", "employment-chart-shell");
+        deptChartShell.id = "trar-dept-history-chart";
         const deptSvg = svgEl("svg", { viewBox: "0 0 640 360", role: "img", "aria-label": "Historique du département sélectionné" });
         const deptTip = el("div", "employment-tooltip");
         deptTip.setAttribute("aria-hidden", "true");
@@ -3988,145 +3058,62 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         histCol.append(deptChartShell);
 
         const deptLegend = el("div", "legend-row");
-        if (variantId === 3) {
-          deptLegend.append(
-            (() => { const c = el("span", "legend-chip"); c.append(el("i", "employment-swatch employment-swatch-negative"), document.createTextNode("Hausse annuelle (pt)")); return c; })(),
-            (() => { const c = el("span", "legend-chip"); c.append(el("i", "employment-swatch employment-swatch-positive"), document.createTextNode("Repli annuel (pt)")); return c; })(),
-            (() => { const c = el("span", "legend-chip"); const l = el("i", "trar-line-sample"); l.style.borderColor = "#0B1D3A"; c.append(l, document.createTextNode(activeDept ? activeDept.name : "Département")); return c; })()
-          );
-        } else {
-          const c1 = el("span", "legend-chip");
-          const l1 = el("i", "trar-line-sample");
-          l1.style.borderColor = deptHorizon.color;
-          c1.append(l1, document.createTextNode(`${activeDept ? activeDept.name : "Département"} (${deptHorizon.shortLabel})`));
-          deptLegend.append(c1);
-          if (variantId === 2 || variantId === 5) {
-            const c2 = el("span", "legend-chip");
-            const l2 = el("i", "trar-line-sample");
-            l2.style.borderColor = "#64748B";
-            l2.style.borderTopStyle = "dashed";
-            c2.append(l2, document.createTextNode(isNational ? "Moyenne nationale (Tous secteurs)" : `Moyenne ${currentScopeLabel()} (Tous secteurs)`));
-            deptLegend.append(c2);
-          }
-        }
+        const c1 = el("span", "legend-chip");
+        const l1 = el("i", "trar-line-sample");
+        l1.style.borderColor = deptHorizon.color;
+        c1.append(l1, document.createTextNode(`${activeDept ? activeDept.name : "Département"} (${deptHorizon.shortLabel})`));
+        deptLegend.append(c1);
+        const c2 = el("span", "legend-chip");
+        const l2 = el("i", "trar-line-sample");
+        l2.style.borderColor = "#64748B";
+        l2.style.borderTopStyle = "dashed";
+        c2.append(l2, document.createTextNode(isNational ? "Moyenne nationale (Tous secteurs)" : `Moyenne ${currentScopeLabel()} (Tous secteurs)`));
+        deptLegend.append(c2);
         histCol.append(deptLegend);
 
         splitGrid.append(mapCol, histCol);
         panel2.append(splitGrid);
         block2.append(panel2);
         stack.append(block2);
-        mountNode.append(stack);
+        root.append(stack);
 
-        // Draw Block 2 Chart
-        const deptBench = (variantId === 2 || variantId === 5)
-          ? getRegionalAverageForDept(deptSector.key, deptHorizon.key, appState.scope)
-          : null;
-        if (variantId === 3) {
-          drawConjonctureComboChart({
-            svgNode: deptSvg,
-            tooltipNode: deptTip,
-            points: deptPoints,
-            horizon: deptHorizon,
-            scopeLabelText: activeDept ? `${activeDept.name} (${activeDept.code})` : "",
-            viewBoxWidth: 640,
-            compactHeight: 360,
-          });
-        } else {
+        function updateDeptChart() {
+          const showFull = appState.showFullDeptHistory;
+          const points = showFull ? deptSeries.points : recentDeptPoints;
+          const firstDate = points[0]?.date;
+          const lastDate = points.at(-1)?.date;
+          const benchmarkPoints = firstDate
+            ? deptBenchmark.points.filter(({ date }) => date >= firstDate && date <= lastDate)
+            : [];
+          const label = showFull ? "Série complète" : "3 dernières années";
+          const action = showFull ? "Afficher les trois dernières années" : "Afficher la série complète";
+          periodButton.textContent = label;
+          periodButton.setAttribute("aria-label", `${label}. ${action}`);
+          histPeriod.textContent = `${deptSector.label} · ${deptHorizon.label}${firstDate ? ` · depuis ${monthLabel(firstDate)}` : ""}`;
+          deptTip.classList.remove("is-visible");
+          deptTip.setAttribute("aria-hidden", "true");
           drawSingleLineChart({
             svgNode: deptSvg,
             tooltipNode: deptTip,
-            points: deptPoints,
+            points,
             horizon: deptHorizon,
             scopeLabelText: activeDept ? `${activeDept.name} (${activeDept.code})` : "",
-            benchmarkPoints: deptBench,
-            benchmarkLabel: isNational ? "France entière" : currentScopeLabel(),
-            showArea: variantId === 1 || variantId === 2,
-            showMeanLine: variantId === 4,
-            showExtrema: variantId === 2,
+            benchmarkPoints,
+            benchmarkLabel: currentScopeLabel(),
             viewBoxWidth: 640,
             compactHeight: 360,
           });
         }
-      }
 
-      /* ====================================================================
-         MONTAGE DES FRAMES & STUDIO SWITCHER
-         ==================================================================== */
-      const root = document.getElementById("variantsRoot");
-      const variantFrames = new Map();
-
-      VARIANTS.forEach((v) => {
-        const frame = el("section", `variant-frame${v.id === appState.variant ? " is-visible" : ""}`);
-        frame.dataset.variantPanel = String(v.id);
-
-        const banner = el("div", "variant-banner");
-        const main = el("div", "variant-banner-main");
-        main.append(el("span", "variant-num", `0${v.id}`));
-        const copy = el("div");
-        copy.append(el("h2", "", v.title), el("p", "", v.desc));
-        main.append(copy);
-
-        const tags = el("div", "variant-tags");
-        v.tags.forEach((t) => tags.append(el("span", "variant-tag", t)));
-        banner.append(main, tags);
-
-        const body = el("div", "variant-body");
-        frame.append(banner, body);
-        root.append(frame);
-        variantFrames.set(v.id, { frame, body });
-      });
-
-      function renderActiveViews() {
-        if (appState.showcase) {
-          VARIANTS.forEach((v) => renderVariant(v.id, variantFrames.get(v.id).body));
-        } else {
-          renderVariant(appState.variant, variantFrames.get(appState.variant).body);
-        }
-      }
-
-      function syncStudioUI() {
-        document.body.classList.toggle("is-showcase", appState.showcase);
-        document.querySelectorAll(".studio-tab").forEach((tab) => {
-          const active = !appState.showcase && Number(tab.dataset.variant) === appState.variant;
-          tab.classList.toggle("is-active", active);
-          tab.setAttribute("aria-selected", String(active));
+        periodButton.addEventListener("click", () => {
+          appState.showFullDeptHistory = !appState.showFullDeptHistory;
+          updateDeptChart();
         });
-        variantFrames.forEach(({ frame }, id) => {
-          frame.classList.toggle("is-visible", appState.showcase || id === appState.variant);
-        });
-        const scBtn = document.getElementById("toggleShowcaseBtn");
-        scBtn.classList.toggle("is-active", appState.showcase);
-        scBtn.textContent = appState.showcase ? "Mode Focus" : "Comparer les 5";
+        updateDeptChart();
       }
-
-      document.querySelectorAll(".studio-tab").forEach((tab) => {
-        tab.addEventListener("click", () => {
-          appState.showcase = false;
-          appState.variant = Number(tab.dataset.variant);
-          syncStudioUI();
-          renderActiveViews();
-        });
-      });
-
-      document.getElementById("toggleShowcaseBtn").addEventListener("click", () => {
-        appState.showcase = !appState.showcase;
-        syncStudioUI();
-        renderActiveViews();
-      });
-
-      document.addEventListener("keydown", (e) => {
-        if (e.target.tagName === "INPUT") return;
-        if (["1", "2", "3", "4", "5"].includes(e.key)) {
-          appState.showcase = false;
-          appState.variant = Number(e.key);
-          syncStudioUI();
-          renderActiveViews();
-        }
-      });
 
       initGeoControl();
-      syncStudioUI();
-      renderActiveViews();
+      renderMockup();
     })();
   </script>
 </body>

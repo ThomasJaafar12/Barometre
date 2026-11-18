@@ -55,16 +55,42 @@
         label.append(highlight);
         const meta = document.createElement("span");
         meta.className = "meta";
-        card.append(label, document.createElement("strong"), meta);
+        const badge = document.createElement("span");
+        badge.className = "hero-kpi-change";
+        badge.hidden = true;
+        const row = document.createElement("div");
+        row.className = "hero-kpi-meta";
+        row.append(meta, badge);
+        card.append(label, document.createElement("strong"), row);
         return card;
       }
 
       function updateIndicatorCard(card, indicator, point) {
         const period = indicator.frequency === "quarter" ? quarterLabel(point?.date) : monthLabel(point?.date);
-        card.querySelector("strong").textContent = indicator.format === "currency" ? formatCurrency(point?.value) : formatCount(point?.value);
-        card.querySelector(".meta").textContent = point?.value == null
+        const value = point?.value;
+        const isRate = indicator.format === "percent";
+        const formatValue = indicator.format === "currency" ? formatCurrency : formatCount;
+        card.querySelector("strong").textContent = isRate && Number.isFinite(value)
+          ? `${frNumber(value, 2)} %` : formatValue(value);
+        card.querySelector(".meta").textContent = value == null
           ? `Donnée indisponible${point?.date ? ` · ${period}` : ""}` : period;
-        return period;
+
+        const badge = card.querySelector(".hero-kpi-change");
+        const change = point?.yearlyChange;
+        badge.hidden = value == null || !Number.isFinite(change);
+        if (badge.hidden) {
+          badge.textContent = "";
+          delete badge.dataset.trend;
+          return;
+        }
+        const digits = isRate ? 2 : 1;
+        const direction = Math.abs(change) < 0.5 * 10 ** -digits ? 0 : Math.sign(change);
+        const sign = direction > 0 ? "+" : direction < 0 ? "−" : "";
+        const unit = isRate ? "pt" : "%";
+        badge.textContent = `${sign}${frNumber(Math.abs(change), digits)} ${unit} sur 1 an`;
+        const lowerIsFavorable = ["trar90", "pcol", "jobs", "delai"].includes(indicator.key);
+        const trend = lowerIsFavorable ? -direction : direction;
+        badge.dataset.trend = trend > 0 ? "favorable" : trend < 0 ? "unfavorable" : "stable";
       }
 
       const cockpitTitle = document.getElementById("cockpitScopeName");

@@ -224,7 +224,7 @@
       function setEmploymentSectorPickerOpen(control, isOpen, focusPosition = "active") {
         const trigger = control.querySelector(".employment-sector-trigger");
         const menu = control.querySelector(".employment-sector-menu");
-        control.closest(".employment-main, .employment-map-panel")?.classList.toggle("has-open-sector-picker", isOpen);
+        control.closest(".employment-main, .employment-map-panel, .trar-panel-head")?.classList.toggle("has-open-sector-picker", isOpen);
         control.classList.toggle("is-open", isOpen);
         trigger.setAttribute("aria-expanded", String(isOpen));
         if (!isOpen) return;

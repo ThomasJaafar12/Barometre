@@ -28,6 +28,9 @@ OUTPUT_PAGES = (
 TEMPLATE_PATH = ROOT / "barometre.template.html"
 PAGE_TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 DPAE_EXCEL_PATH = DATA_DIR / "donnees_dpae_regions.xlsx"
+MONTHLY_DATA_DIR = DATA_DIR / "chiffre du mois"
+MONTHLY_PAYROLL_PATH = MONTHLY_DATA_DIR / "OPEND_BARO_REG_MS_MENS_06_2026reg60j.xlsx"
+MONTHLY_DPAE_PATH = MONTHLY_DATA_DIR / "OPEND_BARO_DPAE_09_2026fr30j.xlsx"
 TRAR_EXCEL_PATHS = {
     "national": DATA_DIR / "DATAVIZ_TRAR_NACE88.xlsx",
     "regional": DATA_DIR / "DATAVIZ_TRAR_NV_REGION_NACE28.xlsx",

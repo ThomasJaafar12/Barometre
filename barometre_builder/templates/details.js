@@ -18,6 +18,7 @@ __DETAILS_DOM_SCRIPT__
       const detail = DATA.detail;
       const deferredSrc = window.BAROMETRE_DEFERRED_SRC;
       let deferredGzip = window.BAROMETRE_DEFERRED_GZIP;
+      let departmentGeographyGzip = __DEPARTMENT_GEOGRAPHY_B64__;
       window.BAROMETRE_BOOT = null;
       window.BAROMETRE_DEFERRED_GZIP = null;
       const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -75,7 +76,10 @@ __DETAILS_DOM_SCRIPT__
       let geographySelectorView = null;
       const rankingHeightFrames = new WeakMap();
       let deferredDataPromise = null;
+      let departmentGeographyPromise = null;
+      let departmentFocusTimeline = null;
       let regionTransitionToken = 0;
+      let mapCameraMotion = null;
       let videoSource = null;
       let videoFailed = false;
       let stageInView = false;
@@ -325,23 +329,8 @@ __DETAILS_DOM_SCRIPT__
         document.getElementById("stageLocationName").textContent = location || state.selectedHistorical?.label || name;
 
         heroKpis.replaceChildren(...detail.indicators.map((indicator) => {
-          const point = heroData[indicator.key];
           const article = createIndicatorCard(indicator);
-          updateIndicatorCard(article, indicator, point);
-          const row = document.createElement("div");
-          row.className = "hero-kpi-meta";
-          row.append(article.querySelector(".meta"));
-          const change = point?.yearlyChange;
-          if (point?.value != null && Number.isFinite(change)) {
-            const direction = Math.abs(change) < 0.05 ? 0 : Math.sign(change);
-            const sign = direction > 0 ? "+" : direction < 0 ? "−" : "";
-            const badge = textElement("span", `${sign}${frNumber(Math.abs(change), 1)} % sur 1 an`, "hero-kpi-change");
-            const lowerIsFavorable = ["pcol", "jobs", "delai"].includes(indicator.key);
-            const trend = lowerIsFavorable ? -direction : direction;
-            badge.dataset.trend = trend > 0 ? "favorable" : trend < 0 ? "unfavorable" : "stable";
-            row.appendChild(badge);
-          }
-          article.appendChild(row);
+          updateIndicatorCard(article, indicator, heroData[indicator.key]);
           return article;
         }));
       }
@@ -422,13 +411,22 @@ __DETAILS_DOM_SCRIPT__
       }
 
       function clearFocusOverlay() {
-        if (chartRefs.regionMap.focusGroup) {
-          chartRefs.regionMap.focusGroup.selectAll("*").remove();
-        }
+        departmentFocusTimeline?.kill();
+        departmentFocusTimeline = null;
+        chartRefs.regionMap.focusGroup?.selectAll("*").remove();
       }
 
       function setMapCameraMoving(isMoving) {
         stageShell.classList.toggle("is-camera-moving", isMoving);
+        if (isMoving && !mapCameraMotion) {
+          let finish;
+          const finished = new Promise((resolve) => { finish = resolve; });
+          mapCameraMotion = { finished, finish };
+        } else if (!isMoving && mapCameraMotion) {
+          const { finish } = mapCameraMotion;
+          mapCameraMotion = null;
+          finish();
+        }
       }
 
       function applyCameraTransform() {
@@ -437,42 +435,30 @@ __DETAILS_DOM_SCRIPT__
         cameraGroup.attr("transform", `translate(${cameraState.x},${cameraState.y}) scale(${cameraState.scale})`);
       }
 
-      function getRegionCameraTarget(regionCode, options = {}) {
+      function getRegionCameraTargets(regionCode) {
         const selection = chartRefs.regionMap.pathByCode.get(regionCode);
-        if (!selection) return null;
-        const node = selection.node();
-        const bbox = node.getBBox();
-        const scaleMultiplier = options.scaleMultiplier ?? 1;
-        const minScale = options.minScale ?? 1.8;
-        const maxScale = options.maxScale ?? 4.2;
-        const targetScale = Math.max(minScale, Math.min(maxScale, (620 / Math.max(bbox.width, bbox.height)) * scaleMultiplier));
+        if (!selection) return [];
+        const { x, y, width, height } = selection.node().getBBox();
+        const fit = 620 / Math.max(width, height);
         const [centerX, centerY] = cockpitCenter();
-        return {
-          scale: targetScale,
-          x: centerX - (bbox.x + bbox.width / 2) * targetScale,
-          y: centerY - (bbox.y + bbox.height / 2) * targetScale,
-        };
+        return [Math.max(1.8, Math.min(4.2, fit)), Math.max(1.8, Math.min(5.1, fit * 1.28))]
+          .map((scale) => ({
+            scale,
+            x: centerX - (x + width / 2) * scale,
+            y: centerY - (y + height / 2) * scale,
+          }));
       }
 
-      function animateCameraToTarget(target, options = {}) {
+      function animateCameraToTarget(target, { duration, ease }) {
         if (!target) return Promise.resolve();
-        const transform = chartRefs.regionMap.cameraState;
-        if (REDUCED_MOTION) {
-          transform.scale = target.scale;
-          transform.x = target.x;
-          transform.y = target.y;
-          applyCameraTransform();
-          return Promise.resolve();
-        }
         return new Promise((resolve) => {
-          gsap.to(transform, {
-            scale: target.scale,
-            x: target.x,
-            y: target.y,
-            duration: options.duration ?? 1.2,
-            ease: options.ease ?? "power2.inOut",
+          gsap.to(chartRefs.regionMap.cameraState, {
+            ...target,
+            duration,
+            ease,
             onUpdate: applyCameraTransform,
             onComplete: resolve,
+            onInterrupt: resolve,
           });
         });
       }
@@ -481,16 +467,15 @@ __DETAILS_DOM_SCRIPT__
         const focusGroup = chartRefs.regionMap.focusGroup;
         const generator = chartRefs.regionMap.pathGeneratorByCode.get(regionCode);
         if (!focusGroup || !generator || !DATA.geography.departments) return [];
-        clearFocusOverlay();
-        return (geographyIndex(DATA.geography).departmentsByRegion.get(regionCode) || [])
-          .map((feature) => focusGroup.append("path")
-            .datum(feature)
-            .attr("class", "focus-department-path")
-            .attr("d", generator(feature))
-            .attr("stroke-dasharray", 1)
-            .attr("stroke-dashoffset", 1)
-            .attr("pathLength", 1)
-            .attr("opacity", 0));
+        const features = geographyIndex(DATA.geography).departmentsByRegion.get(regionCode) || [];
+        return focusGroup.selectAll("path").data(features).join("path")
+          .attr("class", "focus-department-path")
+          .attr("d", generator)
+          .attr("stroke-dasharray", 1)
+          .attr("stroke-dashoffset", 1)
+          .attr("pathLength", 1)
+          .attr("opacity", 0)
+          .nodes();
       }
 
       function drawRegionCityMarker(regionCode) {
@@ -506,24 +491,20 @@ __DETAILS_DOM_SCRIPT__
         const group = focusGroup.append("g").attr("class", "focus-city").attr("opacity", 0);
         group.append("circle").attr("class", "focus-city-dot").attr("cx", x).attr("cy", y).attr("r", 3.6);
         group.append("text").attr("class", "focus-city-label").attr("x", x).attr("y", y - 14).text(city.name);
-        return group;
+        return group.node();
       }
 
       function animateDepartmentFocus(regionCode) {
         const paths = drawDepartmentFocusPaths(regionCode);
         const cityMarker = drawRegionCityMarker(regionCode);
         if (!paths.length) return Promise.resolve();
-        if (REDUCED_MOTION) {
-          paths.forEach((path) => path.attr("stroke-dashoffset", 0).attr("opacity", 1));
-          if (cityMarker) cityMarker.attr("opacity", 1);
-          return Promise.resolve();
-        }
         return new Promise((resolve) => {
-          const timeline = gsap.timeline({ onComplete: resolve });
+          const timeline = gsap.timeline({ onComplete: resolve, onInterrupt: resolve });
+          departmentFocusTimeline = timeline;
           const totalStagger = 0.7;
           const eachDelay = paths.length > 1 ? totalStagger / (paths.length - 1) : 0;
           paths.forEach((path, index) => {
-            timeline.to(path.node(), {
+            timeline.to(path, {
               attr: { "stroke-dashoffset": 0 },
               opacity: 1,
               duration: 0.62,
@@ -531,7 +512,7 @@ __DETAILS_DOM_SCRIPT__
             }, index * eachDelay);
           });
           if (cityMarker) {
-            timeline.to(cityMarker.node(), {
+            timeline.to(cityMarker, {
               opacity: 1,
               duration: 0.38,
               ease: "power2.out",
@@ -560,31 +541,56 @@ __DETAILS_DOM_SCRIPT__
         }
       }
 
-      async function parseDeferredData(encoded) {
+      function decompressGzipText(encoded) {
         const binary = atob(encoded);
         const bytes = new Uint8Array(binary.length);
         for (let index = 0; index < binary.length; index += 1) {
           bytes[index] = binary.charCodeAt(index);
         }
         const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
-        return JSON.parse(await new Response(stream).text());
+        return new Response(stream).text();
+      }
+
+      function ensureDepartmentGeography() {
+        departmentGeographyPromise ??= Promise.resolve()
+          .then(() => decompressGzipText(departmentGeographyGzip))
+          .then((json) => {
+            const departments = JSON.parse(json);
+            if (!Array.isArray(departments?.features)) throw new Error("Invalid departmental geography");
+            DATA.geography = { ...DATA.geography, departments };
+            departmentGeographyGzip = null;
+          })
+          .catch((error) => {
+            departmentGeographyPromise = null;
+            throw error;
+          });
+        return departmentGeographyPromise;
+      }
+
+      async function parseDeferredData(encoded) {
+        const json = await decompressGzipText(encoded);
+        // Laisser la caméra finir et la vue régionale s'afficher avant de parser les séries.
+        while (mapCameraMotion) {
+          await mapCameraMotion.finished;
+          await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        }
+        return JSON.parse(json);
       }
 
       function ensureDeferredData() {
         if (DATA.modules && DATA.geography.departments) {
           return Promise.resolve(DATA);
         }
-        deferredDataPromise ??= loadDeferredGzip()
-          .then(parseDeferredData)
-          .then(({ geography, modules }) => {
-            if (!geography?.departments || !modules) throw new Error("Invalid deferred payload");
+        deferredDataPromise ??= Promise.all([ensureDepartmentGeography(), loadDeferredGzip().then(parseDeferredData)])
+          .then(([, { geography, modules }]) => {
+            if (!modules) throw new Error("Invalid deferred payload");
             if (modules.sector) {
               state.sectorEffectifsSeriesKey ??= modules.sector.regional.national.defaultSeriesKey;
               state.sectorPayrollSeriesKey ??= modules.sector.regional.national.defaultSeriesKey;
               state.sectorDepartmentSectorKey ??= modules.sector.departmental.defaultSectorKey;
             }
             if (modules.auto) state.autoSector ??= modules.auto.defaultSector;
-            DATA.geography = { ...DATA.geography, ...geography };
+            if (Object.keys(geography || {}).length) DATA.geography = { ...DATA.geography, ...geography };
             DATA.modules = modules;
             deferredGzip = null;
             return DATA;
@@ -693,6 +699,7 @@ __DETAILS_DOM_SCRIPT__
       async function transitionToRegion(regionCode, fromRail, historical = null) {
         const transitionToken = ++regionTransitionToken;
         const zoom = !REDUCED_MOTION && !fromRail && state.phase === "landing";
+        const [approach, closeup] = zoom ? getRegionCameraTargets(regionCode) : [];
         setMapCameraMoving(zoom);
         state.mapHoverLocked = true;
         stageShell.classList.add("is-map-hover-locked");
@@ -707,19 +714,18 @@ __DETAILS_DOM_SCRIPT__
         gsap.killTweensOf(chartRefs.regionMap.cameraState);
         if (zoom) {
           resetCamera();
-          const departmentData = ensureDeferredData().catch((error) => {
+          const geographyReady = ensureDepartmentGeography().catch((error) => {
+            console.error("Departmental geography error", error);
+          });
+          ensureDeferredData().catch((error) => {
             console.error("Deferred payload error", error);
           });
-          await animateCameraToTarget(getRegionCameraTarget(regionCode), { duration: 1.2, ease: "power2.inOut" });
-          if (transitionToken !== regionTransitionToken) return;
-          await departmentData;
+          await animateCameraToTarget(approach, { duration: 1.2, ease: "power2.inOut" });
+          await geographyReady;
           if (transitionToken !== regionTransitionToken) return;
           await animateDepartmentFocus(regionCode);
           if (transitionToken !== regionTransitionToken) return;
-          await animateCameraToTarget(
-            getRegionCameraTarget(regionCode, { scaleMultiplier: 1.28, maxScale: 5.1 }),
-            { duration: 1.22, ease: "power2.out" },
-          );
+          await animateCameraToTarget(closeup, { duration: 1.22, ease: "power2.out" });
           if (transitionToken !== regionTransitionToken) return;
           clearFocusOverlay();
         }

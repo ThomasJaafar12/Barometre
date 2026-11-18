@@ -14,8 +14,8 @@ python builder.py
 La commande produit uniquement dans `dist/` :
 
 - `index.html` : accueil et choix de lecture ;
-- `barometre_bref.html` : lecture en bref, avec les quatre indicateurs par défaut et les vues Santé et Emploi choisies depuis l’accueil ;
-- `barometre_chiffres.html` : carte et historique complet des quatre indicateurs des chiffres du mois ;
+- `barometre_bref.html` : lecture en bref des trois chiffres du mois et accès aux vues Santé et Emploi depuis l’accueil ;
+- `barometre_chiffres.html` : carte et historique des trois indicateurs des chiffres du mois ;
 - `barometre_emploi.html` : carte et lecture détaillée de la conjoncture de l’emploi ;
 - `barometre_entreprises.html` : carte et lecture détaillée de la santé des entreprises.
 
@@ -61,13 +61,13 @@ dist/
 
 Les trois pages détaillées partagent le script local `assets/js/region-map-<empreinte>.js`, qui dessine la carte avec D3. Chaque page conserve ses propres indicateurs et la disponibilité de ses territoires. Depuis l’accueil en HTTP(S), le navigateur peut précharger le script de la carte et D3 après le chargement de la page. Le gain dépend des en-têtes de cache du serveur. Depuis le paquet décompressé en `file://`, la carte est dessinée tôt à partir de ces mêmes fichiers locaux.
 
-Après le premier affichage de la carte, chaque page charge en arrière-plan son historique, ses indicateurs et les contours départementaux depuis `assets/js/<rubrique>-data.js`. Une sélection rapide peut démarrer ce même chargement. Les ressources sont incluses dans le manifeste et le rendu HTML inline conserve ses données intégrées.
+Après le premier affichage de la carte, chaque page charge en arrière-plan son historique et ses indicateurs depuis `assets/js/<rubrique>-data.js`. Les contours départementaux sont décompressés depuis le script de la page indépendamment des séries, ce qui permet d’afficher leur animation pendant le zoom régional si les séries sont encore en cours de chargement. Une sélection rapide peut démarrer ces chargements. Les ressources sont incluses dans le manifeste et le rendu HTML inline conserve ses données intégrées.
 
 ## Parcours détaillés
 
 Les deux niveaux de lecture utilisent le même bandeau de rubrique. En bref, le bouton « Retour à l’accueil » figure dans le bandeau et le choix du territoire se trouve au-dessus des indicateurs. Les vues Santé et Emploi s’ouvrent avec `?rubrique=entreprises` et `?rubrique=emploi`.
 
-Les trois détails s’ouvrent sur une carte de France en relief, sur fond européen. Le survol ou le focus clavier sur une région ou un raccourci territorial affiche les indicateurs de la rubrique et leurs périodes. Un clic, une activation au clavier ou un appui tactile ouvre le chapitre du territoire. Le sélecteur du bandeau donne aussi accès à Mayotte et permet de revenir à la carte. Les liens « Le baromètre en bref » ouvrent la synthèse de la rubrique courante. Le détail des Chiffres du mois reprend les quatre indicateurs de la synthèse sur tout l’historique disponible.
+Les trois détails s’ouvrent sur une carte de France en relief, sur fond européen. Le survol ou le focus clavier sur une région ou un raccourci territorial affiche les indicateurs de la rubrique et leurs périodes. Un clic, une activation au clavier ou un appui tactile ouvre le chapitre du territoire. Le sélecteur du bandeau donne aussi accès à Mayotte et permet de revenir à la carte. Les liens « Le baromètre en bref » ouvrent la synthèse de la rubrique courante. Le détail des Chiffres du mois reprend les trois indicateurs mensuels de la synthèse et donne accès à l’historique disponible.
 
 Les vidéos de France entière, des régions actuelles et des anciennes régions sont accessibles dans le sélecteur des trois pages détaillées. Une ancienne région affiche son clip et les indicateurs de la région actuelle correspondante.
 
@@ -83,13 +83,19 @@ Lors d’une régénération, le générateur vérifie les anciens manifestes à
 
 ## Lecture des indicateurs
 
-La synthèse présente la masse salariale et les effectifs trimestriels corrigés des variations saisonnières, toutes les procédures collectives trimestrielles et les DPAE mensuelles du fichier fourni. Les quarante et un derniers trimestres ou cent vingt et un derniers mois sont affichés pour couvrir dix années complètes entre la première et la dernière observation, lorsque les données sont disponibles ; l’évolution annuelle utilise la même période un an auparavant, avant la sélection de cette fenêtre.
+Les Chiffres du mois présentent la masse salariale précoce mensuelle, le taux d’impayés à 90 jours après l’échéance et les déclarations préalables à l’embauche (DPAE). La synthèse affiche jusqu’à dix ans d’historique par indicateur. L’évolution annuelle utilise la même période un an auparavant, avant la sélection de cette fenêtre.
 
-Les DPAE additionnent les CDI, les CDD longs et les CDD courts. La colonne `due_long`, déjà comprise dans ces catégories, n’est pas ajoutée. Les anciennes régions sont agrégées par région actuelle et mois. Les territoires absents, dont Mayotte dans le fichier actuel, et les observations incomplètes sont indiqués comme indisponibles. Le périmètre national disponible est précisé. Les DPAE ne représentent pas les créations nettes d’emplois.
+- La masse salariale reprend les montants bruts de `OPEND_BARO_REG_MS_MENS_06_2026reg60j.xlsx`. Les anciennes régions sont regroupées selon le découpage actuel. Le total national couvre les régions disponibles, hors Mayotte. Les glissements annuels se calculent sur les montants agrégés.
+- Le taux d’impayés reprend la série mensuelle CVS à 90 jours des classeurs `DATAVIZ_TRAR`. La synthèse et l’aperçu du détail couvrent tous les secteurs. Le détail propose les ventilations NACE 88 pour la France entière, NACE 28 pour les régions et cinq grands secteurs pour les départements. Le glissement annuel s’exprime en points de pourcentage.
+- Les DPAE portent sur les CDI et les CDD de plus d’un mois. La série nationale du fichier `OPEND_BARO_DPAE_09_2026fr30j.xlsx` est CVS. Les séries régionales de `donnees_dpae_regions.xlsx` additionnent les CDI et les CDD longs tels que fournis et peuvent s’arrêter à une période différente.
+
+Dans « Santé des entreprises », les DPAE tous contrats additionnent les CDI, les CDD longs et les CDD courts. La colonne `due_long`, déjà comprise dans ces catégories, n’est pas ajoutée. Les anciennes régions sont agrégées par région actuelle et mois. Les territoires absents, dont Mayotte dans le fichier actuel, et les observations incomplètes sont indiqués comme indisponibles. Le périmètre national disponible est précisé. Les DPAE ne représentent pas les créations nettes d’emplois.
 
 Dans la version détaillée, le chapitre « Santé des entreprises » présente les DPAE mensuelles depuis 2014. Les filtres permettent de suivre tous les contrats, les CDI, les CDD longs ou les CDD courts ; le total des CDI et CDD longs reste visible pour comparaison, sur la même échelle. Les cartes présentent les glissements annuel et mensuel et le tableau détaille les trois types de contrats. Les comparaisons utilisent le même mois de l’année précédente et le mois précédent, avant la sélection de la fenêtre affichée. Les données du classeur sont utilisées telles quelles, sans supposer un traitement saisonnier absent de ses métadonnées.
 
-Le taux de reste à recouvrer est présenté dans « Santé des entreprises » à partir des trois classeurs `DATAVIZ_TRAR` du dossier `Assets/Data_source`. Les séries mensuelles CVS distinguent la fin du mois d’échéance, la fin du mois suivant et le taux à 90 jours. Les courbes affichent les observations à partir de 2014 lorsque les données le permettent. Les classeurs actuels commencent en janvier 2019. Le panneau latéral présente les derniers taux, leurs écarts annuels et mensuels en points de pourcentage, et les cinq taux sectoriels les plus élevés pour le dernier mois disponible à l’échéance choisie. La courbe utilise la NACE 88 en France entière et la NACE 28 en région. Le treemap national et la carte régionale comparent les départements selon cinq grands secteurs, sur un mois commun pour l’horizon choisi. La sélection d’un département ouvre son historique.
+Le taux de reste à recouvrer est présenté dans « Santé des entreprises » à partir des trois classeurs `DATAVIZ_TRAR` du dossier `Assets/Data_source`. L’échéance choisie pilote la courbe mensuelle CVS, les glissements annuel et mensuel et le classement des cinq taux sectoriels les plus élevés. À 90 jours est sélectionné par défaut. Le choix du secteur suit la NACE 88 en France entière et la NACE 28 en région. La courbe de référence compare le secteur choisi à l’ensemble des secteurs du même territoire. Pour l’ensemble des secteurs d’une région, la référence est la France entière.
+
+Le treemap national et la carte régionale comparent les départements pour le grand secteur et l’échéance choisis, sur un mois commun. Sélectionner un département sur la carte ou le treemap affiche son historique et la référence nationale ou régionale, tous secteurs confondus. « 3 dernières années » affiche les 36 mois qui se terminent à la dernière observation disponible du département. Le bouton bascule vers « Série complète », qui affiche tout l’historique disponible. Les classeurs actuels commencent en janvier 2019.
 
 Chaque indicateur possède sa propre période : la date de publication n’est pas la date des observations. Les mêmes sources et agrégats sont utilisés dans les deux lectures pour les indicateurs communs.
 

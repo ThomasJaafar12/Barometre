@@ -1,6 +1,5 @@
       const employmentPointWindows = new WeakMap();
       const employmentLatestRowsByScope = new WeakMap();
-      const sectorDepartmentsByScope = new WeakMap();
       let sectorTreemapResizeObserver = null;
       let sectorTreemapResizeFrame = null;
       let sectorTreemapFontsBound = false;
@@ -11,10 +10,6 @@
         return state.phase === "national"
           ? DATA.modules.sector.regional.national
           : DATA.modules.sector.regional.regions[state.selectedRegion];
-      }
-
-      function getSectorDepartmentFeaturesByRegion() {
-        return geographyIndex(DATA.geography).departmentsByRegion;
       }
 
       function employmentMetricConfig(metricKey) {
@@ -36,18 +31,6 @@
           summaryLevel: (value) => isHeadcount ? `${frNumber(value / divisor, 2)} M` : `${frNumber(value / divisor, 1)} Md€`,
           axisTick: (value) => frNumber(value / divisor, axisDecimals),
         };
-      }
-
-      function employmentTickIndices(length) {
-        const step = length > 36 ? 2 : 1;
-        const indices = [];
-        for (let index = 0; index < length; index += step) {
-          indices.push(index);
-        }
-        if (indices[indices.length - 1] !== length - 1) {
-          indices.push(length - 1);
-        }
-        return indices;
       }
 
       const EMPLOYMENT_SECTOR_GROUPS = [
@@ -80,212 +63,6 @@
         };
         return messages[`${annual}-${quarterly}`]
           || "Les données disponibles ne permettent pas de comparer les dynamiques annuelle et trimestrielle.";
-      }
-
-      function drawEmploymentChart(config, points, metric) {
-        const svg = d3.select(`#${config.chartSvgId}`);
-        svg.selectAll("*").remove();
-        const width = 980;
-        const height = 560;
-        const margin = { top: 38, right: 84, bottom: 78, left: 76 };
-        const innerWidth = width - margin.left - margin.right;
-        const innerHeight = height - margin.top - margin.bottom;
-        const root = svg.attr("viewBox", `0 0 ${width} ${height}`);
-        const chartInk = paletteToken("employment-chart-ink", "#1a4e93");
-        const chartInkSoft = paletteToken("employment-chart-ink-soft", "rgba(26,78,147,0.16)");
-        const chartText = paletteToken("employment-chart-text", "#16212c");
-        const chartMuted = paletteToken("employment-chart-muted", "#5b6773");
-        const chartGrid = paletteToken("employment-chart-grid", "rgba(22,33,44,0.07)");
-        const chartGridStrong = paletteToken("employment-chart-grid-strong", "rgba(22,33,44,0.18)");
-        const chartPositive = paletteToken("employment-chart-positive", "#0EA5A8");
-        const chartNegative = paletteToken("employment-chart-negative", "#E11D48");
-
-        const chart = root.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-        const yoyValues = points.map((point) => point[metric.yoyKey]).filter((value) => value != null);
-        const levelValues = points.map((point) => point[metric.levelKey]).filter((value) => value != null);
-        let yoyMin = d3.min(yoyValues) ?? -1;
-        let yoyMax = d3.max(yoyValues) ?? 1;
-        const yoyPad = Math.max(0.6, (yoyMax - yoyMin) * 0.12);
-        yoyMin = Math.min(0, yoyMin - yoyPad);
-        yoyMax = Math.max(0, yoyMax + yoyPad);
-        let levelMin = d3.min(levelValues) ?? 0;
-        let levelMax = d3.max(levelValues) ?? 1;
-        const levelPad = Math.max(levelMax * 0.02, (levelMax - levelMin) * 0.08);
-        levelMin -= levelPad;
-        levelMax += levelPad;
-
-        const xScale = d3.scalePoint().domain(points.map((_, index) => index)).range([0, innerWidth]).padding(0.25);
-        const yYoY = d3.scaleLinear().domain([yoyMin, yoyMax]).nice().range([innerHeight, 0]);
-        const yLevel = d3.scaleLinear().domain([levelMin, levelMax]).nice().range([innerHeight, 0]);
-        const barStep = points.length > 1 ? xScale(1) - xScale(0) : innerWidth;
-        const barWidth = Math.max(8, Math.min(18, barStep * 0.72));
-
-        chart.append("g")
-          .selectAll("line")
-          .data(yYoY.ticks(7))
-          .join("line")
-          .attr("x1", 0)
-          .attr("x2", innerWidth)
-          .attr("y1", (value) => yYoY(value))
-          .attr("y2", (value) => yYoY(value))
-          .attr("stroke", (value) => value === 0 ? chartGridStrong : chartGrid)
-          .attr("stroke-width", (value) => value === 0 ? 1.4 : 1);
-
-        const leftAxis = chart.append("g")
-          .call(d3.axisLeft(yYoY).ticks(7).tickFormat((value) => `${frNumber(value, 1)} %`));
-        leftAxis.selectAll("text").attr("fill", chartMuted).style("font-family", "IBM Plex Mono, monospace").style("font-size", "12px");
-        leftAxis.selectAll("path,line").attr("stroke", "rgba(22,33,44,0)");
-
-        const rightAxis = chart.append("g")
-          .attr("transform", `translate(${innerWidth},0)`)
-          .call(d3.axisRight(yLevel).ticks(6).tickFormat((value) => metric.axisTick(value)));
-        rightAxis.selectAll("text").attr("fill", chartInk).style("font-family", "IBM Plex Mono, monospace").style("font-size", "12px");
-        rightAxis.selectAll("path,line").attr("stroke", chartInkSoft);
-
-        chart.append("text")
-          .attr("x", 0)
-          .attr("y", -14)
-          .attr("fill", chartText)
-          .style("font-family", "IBM Plex Mono, monospace")
-          .style("font-size", "12px")
-          .text("Glissement annuel");
-
-        chart.append("text")
-          .attr("x", innerWidth)
-          .attr("y", -14)
-          .attr("text-anchor", "end")
-          .attr("fill", chartInk)
-          .style("font-family", "IBM Plex Mono, monospace")
-          .style("font-size", "12px")
-          .text(metric.axisTitle);
-
-        const zeroY = yYoY(0);
-        chart.append("g")
-          .selectAll("rect")
-          .data(points)
-          .join("rect")
-          .attr("x", (_, index) => xScale(index) - barWidth / 2)
-          .attr("y", (point) => point[metric.yoyKey] >= 0 ? yYoY(point[metric.yoyKey]) : zeroY)
-          .attr("width", barWidth)
-          .attr("height", (point) => Math.abs(yYoY(point[metric.yoyKey]) - zeroY))
-          .attr("fill", (point) => point[metric.yoyKey] >= 0 ? chartPositive : chartNegative);
-
-        const line = d3.line()
-          .x((point, index) => xScale(index))
-          .y((point) => yLevel(point[metric.levelKey]))
-          .curve(d3.curveCatmullRom.alpha(0.6));
-
-        chart.append("path")
-          .datum(points)
-          .attr("d", line)
-          .attr("fill", "none")
-          .attr("stroke", chartInk)
-          .attr("stroke-width", 3.4)
-          .attr("stroke-linecap", "round")
-          .attr("stroke-linejoin", "round");
-
-        chart.append("g")
-          .selectAll("circle")
-          .data(points)
-          .join("circle")
-          .attr("cx", (_, index) => xScale(index))
-          .attr("cy", (point) => yLevel(point[metric.levelKey]))
-          .attr("r", (_, index) => index === points.length - 1 ? 5.2 : 3)
-          .attr("fill", (_, index) => index === points.length - 1 ? "#ffffff" : chartInk)
-          .attr("stroke", chartInk)
-          .attr("stroke-width", (_, index) => index === points.length - 1 ? 2.8 : 0);
-
-        chart.append("line")
-          .attr("x1", 0)
-          .attr("x2", innerWidth)
-          .attr("y1", innerHeight)
-          .attr("y2", innerHeight)
-          .attr("stroke", chartGridStrong);
-
-        const tickIndices = employmentTickIndices(points.length);
-        const xAxis = chart.append("g").attr("transform", `translate(0,${innerHeight})`);
-        tickIndices.forEach((index) => {
-          const x = xScale(index);
-          xAxis.append("line")
-            .attr("x1", x)
-            .attr("x2", x)
-            .attr("y1", 0)
-            .attr("y2", 7)
-            .attr("stroke", chartGridStrong);
-          xAxis.append("text")
-            .attr("x", x)
-            .attr("y", 26)
-            .attr("fill", chartMuted)
-            .style("font-family", "IBM Plex Mono, monospace")
-            .style("font-size", "12px")
-            .attr("transform", `rotate(-38 ${x} 26)`)
-            .attr("text-anchor", "end")
-            .text(quarterLabel(points[index].date));
-        });
-
-        chart.append("text")
-          .attr("x", innerWidth / 2)
-          .attr("y", innerHeight + 60)
-          .attr("text-anchor", "middle")
-          .attr("fill", chartText)
-          .style("font-family", "IBM Plex Mono, monospace")
-          .style("font-size", "12px")
-          .text("Trimestre");
-
-        const tooltip = document.getElementById(config.tooltipId);
-        const tooltipOverline = tooltip.querySelector(".tooltip-overline");
-        const tooltipBody = tooltip.querySelector(".tooltip-body");
-        const chartShell = tooltip.parentElement;
-
-        function hideChartTooltip() {
-          tooltip.classList.remove("is-visible");
-          tooltip.setAttribute("aria-hidden", "true");
-        }
-
-        function showChartTooltip(event, point) {
-          const shellBounds = chartShell.getBoundingClientRect();
-          tooltipOverline.textContent = quarterLabel(point.date);
-          textLines(tooltipBody, [`Glissement annuel : ${formatPercent(point[metric.yoyKey])}`, `Niveau : ${metric.tooltipLevel(point[metric.levelKey])}`]);
-          tooltip.classList.add("is-visible");
-          tooltip.setAttribute("aria-hidden", "false");
-
-          const margin = 12;
-          const cursorGap = 14;
-          const tooltipBounds = tooltip.getBoundingClientRect();
-          const cursorX = event.clientX - shellBounds.left;
-          const cursorY = event.clientY - shellBounds.top;
-          let x = cursorX + cursorGap;
-          let y = cursorY - tooltipBounds.height - cursorGap;
-
-          if (x + tooltipBounds.width > shellBounds.width - margin) {
-            x = cursorX - tooltipBounds.width - cursorGap;
-          }
-          if (y < margin) {
-            y = cursorY + cursorGap;
-          }
-
-          x = Math.min(Math.max(margin, x), shellBounds.width - tooltipBounds.width - margin);
-          y = Math.min(Math.max(margin, y), shellBounds.height - tooltipBounds.height - margin);
-          tooltip.style.left = `${x}px`;
-          tooltip.style.top = `${y}px`;
-        }
-
-        chart.append("g")
-          .selectAll("rect")
-          .data(points)
-          .join("rect")
-          .attr("x", (_, index) => xScale(index) - Math.max(barWidth, 12))
-          .attr("y", 0)
-          .attr("width", Math.max(barWidth * 2, 18))
-          .attr("height", innerHeight)
-          .attr("fill", "rgba(255,255,255,0.001)")
-          .attr("pointer-events", "all")
-          .style("cursor", "pointer")
-          .on("mouseenter", (event, point) => showChartTooltip(event, point))
-          .on("mousemove", (event, point) => showChartTooltip(event, point))
-          .on("mouseleave", hideChartTooltip);
-
-        root.on("mouseleave", hideChartTooltip);
       }
 
       function renderRegionalEmploymentBlock(config) {
@@ -784,131 +561,14 @@
         }
       }
 
-      function departmentMetricValue(department, sectorKey, metricKey) {
-        const series = department.values[sectorKey];
-        return series ? series[metricKey] : null;
-      }
-
-      function departmentMetricYoY(department, sectorKey, metricKey) {
-        const series = department.values[sectorKey];
-        if (!series) return null;
-        return metricKey === "effectifs_cvs" ? series.effectifs_yoy : series.masse_yoy;
-      }
-
-      function departmentMetricFormatter(metricKey, value) {
-        return metricKey === "masse_cvs" ? formatCurrency(value) : formatCount(value);
-      }
-
-      function sectorDepartmentIndex(departments) {
-        let index = sectorDepartmentsByScope.get(departments);
-        if (!index) {
-          index = new Map(departments.map((department) => [department.code, department]));
-          sectorDepartmentsByScope.set(departments, index);
-        }
-        return index;
-      }
-
       function renderSectorDepartmentModule() {
-        const departmentModule = DATA.modules.sector.departmental;
-        const mapMeta = document.getElementById("employmentDeptMapMeta");
-        const rankingMeta = document.getElementById("employmentDeptRankingMeta");
-        const mapShell = document.getElementById("employmentDeptMapShell");
-        const legend = document.getElementById("employmentDeptLegend");
-        const ranking = document.getElementById("employmentDeptRanking");
-        const mapGrid = document.querySelector("#module-sector .employment-map-grid");
-        const featuresByRegion = getSectorDepartmentFeaturesByRegion();
-
-        renderMetricSwitch("employmentDeptMetricSwitch", departmentModule.metrics, state.sectorDepartmentMetric, (key) => {
-          state.sectorDepartmentMetric = key;
-          renderSectorDepartmentModule();
+        const data = DATA.modules.sector.departmental;
+        renderEmploymentDepartment({
+          prefix: "employmentDept", data, sectors: data.sectorOptions, groups: EMPLOYMENT_GRAND_SECTOR_GROUPS,
+          sectorState: "sectorDepartmentSectorKey", metricState: "sectorDepartmentMetric",
+          endpoints: [paletteToken("chart-employment-dept-low", "#F7C96B"), paletteToken("chart-employment-dept-high", "#E86E2A")],
+          color: "#A84A18",
         });
-
-        if (!state.sectorDepartmentSectorKey) {
-          state.sectorDepartmentSectorKey = departmentModule.defaultSectorKey;
-        }
-        renderEmploymentSectorPicker(
-          "employmentDeptSectorPicker",
-          departmentModule.sectorOptions,
-          "sectorDepartmentSectorKey",
-          renderSectorDepartmentModule,
-          EMPLOYMENT_GRAND_SECTOR_GROUPS,
-        );
-
-        if (state.phase === "national") {
-          dismissVizTooltip(mapShell.querySelector("svg"));
-          mapMeta.textContent = "Choisir une région pour ouvrir la maille départementale";
-          rankingMeta.textContent = "Lecture régionale requise";
-          renderEmptyState(mapShell, "Choisir une région", "La carte départementale s'active après sélection d'un territoire dans la barre des régions.");
-          legend.replaceChildren();
-          renderEmptyState(ranking, "Classement indisponible", "Le classement départemental n'est pas affiché à l'échelle France entière.");
-          syncDepartmentRankingHeight(mapGrid);
-          return;
-        }
-
-        const regionScope = (departmentModule.regions[state.selectedRegion] && departmentModule.regions[state.selectedRegion].departments) || [];
-        const selectedSector = departmentModule.sectorOptions.find((option) => option.key === state.sectorDepartmentSectorKey) || departmentModule.sectorOptions[0];
-        if (selectedSector && selectedSector.key !== state.sectorDepartmentSectorKey) {
-          state.sectorDepartmentSectorKey = selectedSector.key;
-        }
-        const selectedMetric = departmentModule.metrics.find((item) => item.key === state.sectorDepartmentMetric) || departmentModule.metrics[0];
-        mapMeta.textContent = `${scopeLabel()} / ${selectedSector.label} / ${quarterLabel(departmentModule.latestDate)}`;
-        rankingMeta.textContent = `${selectedMetric.label} / niveau actuel + glissement annuel`;
-
-        if (!regionScope.length) {
-          dismissVizTooltip(mapShell.querySelector("svg"));
-          renderEmptyState(mapShell, "Données indisponibles", "Le fichier départemental ne documente pas ce territoire pour le dernier trimestre retenu.");
-          legend.replaceChildren();
-          renderEmptyState(ranking, "Aucun classement", "Les départements de cette région ne sont pas présents dans la source départementale fournie.");
-          syncDepartmentRankingHeight(mapGrid);
-          return;
-        }
-
-        const values = regionScope
-          .map((department) => departmentMetricValue(department, state.sectorDepartmentSectorKey, state.sectorDepartmentMetric))
-          .filter((value) => value != null);
-        const features = featuresByRegion.get(state.selectedRegion) || [];
-        const scale = values.length
-          ? buildScale(
-              d3.extent(values),
-              [
-                paletteToken("chart-employment-dept-low", "#F7C96B"),
-                paletteToken("chart-employment-dept-high", "#E86E2A"),
-              ],
-            )
-          : () => paletteToken("chart-employment-dept-low", "#F7C96B");
-
-        if (!document.getElementById("employmentDeptMapSvg")) {
-          mapShell.replaceChildren(svgElement("svg", { id: "employmentDeptMapSvg", viewBox: "0 0 900 620", role: "group", "aria-labelledby": "employmentDeptMapTitle employmentDeptMapMeta" }));
-        }
-        const svg = d3.select("#employmentDeptMapSvg");
-        const departmentsByCode = sectorDepartmentIndex(regionScope);
-        const paths = renderDepartmentMapPaths(svg, features)
-          .attr("class", (feature) => `path-department${departmentsByCode.has(feature.properties.code) ? "" : " is-unavailable"}`)
-          .attr("fill", (feature) => {
-            const department = departmentsByCode.get(feature.properties.code);
-            const value = department ? departmentMetricValue(department, state.sectorDepartmentSectorKey, state.sectorDepartmentMetric) : null;
-            return value != null ? scale(value) : paletteToken("map-empty", "rgba(255,255,255,0.05)");
-          });
-        bindDepartmentTooltip(paths, (feature) => {
-          const department = departmentsByCode.get(feature.properties.code);
-          const value = department ? departmentMetricValue(department, state.sectorDepartmentSectorKey, state.sectorDepartmentMetric) : null;
-          return { label: department?.name || feature.properties.nom, value: departmentMetricFormatter(state.sectorDepartmentMetric, value) };
-        });
-
-        const domain = d3.extent(values);
-        rangeLegend(legend, departmentMetricFormatter(state.sectorDepartmentMetric, domain[0]), departmentMetricFormatter(state.sectorDepartmentMetric, domain[1]));
-
-        const articles = regionScope
-          .map((department) => ({
-            ...department,
-            metricValue: departmentMetricValue(department, state.sectorDepartmentSectorKey, state.sectorDepartmentMetric),
-            yoyValue: departmentMetricYoY(department, state.sectorDepartmentSectorKey, state.sectorDepartmentMetric),
-          }))
-          .filter((department) => department.metricValue != null)
-          .sort((left, right) => right.metricValue - left.metricValue)
-          .map((department) => rankingArticle(department.name, departmentMetricFormatter(state.sectorDepartmentMetric, department.metricValue), scopeLabel(), `Glissement annuel : ${formatPercent(department.yoyValue)}`));
-        ranking.replaceChildren(...articles);
-        syncDepartmentRankingHeight(mapGrid);
       }
 
       function renderSectorModule() {

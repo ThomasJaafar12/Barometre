@@ -1,7 +1,5 @@
       const employmentPickerContexts = new WeakMap();
 
-      const departmentMapGeometries = new WeakMap();
-
       function treemapPalette() {
         return {
           negative: ["#FF967D", paletteToken("employment-treemap-negative", "#ED4766")],
@@ -36,35 +34,6 @@
           chip.append(textElement("i", "", `employment-treemap-swatch is-${direction}`), document.createTextNode(label));
           return chip;
         });
-      }
-
-      function departmentMapGeometry(features) {
-        let geometry = departmentMapGeometries.get(features);
-        if (!geometry) {
-          const paths = new Map();
-          if (features.length) {
-            const projection = d3.geoMercator().fitExtent([[32, 32], [868, 588]], { type: "FeatureCollection", features });
-            const path = d3.geoPath(projection);
-            features.forEach((feature) => paths.set(feature.properties.code, path(feature)));
-          }
-          geometry = { features, paths };
-          departmentMapGeometries.set(features, geometry);
-        }
-        return geometry;
-      }
-
-      function renderDepartmentMapPaths(svg, features) {
-        let layer = svg.select("g.department-map-paths");
-        if (layer.empty()) layer = svg.append("g").attr("class", "department-map-paths");
-        const shapes = layer.selectAll("path")
-          .data(features, (feature) => feature.properties.code)
-          .join("path");
-        if (layer.datum() !== features) {
-          const { paths } = departmentMapGeometry(features);
-          shapes.attr("d", (feature) => paths.get(feature.properties.code));
-          layer.datum(features);
-        }
-        return shapes;
       }
 
       const vizTooltipMarks = new WeakMap();
@@ -185,21 +154,6 @@
         }
       }
 
-      function bindDepartmentTooltip(paths, getContent) {
-        bindVizTooltip(paths, {
-          label: (feature) => {
-            const { label, value } = getContent(feature);
-            return `${label} · ${value === "—" ? "Données indisponibles" : value}`;
-          },
-          show: (position, feature) => {
-            const { label, value } = getContent(feature);
-            showTooltip(position, label, value, true);
-          },
-          hide: hideTooltip,
-          arrowNavigation: true,
-        });
-      }
-
       document.addEventListener("pointerdown", (event) => {
         if (activeVizTooltip && !activeVizTooltip.element.contains(event.target)) dismissVizTooltip();
       }, true);
@@ -224,7 +178,7 @@
       function setEmploymentSectorPickerOpen(control, isOpen, focusPosition = "active") {
         const trigger = control.querySelector(".employment-sector-trigger");
         const menu = control.querySelector(".employment-sector-menu");
-        control.closest(".employment-main, .employment-map-panel, .trar-panel-head")?.classList.toggle("has-open-sector-picker", isOpen);
+        control.closest(".employment-main, .trar-panel-head")?.classList.toggle("has-open-sector-picker", isOpen);
         control.classList.toggle("is-open", isOpen);
         trigger.setAttribute("aria-expanded", String(isOpen));
         if (!isOpen) return;

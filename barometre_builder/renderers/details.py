@@ -74,8 +74,6 @@ def render_details_payloads(boot: dict, deferred: dict, *, topic: str = "emploi"
         "__DETAILS_DOM_SCRIPT__": (PAGE_TEMPLATES_DIR / "details-dom.js").read_text(encoding="utf-8"),
     }
     values["__DETAILS_CSS__"] = read_template("details.css") + "\n" + read_template("topic-header.css")
-    if topic == "chiffres":
-        values["__DETAILS_CSS__"] += "\n" + read_template("indicator-charts.css")
     values["__DETAILS_SCRIPT__"] = render_template(
         (PAGE_TEMPLATES_DIR / "details.js").read_text(encoding="utf-8"), values
     )

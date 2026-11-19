@@ -1,17 +1,64 @@
-        <section class="section-card chapter-section brief-section" id="module-chiffres" aria-label="Historique des indicateurs">
-          <div class="indicator-grid" id="chiffresIndicators"></div>
-          <details class="chiffres-arrears" id="chiffresArrears" hidden>
-            <summary>Ventilation du taux d’impayés par secteur et département</summary>
-            <div class="chiffres-arrears-controls">
-              <div>
-                <label for="chiffresArrearsTerritory">Territoire</label>
-                <select id="chiffresArrearsTerritory"></select>
+        <section class="section-card chapter-section" id="module-chiffres" aria-label="Historique des indicateurs mensuels">
+          <article class="employment-block snap-card" aria-labelledby="chiffresPayrollTitle">
+            <div class="section-grid employment-grid">
+              <div class="viz-panel employment-main">
+                <div class="employment-intro">
+                  <div class="viz-title employment-title">
+                    <strong id="chiffresPayrollTitle">Masse salariale mensuelle du secteur privé</strong>
+                  </div>
+                </div>
+                <div class="employment-chart-shell">
+                  <svg id="chiffresPayrollChartSvg" viewBox="0 0 980 560" role="group" aria-labelledby="chiffresPayrollTitle chiffresPayrollChartDesc">
+                    <desc id="chiffresPayrollChartDesc">Courbe du niveau de la masse salariale mensuelle brute et histogramme de son glissement annuel.</desc>
+                  </svg>
+                  <div id="chiffresPayrollTooltip" class="employment-tooltip" aria-hidden="true">
+                    <div class="tooltip-overline"></div>
+                    <div class="tooltip-body"></div>
+                  </div>
+                </div>
+                <div class="legend-row employment-legend">
+                  <span class="legend-chip"><i class="employment-swatch employment-swatch-positive"></i>Glissement annuel positif</span>
+                  <span class="legend-chip"><i class="employment-swatch employment-swatch-negative"></i>Glissement annuel négatif</span>
+                  <span class="legend-chip"><i class="legend-line chiffres-payroll-line"></i>Niveau de masse salariale</span>
+                </div>
+                <p class="pcol-data-note">Source : Urssaf · Masse salariale mensuelle brute.</p>
               </div>
-              <div>
-                <label for="chiffresArrearsSector" id="chiffresArrearsSectorLabel">Secteur d’activité</label>
-                <select id="chiffresArrearsSector"></select>
+              <div class="viz-panel employment-side employment-dashboard-panel">
+                <div class="employment-dashboard-context" aria-label="Périmètre et période des données">
+                  <span id="chiffresPayrollScope"></span>
+                  <time id="chiffresPayrollPeriod"></time>
+                </div>
+                <div class="employment-dashboard-level">
+                  <span class="employment-dashboard-level-label">Masse salariale privée brute</span>
+                  <strong class="employment-dashboard-level-value" id="chiffresPayrollCurrentLevel"></strong>
+                </div>
+                <div class="employment-dashboard-stats">
+                  <div class="employment-dashboard-stat">
+                    <span class="employment-dashboard-stat-label">Gliss. annuel</span>
+                    <strong class="employment-dashboard-trend" id="chiffresPayrollCurrentYoY">
+                      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0 7 7M12 3v18"></path></svg>
+                      <span></span>
+                    </strong>
+                  </div>
+                  <div class="employment-dashboard-stat">
+                    <span class="employment-dashboard-stat-label">Gliss. mensuel</span>
+                    <strong class="employment-dashboard-trend" id="chiffresPayrollCurrentMoM">
+                      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0 7 7M12 3v18"></path></svg>
+                      <span></span>
+                    </strong>
+                  </div>
+                </div>
+                <div class="delai-top-sectors-block employment-sector-ranking employment-payroll-ranking chiffres-payroll-ranking" id="chiffresPayrollRanking" hidden>
+                  <div class="delai-top-sectors-head">
+                    <h3 class="delai-top-sectors-title" id="chiffresPayrollRankingTitle">Classement des régions</h3>
+                    <time class="delai-top-sectors-meta" id="chiffresPayrollRankingPeriod"></time>
+                  </div>
+                  <div class="delai-top-table-wrapper" id="chiffresPayrollRankingTable" role="region" aria-labelledby="chiffresPayrollRankingTitle" aria-describedby="chiffresPayrollCoverage" tabindex="0"></div>
+                  <p class="pcol-data-note" id="chiffresPayrollCoverage"></p>
+                </div>
               </div>
             </div>
-            <div id="chiffresArrearsHistory"></div>
-          </details>
+          </article>
+          __TRAR_HTML__
+          __CHIFFRES_DPAE_HTML__
         </section>

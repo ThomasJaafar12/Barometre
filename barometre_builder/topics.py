@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from operator import itemgetter
 
-from .brief import MONTHLY_INDICATORS, build_monthly_payload, finite_value, percent_change
+from .brief import MONTHLY_INDICATORS, TRAR90_LABEL, build_monthly_payload, finite_value, indicator_series, percent_change
 from .trar import project_trar90
 
 
@@ -23,16 +23,18 @@ class DetailTopic:
 
 
 MONTHLY_FORMATS = {"euros": "currency", "percent": "percent", "declarations": "count"}
-MONTHLY_DATE_LABELS = {"payrollEarly": "Masse salariale", "trar90": "Impayés à 90 jours", "dpae": "DPAE"}
+MONTHLY_DATE_LABELS = {"payrollEarly": "Masse salariale", "trar90": "Taux à 90 jours", "dpae": "DPAE"}
 
 TOPICS = {
     "chiffres": DetailTopic(
-        "chiffres", "Les chiffres du mois", "chiffres", ("chiffres",), (),
+        "chiffres", "Les chiffres du mois", "chiffres", ("chiffres",),
+        ("employment-chart.js", "quarterly.js", "chiffres-dpae.js", "trar.js"),
         tuple((indicator["key"], indicator["label"], MONTHLY_FORMATS[indicator["unit"]],
                indicator["frequency"], MONTHLY_DATE_LABELS[indicator["key"]]) for indicator in MONTHLY_INDICATORS),
     ),
     "emploi": DetailTopic(
-        "emploi", "Conjoncture de l’emploi", "sector", ("sector", "auto"), ("auto.js",),
+        "emploi", "Conjoncture de l’emploi", "sector", ("sector", "auto"),
+        ("employment-chart.js", "employment-department.js", "auto.js"),
         (("headcount", "Effectifs privés CVS", "count", "quarter", "Effectifs"),
          ("payroll", "Masse salariale trimestrielle CVS", "currency", "quarter", "Masse"),
          ("auto", "Auto-entrepreneurs économiquement actifs", "count", "quarter", "Auto")),
@@ -43,7 +45,7 @@ TOPICS = {
         (("pcol", "Procédures collectives", "count", "quarter", "Procédures"),
          ("jobs", "Emplois menacés ou détruits", "count", "quarter", "Emplois menacés"),
          ("dpae", "DPAE · Tous contrats", "count", "month", "DPAE"),
-         ("delai", "Accords de délais de paiement des indépendants", "count", "quarter", "Délais")),
+         ("trar90", TRAR90_LABEL, "percent", "month", "Taux à 90 jours")),
     ),
 }
 
@@ -62,7 +64,7 @@ def project_details_payloads(boot: dict, deferred: dict, *, topic: str = "emploi
     topic_modules = {key: modules[key] for key in config.modules if key in modules}
     monthly_scopes = {}
     if topic == "chiffres":
-        monthly = build_monthly_payload(boot, deferred, history_years=None)
+        monthly = build_monthly_payload(boot, deferred, history_years=None, detailed=True)
         monthly_scopes = monthly["scopes"]
         topic_modules["chiffres"] = {**monthly, "arrears": project_trar90(modules.get("trar", {}))}
 
@@ -106,12 +108,14 @@ def project_details_payloads(boot: dict, deferred: dict, *, topic: str = "emploi
             }
         pcol = scope(modules.get("pcol", {}), code).get("modes", {}).get("all", {}).get("population-entiere", [])
         dpae = scope(modules.get("dpae", {}), code).get("points", [])
-        delai = scope(modules.get("delai", {}), code).get("modes", {}).get("all", {}).get("ensemble", [])
+        arrears = scope(modules.get("trar90", {}), code).get("points", [])
+        rates = indicator_series(arrears, "month", percentage_points=True, trim_trailing_missing=True)["points"]
+        rate = rates[-1] if rates else {}
         return {
             "pcol": latest_observation(pcol, itemgetter(0, 1)),
             "jobs": latest_observation(pcol, itemgetter(0, 2)),
             "dpae": latest_observation(dpae, itemgetter("date", "value")),
-            "delai": latest_observation(delai, itemgetter(0, 1)),
+            "trar90": observation(rate.get("value"), rate.get("date"), rate.get("yearlyChange")),
         }
 
     regions = []

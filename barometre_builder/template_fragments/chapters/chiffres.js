@@ -1,100 +1,100 @@
-      let renderChiffresIndicators;
+      const chiffresPayrollChart = {
+        chartSvgId: "chiffresPayrollChartSvg",
+        tooltipId: "chiffresPayrollTooltip",
+        periodLabel: monthLabel,
+        periodName: null,
+        tickInterval: 12,
+        responsive: true,
+      };
+      const chiffresPayrollMetric = {
+        levelKey: "value",
+        yoyKey: "yearlyChange",
+        tooltipLevel: formatCurrency,
+      };
       let displayedChiffresScope;
-      let renderChiffresArrears;
+      let chiffresPayrollObserver;
 
-      function createChiffresArrearsBreakdown(data, indicator) {
-        const disclosure = document.getElementById("chiffresArrears");
-        const territorySelect = document.getElementById("chiffresArrearsTerritory");
-        const sectorSelect = document.getElementById("chiffresArrearsSector");
-        const sectorLabel = document.getElementById("chiffresArrearsSectorLabel");
-        const history = document.getElementById("chiffresArrearsHistory");
-        const { dates, sectors, national, regions, departments } = data;
-        const dateIndex = new Map(dates.map((date, index) => [date, index]));
-        const previousYearIndexes = dates.map(date => dateIndex.get(`${Number(date.slice(0, 4)) - 1}${date.slice(4)}`));
-        const sectorLabels = {
-          national: "Secteur d’activité (NACE 88)",
-          regional: "Secteur d’activité (NACE 28)",
-          departmental: "Grand secteur d’activité",
-        };
-        const compareNames = new Intl.Collator("fr").compare;
-        let territories;
-        let renderChart;
-        let displayedSector;
+      function drawChiffresPayroll(points) {
+        const billions = d3.max(points, ({ value }) => value) >= 1e9;
+        drawEmploymentChart(chiffresPayrollChart, points, {
+          ...chiffresPayrollMetric,
+          axisTitle: billions ? "Niveau (milliards d’euros)" : "Niveau (millions d’euros)",
+          compactAxisTitle: billions ? "Niveau (Md€)" : "Niveau (M€)",
+          axisTick: (value) => billions ? frNumber(value / 1e9, 1) : frNumber(value / 1e6, 0),
+        });
+      }
 
-        function availableSectors(level, series) {
-          return (sectors[level] || []).filter(({ key }) => series?.[key]?.some(Number.isFinite));
-        }
-
-        function renderHistory() {
-          const territory = territories?.get(territorySelect.value);
-          if (!disclosure.open || !territory) return;
-          const sector = territory.options.find(({ key }) => key === sectorSelect.value);
-          if (!sector || sector === displayedSector) return;
-          const rates = territory.series[sector.key];
-          const first = rates.findIndex(Number.isFinite);
-          const last = rates.findLastIndex(Number.isFinite);
-          const points = rates.slice(first, last + 1).map((value, offset) => {
-            const index = first + offset;
-            const previous = rates[previousYearIndexes[index]];
-            return {
-              date: dates[index], value,
-              yearlyChange: Number.isFinite(value) && Number.isFinite(previous) ? value - previous : null,
-            };
-          });
-          const chartIndicator = {
-            ...indicator, key: "trar90Breakdown", label: `${sector.label} · ${territory.label}`,
-          };
-          renderChart ??= createIndicatorCharts(history, true);
-          renderChart([chartIndicator], { [chartIndicator.key]: { points } });
-          displayedSector = sector;
-        }
-
-        function renderSectors() {
-          const territory = territories.get(territorySelect.value);
-          displayedSector = null;
-          sectorLabel.textContent = sectorLabels[territory.level];
-          sectorSelect.replaceChildren(...territory.options.map(({ key, label }) => new Option(label, key)));
-          renderHistory();
-        }
-
-        territorySelect.addEventListener("change", renderSectors);
-        sectorSelect.addEventListener("change", renderHistory);
-        disclosure.addEventListener("toggle", renderHistory);
-
-        return (code) => {
-          const isNational = code === "national";
-          territories = new Map();
-          const addTerritory = (key, label, level, series) => {
-            const options = availableSectors(level, series);
-            if (options.length) territories.set(key, { label, level, series, options });
-          };
-          addTerritory("scope", scopeLabel(), isNational ? "national" : "regional", isNational ? national : regions[code]);
-          const geography = DATA.geography;
-          const features = isNational ? geography.departments.features : geographyIndex(geography).departmentsByRegion.get(code) || [];
-          const departmentOptions = features.map(({ properties }) => properties)
-            .sort((left, right) => compareNames(left.nom, right.nom));
-          for (const { code: departmentCode, nom } of departmentOptions) {
-            addTerritory(departmentCode, `${nom} (${departmentCode})`, "departmental", departments[departmentCode]);
+      function renderChiffresPayrollRanking(scopes, date, selectedCode) {
+        const { points: nationalPoints } = scopes.national.payrollEarly;
+        const national = date ? nationalPoints.findLast((point) => point.date === date)
+          : nationalPoints.findLast(({ value }) => Number.isFinite(value));
+        const rankingDate = date || national?.date;
+        const total = national?.value;
+        const hasTotal = Number.isFinite(total) && total > 0;
+        const rows = [];
+        if (rankingDate) {
+          for (const { code, name } of DATA.regions) {
+            const point = scopes[code]?.payrollEarly.points.findLast(({ date }) => date === rankingDate);
+            if (!Number.isFinite(point?.value)) continue;
+            rows.push({ key: code, label: name, value: point.value, share: hasTotal ? point.value / total * 100 : null });
           }
-          disclosure.hidden = territories.size === 0;
-          if (disclosure.hidden) return;
-          territorySelect.replaceChildren(...Array.from(territories, ([key, { label }]) => new Option(label, key)));
-          territorySelect.disabled = territories.size === 1;
-          renderSectors();
-        };
+          rows.sort((left, right) => right.value - left.value || left.label.localeCompare(right.label, "fr"));
+        }
+
+        const ranking = document.getElementById("chiffresPayrollRanking");
+        ranking.hidden = !rows.length;
+        if (ranking.hidden) return;
+        const period = document.getElementById("chiffresPayrollRankingPeriod");
+        period.textContent = monthLabel(rankingDate);
+        period.dateTime = rankingDate;
+        document.getElementById("chiffresPayrollCoverage").textContent = hasTotal
+          ? "Part du total national couvert par le classeur, hors Mayotte."
+          : "Part nationale indisponible pour ce mois.";
+        renderSectorRanking({
+          containerId: "chiffresPayrollRankingTable", rows, selectedKey: selectedCode,
+          labelHeader: "Région", valueLabel: "Masse", changeLabel: "Part nationale",
+          formatLabel: ({ label }) => label, formatValue: formatCurrency,
+          formatSecondary: ({ share }) => formatPercent(share, 2),
+        });
+        const table = document.getElementById("chiffresPayrollRankingTable");
+        const activeRow = table.querySelector(".is-active");
+        const bottom = activeRow ? activeRow.getBoundingClientRect().bottom - table.getBoundingClientRect().top + table.scrollTop : 0;
+        table.scrollTop = Math.max(0, Math.ceil(bottom - table.clientHeight));
+      }
+
+      function renderChiffresPayroll({ points }, scopes, code) {
+        const latest = points.findLast(({ value }) => Number.isFinite(value));
+        const territory = scopeLabel();
+        document.getElementById("chiffresPayrollTitle").textContent = `Masse salariale mensuelle du secteur privé · ${territory}`;
+        document.getElementById("chiffresPayrollScope").textContent = territory;
+        const period = document.getElementById("chiffresPayrollPeriod");
+        period.textContent = latest ? monthLabel(latest.date) : "Données indisponibles";
+        if (latest) period.dateTime = latest.date;
+        else period.removeAttribute("datetime");
+        document.getElementById("chiffresPayrollCurrentLevel").textContent = formatCurrency(latest?.value);
+        renderEmploymentTrend("chiffresPayrollCurrentYoY", latest?.yearlyChange);
+        renderEmploymentTrend("chiffresPayrollCurrentMoM", latest?.monthlyChange);
+        renderChiffresPayrollRanking(scopes, latest?.date, code);
+        drawChiffresPayroll(points);
+        if (!chiffresPayrollObserver) {
+          chiffresPayrollObserver = new ResizeObserver(([{ target }]) => {
+            const width = target.clientWidth;
+            const viewBoxWidth = width < 600 ? Math.max(260, width) : 980;
+            if (width && displayedChiffresScope && viewBoxWidth !== target.viewBox.baseVal.width) {
+              drawChiffresPayroll(displayedChiffresScope.payrollEarly.points);
+            }
+          });
+          chiffresPayrollObserver.observe(document.getElementById(chiffresPayrollChart.chartSvgId));
+        }
       }
 
       function renderChiffresModule() {
-        const { indicators, scopes, arrears } = DATA.modules.chiffres;
+        const { scopes, arrears } = DATA.modules.chiffres;
         const code = state.phase === "national" ? "national" : state.selectedRegion;
         const scope = scopes[code];
         if (displayedChiffresScope === scope) return;
-        renderChiffresIndicators ??= createIndicatorCharts(document.getElementById("chiffresIndicators"), true);
-        renderChiffresIndicators(indicators, scope);
-        const arrearsIndicator = indicators.find(({ key }) => key === "trar90");
-        if (arrears?.dates?.length && arrearsIndicator) {
-          renderChiffresArrears ??= createChiffresArrearsBreakdown(arrears, arrearsIndicator);
-          renderChiffresArrears(code);
-        }
+        renderChiffresPayroll(scope.payrollEarly, scopes, code);
+        renderTrarModule(arrears);
+        renderChiffresDpae(scope.dpae);
         displayedChiffresScope = scope;
       }

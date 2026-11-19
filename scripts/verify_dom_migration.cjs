@@ -130,7 +130,9 @@ async function controls(browser, viewport) {
     const tooltipForMap = async () => page.evaluate(() => {
       const node = document.querySelector('#employmentDeptMapSvg path');
       const bounds = node.getBoundingClientRect();
-      node.dispatchEvent(new MouseEvent('mouseenter', { clientX: bounds.x + 2, clientY: bounds.y + 2 }));
+      const position = { clientX: bounds.x + 2, clientY: bounds.y + 2 };
+      node.dispatchEvent(new MouseEvent('mouseenter', position));
+      node.dispatchEvent(new PointerEvent('pointerenter', { ...position, pointerType: 'mouse' }));
       return document.getElementById('tooltipValue').textContent;
     });
     const originalTooltip = await tooltipForMap();
@@ -140,11 +142,16 @@ async function controls(browser, viewport) {
     await frames(page);
     const newTooltip = await tooltipForMap();
     assert.notEqual(newTooltip, originalTooltip, 'Retained map paths use current metric tooltip values');
-    await page.evaluate(() => document.querySelector('#employmentDeptMapSvg path').dispatchEvent(new MouseEvent('mouseleave')));
+    await page.evaluate(() => {
+      const path = document.querySelector('#employmentDeptMapSvg path');
+      path.dispatchEvent(new MouseEvent('mouseleave'));
+      path.dispatchEvent(new PointerEvent('pointerleave', { pointerType: 'mouse' }));
+    });
 
     // A → B → A: compare text and chart coordinates after caches have been reused.
     const semantic = () => page.evaluate(() => {
-      const ids = ['employmentEffectifsChartSvg', 'employmentPayrollChartSvg', 'employmentDeptMapSvg', 'employmentDeptRanking'];
+      const ids = ['employmentEffectifsChartSvg', 'employmentPayrollChartSvg', 'employmentDeptMapSvg',
+        document.getElementById('employmentDeptDepartmentChartSvg') ? 'employmentDeptDepartmentChartSvg' : 'employmentDeptRanking'];
       return ids.map(id => {
         const node = document.getElementById(id);
         return { id, text: node.textContent.replace(/\s+/g, ' ').trim(),
@@ -227,7 +234,7 @@ async function securityFixture(browser) {
     await page.locator('#dpaeModeSwitch button').filter({ hasText: /^CDI/ }).click({ force: true });
     await frames(page);
     assert.equal((await page.locator('#dpaeCurrentNb').textContent()).trim(), '0', 'Zero CDI is displayed as zero');
-    await page.locator('#dpaeModeSwitch button').filter({ hasText: /^CDD longs/ }).click({ force: true });
+    await page.locator('#dpaeModeSwitch button').filter({ hasText: /^CDD \+30J/ }).click({ force: true });
     await frames(page);
     assert.equal((await page.locator('#dpaeCurrentNb').textContent()).trim(), '—', 'Missing CDD long is not converted to zero');
     for (const filename of ['index.html', 'barometre_bref.html']) {

@@ -265,9 +265,25 @@ def project_trar90(trar: dict) -> dict:
     def scope(sectors: dict) -> dict:
         return {key: [row[TRAR_90_DAY_INDEX] for row in rates] for key, rates in sectors.items()}
 
+    def dashboard(source: dict) -> dict:
+        if not source:
+            return {}
+        return {
+            "changes": {key: values[TRAR_90_DAY_INDEX] for key, values in source["changes"].items()},
+            "rankings": source["rankings"][TRAR_90_DAY_INDEX],
+        }
+
+    dashboards = trar.get("dashboards", {})
     return {
+        "horizon": "j90",
+        "displayStartDate": trar.get("displayStartDate", TRAR_DISPLAY_START),
         "dates": trar.get("dates", []), "sectors": trar.get("sectors", {}),
         "national": scope(trar.get("national", {})),
         "regions": {code: scope(sectors) for code, sectors in trar.get("regions", {}).items()},
         "departments": {code: scope(sectors) for code, sectors in trar.get("departments", {}).items()},
+        "departmentSnapshots": {key: indexes[TRAR_90_DAY_INDEX] for key, indexes in trar.get("departmentSnapshots", {}).items()},
+        "dashboards": {
+            "national": dashboard(dashboards.get("national", {})),
+            "regions": {code: dashboard(values) for code, values in dashboards.get("regions", {}).items()},
+        },
     }

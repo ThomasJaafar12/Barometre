@@ -15,14 +15,14 @@ const regionMap = manifest.region_map;
 assert.match(regionMap, /^assets\/js\/region-map[-.][a-f0-9]{16}\.js$/);
 
 const topics = {
-  chiffres: '#chiffresIndicators .indicator',
+  chiffres: '#chiffresPayrollChartSvg .employment-level-line',
   emploi: '#employmentEffectifsChartSvg .tick',
   entreprises: '#pcolChartSvg .tick',
 };
 const indicatorKeys = {
   chiffres: ['payrollEarly', 'trar90', 'dpae'],
   emploi: ['headcount', 'payroll', 'auto'],
-  entreprises: ['pcol', 'jobs', 'dpae', 'delai'],
+  entreprises: ['pcol', 'jobs', 'dpae', 'trar90'],
 };
 const d3 = 'assets/vendor/d3.min.js';
 const animation = ['assets/vendor/gsap.min.js', 'assets/vendor/ScrollTrigger.min.js'];
@@ -118,6 +118,12 @@ async function checkCockpit(page, topic) {
   if (topic === 'chiffres') {
     const units = national.map(card => card.change?.text.match(/ (pt|%) sur 1 an$/)?.[1]);
     assert.deepEqual(units, ['%', 'pt', '%'], 'All three monthly indicators show their annual change');
+  } else if (topic === 'entreprises') {
+    const arrears = national.find(card => card.key === 'trar90');
+    assert.equal(arrears.label, 'Taux de reste à recouvrer à 90 jours');
+    assert.match(arrears.value, /^0,94\s+%$/);
+    assert.equal(arrears.period, 'juil. 2026');
+    assert.deepEqual(arrears.change, { text: '−0,03 pt sur 1 an', trend: 'favorable' });
   }
 
   const region = page.locator('#landingMap .path-region[data-code="24"]');
@@ -147,7 +153,7 @@ async function checkCockpit(page, topic) {
   if (topic === 'entreprises') {
     const cards = await readKpis(page, '#heroKpis');
     assert.equal(cards.find(card => card.key === 'pcol').value, '—');
-    assert.notEqual(cards.find(card => card.key === 'delai').value, '—');
+    assert.match(cards.find(card => card.key === 'trar90').value, /^25,28\s+%$/);
   }
   await returnToCockpit(page);
   await page.locator('#cockpitTerritories button[data-scope="national"]').click();

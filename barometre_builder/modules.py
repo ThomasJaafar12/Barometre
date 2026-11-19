@@ -97,6 +97,65 @@ def build_video_manifest(region_meta: dict[str, dict[str, Any]]) -> dict[str, An
     }
 
 
+def build_department_history(
+    rows: list[dict[str, str]],
+    *,
+    date_column: str,
+    department_column: str,
+    sector_column: str,
+    sector_ids: dict[str, str],
+    aggregate_key: str,
+    metric_columns: dict[str, str],
+) -> dict[str, Any]:
+    dates = sorted({row[date_column] for row in rows})
+    date_indices = {date: index for index, date in enumerate(dates)}
+
+    def empty_series() -> dict[str, list[int | float | None]]:
+        return {metric: [None] * len(dates) for metric in metric_columns}
+
+    departments = defaultdict(lambda: defaultdict(empty_series))
+    for row in rows:
+        series = departments[normalize_department_code(row[department_column])]
+        aggregate = series[aggregate_key]
+        sector_key = sector_ids.get(row[sector_column])
+        sector = series[sector_key] if sector_key is not None else None
+        index = date_indices[row[date_column]]
+        for metric, column in metric_columns.items():
+            value = parse_number(row[column])
+            if value is None:
+                continue
+            if sector is not None:
+                sector[metric][index] = value
+            aggregate[metric][index] = (aggregate[metric][index] or 0) + value
+
+    # Les écarts successifs réduisent la taille des séries sans supprimer les lacunes.
+    def encode(values: list[int | float | None]) -> list[int | list[int | float] | None]:
+        encoded = []
+        previous = 0
+        for value in values:
+            value = compact_number(value)
+            if value is None:
+                encoded.append(None)
+                continue
+            if isinstance(value, int) and isinstance(previous, int):
+                encoded.append(value - previous)
+            else:
+                encoded.append([value])
+            previous = value
+        return encoded
+
+    return {
+        "dates": dates,
+        "departments": {
+            department: {
+                sector: {metric: encode(values) for metric, values in series.items()}
+                for sector, series in sectors.items()
+            }
+            for department, sectors in departments.items()
+        },
+    }
+
+
 def build_sector_module(
     rows: list[dict[str, str]],
     department_rows: list[dict[str, str]],
@@ -335,6 +394,18 @@ def build_sector_module(
                 "sectorOptions": department_sector_options,
                 "defaultSectorKey": aggregate_key,
                 "regions": department_regions_payload,
+                "history": build_department_history(
+                    [row for row in filtered_department_rows if row["Dernier jour du Trimestre"] >= SECTOR_DISPLAY_START_DATE],
+                    date_column="Dernier jour du Trimestre",
+                    department_column="Code département",
+                    sector_column="Grand secteur d'activité",
+                    sector_ids=department_sector_ids,
+                    aggregate_key=aggregate_key,
+                    metric_columns={
+                        "effectifs_cvs": "Effectifs salariés (CVS)",
+                        "masse_cvs": "Masse salariale (CVS)",
+                    },
+                ),
             },
         },
         {
@@ -494,6 +565,19 @@ def build_auto_module(rows: list[dict[str, str]], region_meta: dict[str, dict[st
             "defaultSector": aggregate_key,
             "departments": [departments[key] for key in sorted(departments)],
             "regions": {code: {"departmentCodes": sorted(values)} for code, values in region_departments.items()},
+            "history": build_department_history(
+                filtered_rows,
+                date_column="Dernier jour du trimestre",
+                department_column="Code Département",
+                sector_column="Secteur d'activité",
+                sector_ids=sector_ids,
+                aggregate_key=aggregate_key,
+                metric_columns={
+                    "turnover": "Chiffres d'affaires",
+                    "economically_active": "Economiquement actifs",
+                    "administratively_active": "Administrativement actifs",
+                },
+            ),
         },
         {
             "regions": {

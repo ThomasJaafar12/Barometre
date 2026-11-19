@@ -1,0 +1,64 @@
+          <article class="employment-block snap-card dpae-card" aria-labelledby="chiffresDpaeTitle">
+            <div class="section-grid employment-grid delai-grid">
+              <div class="viz-panel employment-main dpae-main">
+                <div class="employment-intro delai-intro">
+                  <div class="viz-title employment-title">
+                    <strong id="chiffresDpaeTitle">Déclarations préalables à l’embauche</strong>
+                  </div>
+                  <div id="chiffresDpaeControls" hidden>
+                    <div class="employment-controls dpae-controls">
+                      <span class="mono employment-select-label">Type de contrat</span>
+                      <div class="metric-switch delai-mode-switch" id="chiffresDpaeModeSwitch" role="group" aria-label="Type de contrat des déclarations préalables à l’embauche"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="employment-chart-shell dpae-chart-shell">
+                  <svg id="chiffresDpaeChartSvg" viewBox="0 0 980 560" role="img" aria-labelledby="chiffresDpaeTitle"></svg>
+                  <div id="chiffresDpaeTooltip" class="employment-tooltip" aria-hidden="true">
+                    <div class="tooltip-overline"></div>
+                    <div class="tooltip-body"></div>
+                  </div>
+                </div>
+                <div class="legend-row employment-legend delai-legend" id="chiffresDpaeLegend"></div>
+                <p class="pcol-data-note">Source Urssaf · DPAE mensuelles. Les déclarations mesurent des intentions d’embauche.</p>
+                <p class="pcol-data-note dpae-coverage-note" id="chiffresDpaeCoverageNote"></p>
+              </div>
+              <div class="viz-panel employment-side employment-dashboard-panel dpae-dashboard-panel">
+                <div class="employment-dashboard-context" aria-label="Périmètre et période des données">
+                  <span id="chiffresDpaeScope"></span>
+                  <time id="chiffresDpaePeriod"></time>
+                </div>
+                <div class="delai-kpis-wrapper">
+                  <div class="delai-kpi-block">
+                    <div class="employment-dashboard-level">
+                      <span class="employment-dashboard-level-label" id="chiffresDpaeCurrentLabel">Nombre de DPAE</span>
+                      <strong class="employment-dashboard-level-value delai-level-value" id="chiffresDpaeCurrentLevel"></strong>
+                    </div>
+                    <div class="employment-dashboard-stats">
+                      <div class="employment-dashboard-stat">
+                        <span class="employment-dashboard-stat-label">Gliss. annuel</span>
+                        <strong class="employment-dashboard-trend" id="chiffresDpaeCurrentYoY">
+                          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0 7 7M12 3v18"></path></svg>
+                          <span></span>
+                        </strong>
+                      </div>
+                      <div class="employment-dashboard-stat">
+                        <span class="employment-dashboard-stat-label">Gliss. mensuel</span>
+                        <strong class="employment-dashboard-trend" id="chiffresDpaeCurrentMoM">
+                          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0 7 7M12 3v18"></path></svg>
+                          <span></span>
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="delai-top-sectors-block" id="chiffresDpaeContracts" hidden>
+                  <div class="delai-top-sectors-head">
+                    <strong class="delai-top-sectors-title">Répartition par contrat</strong>
+                    <time class="mono delai-top-sectors-meta" id="chiffresDpaeContractsPeriod"></time>
+                  </div>
+                  <div class="delai-top-table-wrapper" id="chiffresDpaeContractsTable"></div>
+                </div>
+              </div>
+            </div>
+          </article>

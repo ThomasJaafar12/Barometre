@@ -82,7 +82,7 @@
           scope: scopeLabel(),
           series: [
             { key: mode.key, label: mode.label, axisLabel: "Nombre de DPAE", compactAxisLabel: "DPAE", color: "var(--accent)", format: (value) => frNumber(value, 0), compactFormat: dpaeCompactNumber, yoyKey: `${mode.key}_yoy` },
-            { key: "long", label: "CDI et CDD longs", color: "var(--accent-secondary)", format: (value) => frNumber(value, 0), yoyKey: "long_yoy" },
+            { key: "long", label: "CDI et CDD +30J", color: "var(--accent-secondary)", format: (value) => frNumber(value, 0), yoyKey: "long_yoy" },
           ],
         });
       }

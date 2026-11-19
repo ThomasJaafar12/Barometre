@@ -9,7 +9,7 @@ const siteDirectory = siteOption < 0 ? 'dist' : process.argv[siteOption + 1];
 if (!siteDirectory) throw new Error('--site-dir nécessite un dossier.');
 
 const topics = {
-  chiffres: { chapterId: 'module-chiffres', chartMarks: ['#chiffresIndicators .indicator'] },
+  chiffres: { chapterId: 'module-chiffres', chartMarks: ['#chiffresPayrollChartSvg .employment-level-line', '#chiffresDpaeChartSvg .quarterly-series'] },
   emploi: { chapterId: 'module-sector', chartMarks: ['#employmentEffectifsChartSvg .tick',
     '#employmentPayrollChartSvg .tick', '#employmentTreemapSvg .employment-treemap-tile', '#autoMetricSwitch button'] },
   entreprises: { chapterId: 'module-payroll', chartMarks: ['#dpaeChartSvg .tick',

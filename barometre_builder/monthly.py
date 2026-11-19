@@ -79,10 +79,7 @@ def build_monthly_payroll(path: Path = MONTHLY_PAYROLL_PATH) -> dict:
     if unknown:
         raise ValueError(f"{path.name} : codes d’anciennes régions inconnus ({', '.join(sorted(unknown))}).")
     return {
-        "national": {
-            "points": _aggregate(series, old_regions),
-            "coverageNote": "Total des régions couvertes par le classeur, hors Mayotte.",
-        },
+        "national": {"points": _aggregate(series, old_regions)},
         "regions": {code: {"points": _aggregate(series, old_codes)} for code, old_codes in PAYROLL_REGIONS.items()},
     }
 
@@ -93,14 +90,21 @@ def build_monthly_dpae(dpae: dict, path: Path = MONTHLY_DPAE_PATH) -> dict:
     missing = set(DPAE_CONTRACTS) - {contract for observations in series.values() for contract in observations}
     if missing:
         raise ValueError(f"{path.name} : contrats manquants ({', '.join(sorted(missing))}).")
+    points = _aggregate(series, DPAE_CONTRACTS)
+    for point in points:
+        contracts = series[point["date"]]
+        point.update(cdi=contracts.get(DPAE_CONTRACTS[0]), cddlong=contracts.get(DPAE_CONTRACTS[1]))
     return {
         "national": {
-            "points": _aggregate(series, DPAE_CONTRACTS),
+            "points": points,
             "coverageNote": "France entière · Série corrigée des variations saisonnières (CVS).",
         },
         "regions": {
             code: {
-                "points": [{"date": point["date"], "value": point["long"]} for point in scope["points"]],
+                "points": [
+                    {"date": point["date"], "value": point["long"], "cdi": point.get("cdi"), "cddlong": point.get("cddlong")}
+                    for point in scope["points"]
+                ],
                 "coverageNote": "Classeur régional Urssaf · Traitement saisonnier non renseigné.",
             }
             for code, scope in dpae["regions"].items()

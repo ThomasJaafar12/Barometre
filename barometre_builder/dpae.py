@@ -14,8 +14,8 @@ from .utils import compact_number, slugify
 DPAE_CONTRACTS = (
     {"id": "all", "key": "value", "label": "Tous contrats"},
     {"id": "cdi", "key": "cdi", "label": "CDI"},
-    {"id": "cddlong", "key": "cddlong", "label": "CDD longs"},
-    {"id": "cddcourt", "key": "cddcourt", "label": "CDD courts"},
+    {"id": "cddlong", "key": "cddlong", "label": "CDD +30J"},
+    {"id": "cddcourt", "key": "cddcourt", "label": "CDD -30J"},
 )
 
 

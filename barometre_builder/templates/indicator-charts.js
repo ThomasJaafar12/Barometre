@@ -209,7 +209,8 @@ function createIndicatorCharts(container, hasCharts) {
     const area = d3.area().defined(point => isValue(point.level)).curve(d3.curveMonotoneX).x(point => x(point.time)).y0(194).y1(point => y(point.level));
     svg.append("path").datum(data).attr("class", "chart-area").attr("fill", `url(#${gradientId})`).attr("d", area);
     svg.append("path").datum(data).attr("class", "chart-line").attr("d", line);
-    card.append(element("p", `Niveau · ${unit}. L’axe vertical est ajusté pour rendre les variations lisibles.`, "chart-note"));
+    const axisNote = indicator.showAxisNote === false ? "" : " L’axe vertical est ajusté pour rendre les variations lisibles.";
+    card.append(element("p", `Niveau · ${unit}.${axisNote}`, "chart-note"));
     return chartHover(card, svg, indicator, data, x, y);
   }
 

@@ -1,0 +1,47 @@
+            <article class="trar-card snap-card" aria-labelledby="{title_id}">
+              <div class="trar-dept-panel">
+                <div class="trar-panel-head">
+                  <div class="employment-title">
+                    <h3 id="{title_id}">{title}</h3>
+                    <span id="{context_id}" role="status"></span>
+                  </div>
+                  <div class="trar-panel-controls">
+                    <div class="employment-sector-picker {picker_class}" id="{picker_id}">{picker_contents}</div>
+                    <div class="metric-switch" id="{switch_id}" role="group" aria-label="{switch_label}"></div>
+                  </div>
+                </div>
+                <div class="trar-split-grid">
+                  <div class="trar-map-column">
+                    <div class="trar-max-chip" id="{prefix}HighestDepartment" hidden>
+                      <span class="trar-max-chip-dot" aria-hidden="true"></span>
+                      <span id="{prefix}HighestDepartmentLabel"></span>
+                    </div>
+                    <div class="trar-treemap-shell" id="{prefix}TreemapShell" hidden>
+                      <svg id="{prefix}TreemapSvg" role="group" aria-label="Treemap des départements français regroupés par région"></svg>
+                    </div>
+                    <div class="trar-map-shell" id="{prefix}MapShell" hidden>
+                      <svg id="{prefix}MapSvg" role="group" aria-label="Carte des départements de la région"></svg>
+                    </div>
+                    <div class="trar-snapshot-legend" id="{legend_id}"></div>
+                  </div>
+                  <div class="trar-history-column" id="{prefix}DepartmentDetail">
+                    <div class="trar-history-head">
+                      <div class="trar-history-meta">
+                        <h4 id="{prefix}DepartmentChartTitle">Historique départemental</h4>
+                        <span id="{prefix}DepartmentChartContext" aria-live="polite"></span>
+                      </div>
+                      <button class="trar-history-period" id="{prefix}HistoryPeriod" type="button" aria-controls="{prefix}DepartmentChartSvg">3 dernières années</button>
+                    </div>
+                    <div class="trar-dept-kpis" id="{prefix}DepartmentKpis"></div>
+                    <div class="employment-chart-shell">
+                      <svg id="{prefix}DepartmentChartSvg" viewBox="0 0 640 360" role="img" aria-label="{chart_label}"></svg>
+                      <div id="{prefix}DepartmentChartTooltip" class="employment-tooltip" aria-hidden="true">
+                        <div class="tooltip-overline"></div>
+                        <div class="tooltip-body"></div>
+                      </div>
+                    </div>
+                    <div class="legend-row" id="{prefix}DepartmentChartLegend"></div>
+                  </div>
+                </div>
+              </div>
+            </article>

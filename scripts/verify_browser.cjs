@@ -20,8 +20,8 @@ const artifacts = path.resolve(root, option('--artifacts-dir') || '.cache/browse
 const pages = ['index.html', 'barometre_bref.html', 'barometre_emploi.html', 'barometre_entreprises.html', 'barometre_chiffres.html'];
 const detailTopics = ['emploi', 'entreprises', 'chiffres'];
 const monthlyIndicators = [
-  { key: 'payrollEarly', title: 'Masse salariale précoce', period: 'juin 2026', value: /65,8 milliards d’euros/ },
-  { key: 'trar90', title: 'Taux d’impayés 90 jours après l’échéance', period: 'juillet 2026', value: /0,94\s+%/ },
+  { key: 'payrollEarly', title: 'Masse salariale', period: 'juin 2026', value: /65,8 milliards d’euros/ },
+  { key: 'trar90', title: 'Taux de reste à recouvrer à 90 jours', period: 'juillet 2026', value: /0,94\s+%/ },
   { key: 'dpae', title: 'Déclarations préalables à l’embauche', period: 'septembre 2026', value: /669\s+517\s+déclarations/ },
 ];
 const fingerprint = directory => Object.fromEntries(['site_manifest.json', ...pages, 'assets/js/brief.js',
@@ -109,19 +109,17 @@ async function settle(page) {
 
 const results = [];
 let contractChecks = 0;
+const tooltipSelector = '#tooltip, .employment-tooltip';
 async function snapshot(pair, label, screenshot = false, screenshotTarget = null) {
   for (const page of pair) await settle(page);
-  // Le déplacement de la souris pendant un défilement peut rouvrir cette infobulle globale.
-  // Les interactions des infobulles sont vérifiées séparément.
-  const text = await Promise.all(pair.map(page => page.locator('body').evaluate(body => {
-    const tooltip = body.querySelector('#tooltip');
-    if (!tooltip) return body.innerText;
-    const display = tooltip.style.display;
-    tooltip.style.display = 'none';
+  // Les infobulles sont vérifiées pendant les interactions qui les ouvrent.
+  const text = await Promise.all(pair.map(page => page.locator('body').evaluate((body, selector) => {
+    const tooltips = [...body.querySelectorAll(selector)].map(node => [node, node.style.display]);
+    tooltips.forEach(([node]) => { node.style.display = 'none'; });
     const content = body.innerText;
-    tooltip.style.display = display;
+    tooltips.forEach(([node, display]) => { node.style.display = display; });
     return content;
-  })));
+  }, tooltipSelector)));
   if (text[1] !== text[0]) {
     assert.fail(`Contenu dynamique: ${label}: ${firstDifference(text[0].split('\n'), text[1].split('\n'))}`);
   }
@@ -139,8 +137,9 @@ async function snapshot(pair, label, screenshot = false, screenshotTarget = null
       return [node.localName, node.namespaceURI, attrs, [...node.childNodes].map(visit).filter(Boolean)];
     };
     const ids = ['employmentEffectifsChartSvg', 'employmentPayrollChartSvg', 'employmentTreemapSvg',
-      'employmentDeptMapSvg', 'employmentDeptMapShell', 'autoMapSvg', 'autoMapPanel', 'dpaeChartSvg', 'pcolChartSvg', 'delaiChartSvg',
-      'employmentDeptRanking', 'autoRanking', 'employmentEffectifsTopSectorsTable', 'employmentPayrollTopSectorsTable',
+      'employmentDeptMapSvg', 'employmentDeptTreemapSvg', 'employmentDeptDepartmentChartSvg', 'employmentDeptDepartmentKpis',
+      'employmentDeptHistoryPeriod', 'autoMapSvg', 'autoTreemapSvg', 'autoDepartmentChartSvg', 'autoDepartmentKpis', 'autoHistoryPeriod',
+      'dpaeChartSvg', 'pcolChartSvg', 'delaiChartSvg', 'employmentEffectifsTopSectorsTable', 'employmentPayrollTopSectorsTable',
       'dpaeContractsTable', 'pcolTopSectorsTable', 'delaiTopSectorsTable', 'dpaeModeSwitch', 'pcolModeSwitch', 'delaiModeSwitch',
       'employmentTreemapMetricSwitch', 'employmentDeptMetricSwitch', 'autoMetricSwitch',
       'employmentEffectifsSeriesPicker', 'employmentPayrollSeriesPicker', 'employmentDeptSectorPicker',
@@ -149,7 +148,10 @@ async function snapshot(pair, label, screenshot = false, screenshotTarget = null
       'trarHorizonSwitch', 'trarDepartmentSectorPicker', 'trarTreemapSvg',
       'trarMapSvg', 'trarHistoryPeriod', 'trarDepartmentKpis', 'trarDepartmentChartSvg', 'indicateur-payroll',
       'indicateur-headcount', 'indicateur-dpae', 'indicateur-pcol', 'indicateur-payrollEarly', 'indicateur-trar90',
-      'chiffresArrears'];
+      'chiffresPayrollChartSvg', 'chiffresPayrollCurrentLevel', 'chiffresPayrollCurrentYoY', 'chiffresPayrollCurrentMoM',
+      'chiffresPayrollRanking',
+      'chiffresDpaeChartSvg', 'chiffresDpaeCurrentLevel', 'chiffresDpaeCurrentYoY', 'chiffresDpaeCurrentMoM',
+      'chiffresDpaeModeSwitch', 'chiffresDpaeContractsTable'];
     return Object.fromEntries(ids.map(id => [id, document.getElementById(id)]).filter(([, node]) => node)
       .map(([id, node]) => [id, visit(node)]));
   })));
@@ -169,7 +171,7 @@ async function snapshot(pair, label, screenshot = false, screenshotTarget = null
       await settle(pair[i]);
       const target = screenshotTarget ? pair[i].locator(screenshotTarget) : pair[i];
       captures.push(await target.screenshot({ path: path.join(artifacts, `${label}-${i ? 'after' : 'before'}.png`),
-        animations: 'disabled', style: '#tooltip { display: none !important; }' }));
+        animations: 'disabled', style: `${tooltipSelector} { display: none !important; }` }));
     }
     const diff = comparePng(captures[0], captures[1], label);
     results.push({ label, ...diff });
@@ -197,7 +199,8 @@ function detailScopeOption(page, label) {
   return page.locator('#geoMenu button[role="option"]:not([data-historical-territory])').filter({ hasText: label });
 }
 
-async function checkMonthlyCards(page, container, scope) {
+async function checkMonthlyCards(page, scope) {
+  const container = '#indicators';
   const cards = page.locator(container).locator('article.indicator');
   await cards.last().waitFor({ state: 'visible' });
   assert.deepEqual(await cards.evaluateAll(nodes => nodes.map(node => node.dataset.indicator)),
@@ -212,6 +215,12 @@ async function checkMonthlyCards(page, container, scope) {
     }
     const arrears = page.locator(`${container} [data-indicator="trar90"]`);
     assert.match(await arrears.locator('.indicator-change').innerText(), /Baisse de 0,03\s+point sur un an/);
+    const payroll = page.locator(`${container} [data-indicator="payrollEarly"]`);
+    const dpae = page.locator(`${container} [data-indicator="dpae"]`);
+    assert.equal(await payroll.locator('.coverage-note').count(), 0);
+    assert.equal(await dpae.locator('.chart-note').textContent(), 'Niveau · milliers de déclarations.');
+    assert.match(await payroll.locator('.chart-note').textContent(), /L’axe vertical est ajusté/);
+    assert.equal((await page.locator('.site-footer').innerText()).trim(), 'Accueil');
   } else if (scope === 'mayotte') {
     const values = await cards.locator('.indicator-value').allTextContents();
     assert.equal(values[0], 'Données indisponibles');
@@ -223,32 +232,150 @@ async function checkMonthlyCards(page, container, scope) {
   }
 }
 
-async function checkMonthlyArrearsBreakdown(page, region) {
-  const disclosure = page.locator('#chiffresArrears');
-  const summary = disclosure.locator(':scope > summary');
-  const territory = disclosure.locator('#chiffresArrearsTerritory');
-  const sector = disclosure.locator('#chiffresArrearsSector');
-  const sectorLabel = disclosure.locator('#chiffresArrearsSectorLabel');
-  const history = disclosure.locator('#indicateur-trar90Breakdown');
-  await summary.click();
-  await history.waitFor({ state: 'visible' });
-  assert.match(await sectorLabel.innerText(), region === 'France entière' ? /NACE 88/ : /NACE 28/);
-  assert.ok(await sector.locator('option').count() > 20);
-  const firstSector = sector.locator('option').nth(1);
-  await sector.selectOption({ index: 1 });
-  assert.ok((await history.locator('h3').innerText()).includes(await firstSector.innerText()));
-  if (region === 'Mayotte') {
-    assert.deepEqual(await territory.locator('option').allTextContents(), ['Mayotte']);
+const monthlyDetails = {
+  'France entière': {
+    payroll: { level: /65,8\s+Md€/, period: '2026-06-01', yoy: /\+1,8\s*%/, mom: /\+8,0\s*%/ },
+    dpae: { level: /669\s+517/, period: '2026-09-01', yoy: /[−-]2,5\s*%/, mom: /[−-]1,1\s*%/ },
+    arrears: /0,94\s*%/,
+  },
+  'Île-de-France': {
+    payroll: { level: /21,5\s+Md€/, period: '2026-06-01', yoy: /\+1,8\s*%/, mom: /\+8,2\s*%/ },
+    dpae: { level: /181\s+989/, period: '2026-05-01', yoy: /[−-]6,5\s*%/, mom: /[−-]3,1\s*%/ },
+    arrears: /0,87\s*%/,
+  },
+  'Mayotte': { arrears: /25,28\s*%/ },
+};
+
+async function checkMonthlyPayrollRanking(page, region) {
+  await page.waitForFunction(label => document.getElementById('chiffresPayrollScope')?.textContent.includes(label), region);
+  const ranking = page.locator('#chiffresPayrollRanking');
+  await ranking.waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#chiffresPayrollRankingPeriod').getAttribute('datetime'), '2026-06-01');
+  const table = ranking.locator('#chiffresPayrollRankingTable');
+  assert.deepEqual((await table.locator('thead th').allTextContents()).map(text => text.trim()),
+    ['#', 'Région', 'Masse', 'Part nationale']);
+  const rows = table.locator('tbody tr');
+  const values = await rows.evaluateAll(nodes => nodes.map(row => [...row.cells].map(cell => cell.textContent.trim())));
+  assert.equal(values.length, 17);
+  assert.deepEqual(values.map(row => Number(row[0])), Array.from({ length: 17 }, (_, index) => index + 1));
+  assert.ok(values.every(row => /^\d+,\d{2}\s+%$/.test(row[3])));
+  const shares = values.map(row => Number.parseFloat(row[3].replace(',', '.')));
+  assert.deepEqual(shares, [...shares].sort((first, second) => second - first));
+  assert.ok(Math.abs(shares.reduce((sum, value) => sum + value, 0) - 100) < 0.1);
+  assert.equal(values[0][1], 'Île-de-France');
+  assert.match(values[0][3], /^32,75\s+%$/);
+  assert.equal(values[7][1], 'Pays de la Loire');
+  assert.match(values[7][3], /^5,27\s+%$/);
+  const layout = await table.evaluate(wrapper => {
+    const bounds = wrapper.getBoundingClientRect();
+    const header = wrapper.querySelector('thead').getBoundingClientRect();
+    const active = wrapper.querySelector('.is-active')?.getBoundingClientRect();
+    return {
+      horizontalOverflow: wrapper.scrollWidth - wrapper.clientWidth,
+      activeVisible: active && active.top >= header.bottom - 1 && active.bottom <= bounds.bottom + 1,
+    };
+  });
+  assert.equal(layout.horizontalOverflow, 0, `${region}: débordement horizontal du classement`);
+  const active = table.locator('tbody tr.is-active');
+  if (region === 'France entière' || region === 'Mayotte') {
+    assert.equal(await active.count(), 0);
   } else {
-    await territory.selectOption('75');
-    assert.equal(await sectorLabel.innerText(), 'Grand secteur d’activité');
-    await sector.selectOption({ index: 1 });
-    assert.match(await history.locator('h3').innerText(), /Paris \(75\)/);
+    assert.equal(await active.count(), 1);
+    assert.equal((await active.locator('td, th').nth(1).textContent()).trim(), region);
+    assert.equal(layout.activeVisible, true, `${region}: ligne active tronquée dans le classement`);
   }
-  assert.match(await history.locator('.indicator-value').innerText(), /%/);
-  assert.ok(await history.locator('svg .tick').count() > 0);
-  await summary.click();
-  await history.waitFor({ state: 'hidden' });
+  const coverage = page.locator('#chiffresPayrollCoverage');
+  assert.equal(await coverage.isVisible(), true);
+  assert.match(await coverage.innerText(), /hors Mayotte/i);
+}
+
+async function checkMonthlyDetail(page, region, touch) {
+  await page.waitForFunction(label => document.getElementById('chiffresPayrollScope')?.textContent.includes(label), region);
+  const expected = monthlyDetails[region];
+  for (const [key, name] of [['payroll', 'Payroll'], ['dpae', 'Dpae']]) {
+    const prefix = `#chiffres${name}`;
+    const chart = page.locator(`${prefix}ChartSvg`);
+    await chart.waitFor({ state: 'visible' });
+    assert.ok((await page.locator(`${prefix}Title`).textContent()).includes(region));
+    assert.ok((await page.locator(`${prefix}Scope`).textContent()).includes(region));
+    const level = await page.locator(`${prefix}CurrentLevel`).textContent();
+    const period = await page.locator(`${prefix}Period`).getAttribute('datetime');
+    const annual = await page.locator(`${prefix}CurrentYoY`).getAttribute('aria-label');
+    const monthly = await page.locator(`${prefix}CurrentMoM`).getAttribute('aria-label');
+    if (expected[key]) {
+      assert.match(level, expected[key].level);
+      assert.equal(period, expected[key].period);
+      assert.match(annual, expected[key].yoy);
+      assert.match(monthly, expected[key].mom);
+      assert.ok(await chart.locator('.tick').count() > 0);
+    } else {
+      assert.equal(level, '—');
+      assert.equal(period, null);
+      assert.equal(annual, '—');
+      assert.equal(monthly, '—');
+      assert.match(await chart.textContent(), /données indisponibles|aucune donnée disponible/i);
+    }
+  }
+  assert.equal(await page.locator('#trarDashboardPeriod').getAttribute('datetime'), '2026-07-01');
+  assert.match(await page.locator('#trarLatest .delai-level-value').innerText(), expected.arrears);
+  assert.equal(await page.locator('#trarTitle').innerText(), 'Taux de reste à recouvrer à 90 jours');
+  assert.match(await page.locator('#trarChartScope').innerText(), /90 jours après l’échéance/);
+  assert.equal(await page.locator('#trarMainHorizonSwitch, #trarHorizonSwitch').locator('button:visible').count(), 0);
+  await checkMonthlyPayrollRanking(page, region);
+
+  const controls = page.locator('#chiffresDpaeModeSwitch button');
+  const rows = page.locator('#chiffresDpaeContractsTable tbody tr');
+  if (region === 'Mayotte') {
+    assert.equal(await page.locator('#chiffresDpaeModeSwitch button:visible').count(), 0);
+    assert.equal(await page.locator('#chiffresDpaeContractsTable tbody tr:visible').count(), 0);
+    return;
+  }
+  assert.deepEqual(await controls.allTextContents(), ['CDI et CDD longs', 'CDI', 'CDD de plus d’un mois']);
+  assert.equal(await controls.first().getAttribute('aria-pressed'), 'true');
+  assert.equal(await rows.count(), 2);
+  assert.equal(await page.locator('#chiffresPayrollChartSvg .employment-level-line').count(), 1);
+  assert.ok(await page.locator('#chiffresPayrollChartSvg .employment-yoy-bar').count() > 1);
+  assert.match(await page.locator('#chiffresDpaeCoverageNote').textContent(),
+    region === 'France entière' ? /variations saisonnières \(CVS\)/ : /Traitement saisonnier non renseigné/i);
+
+  if (region !== 'France entière') return;
+  assert.match(await page.locator('#module-chiffres').textContent(), /Masse salariale mensuelle brute/);
+  if (!touch) {
+    const point = page.locator('#chiffresPayrollChartSvg .employment-point-hit[tabindex="0"]').first();
+    await point.focus();
+    const tooltip = page.locator('#chiffresPayrollTooltip[aria-hidden="false"]');
+    await tooltip.waitFor({ state: 'visible' });
+    await page.keyboard.press('End');
+    const latest = page.locator('#chiffresPayrollChartSvg .employment-point-hit:focus');
+    assert.match(await latest.getAttribute('aria-label'), /juin 2026.*65,8\s+Md€/);
+    await tooltip.waitFor({ state: 'visible' });
+    assert.match(await tooltip.innerText(), /Glissement annuel/);
+    await page.keyboard.press('Escape');
+    await tooltip.waitFor({ state: 'hidden' });
+  }
+
+  const hero = await page.locator('#heroKpis').innerText();
+  const cdi = controls.filter({ hasText: /^CDI$/ });
+  if (touch) await cdi.tap();
+  else await cdi.press('Space');
+  assert.equal(await cdi.getAttribute('aria-pressed'), 'true');
+  assert.match(await page.locator('#chiffresDpaeCurrentLevel').textContent(), /345\s+533/);
+  assert.equal(await page.locator('#chiffresDpaeChartSvg .quarterly-series[data-metric="cdi"]').count(), 1);
+  assert.equal(await page.locator('#chiffresDpaeChartSvg .quarterly-series[data-metric="value"]').count(), 1);
+  if (!touch) {
+    await page.locator('#chiffresDpaeChartSvg .quarterly-overlay').hover();
+    const tooltip = page.locator('#chiffresDpaeTooltip[aria-hidden="false"]');
+    await tooltip.waitFor({ state: 'visible' });
+    assert.match(await tooltip.innerText(), /CDI et CDD de plus d’un mois/);
+    await page.mouse.move(0, 0);
+  }
+  const cdd = controls.filter({ hasText: /^CDD de plus/ });
+  await rows.locator('.sector-ranking-link').filter({ hasText: /^CDD de plus/ }).click();
+  assert.equal(await cdd.getAttribute('aria-pressed'), 'true');
+  assert.match(await page.locator('#chiffresDpaeCurrentLevel').textContent(), /323\s+985/);
+  await controls.first().click();
+  assert.match(await page.locator('#chiffresDpaeCurrentLevel').textContent(), expected.dpae.level);
+  assert.equal(await page.locator('#heroKpis').innerText(), hero);
 }
 
 function trarPickerOption(picker, key) {
@@ -268,7 +395,7 @@ async function assertTrarPeriod(page, full) {
   return dates[0];
 }
 
-async function checkTrarRanking(page, touch) {
+async function checkTrarRanking(page, touch, fixedHorizon) {
   const latest = page.locator('#trarLatest');
   const horizons = page.locator('#trarMainHorizonSwitch button');
   const sector = page.locator('#trarSectorPicker');
@@ -277,14 +404,16 @@ async function checkTrarRanking(page, touch) {
   assert.equal(await latest.getByText('Gliss. annuel', { exact: true }).count(), 1);
   assert.equal(await latest.getByText('Gliss. mensuel', { exact: true }).count(), 1);
   assert.match(await latest.innerText(), /\bpt\b/u);
-  assert.equal(await horizons.count(), 3);
-  assert.equal(await horizons.first().getAttribute('aria-pressed'), 'true');
+  assert.equal(await horizons.count(), fixedHorizon ? 0 : 3);
+  if (!fixedHorizon) assert.equal(await horizons.first().getAttribute('aria-pressed'), 'true');
 
   const departmentContext = await page.locator('#trarDepartmentContext').innerText();
-  for (const index of [2, 1, 0]) {
-    const horizon = horizons.nth(index);
-    await horizon.click();
-    assert.equal(await horizon.getAttribute('aria-pressed'), 'true');
+  const advertisedHorizons = fixedHorizon ? [null] : [2, 1, 0].map(index => horizons.nth(index));
+  for (const horizon of advertisedHorizons) {
+    if (horizon) {
+      await horizon.click();
+      assert.equal(await horizon.getAttribute('aria-pressed'), 'true');
+    }
     assert.equal(await page.locator('#trarChartSvg .quarterly-series').count(), 1);
     assert.equal(await page.locator('#trarChartSvg .trar-reference-series').count(), 0);
     assert.equal(await rankingDate.getAttribute('datetime'), await latest.locator('time[datetime]').getAttribute('datetime'));
@@ -317,11 +446,11 @@ async function checkTrarRanking(page, touch) {
   else await leader.press('Enter');
   assert.ok((await trigger.innerText()).includes(label));
   assert.equal(await leader.getAttribute('aria-pressed'), 'true');
-  assert.equal(await horizons.first().getAttribute('aria-pressed'), 'true');
+  if (!fixedHorizon) assert.equal(await horizons.first().getAttribute('aria-pressed'), 'true');
   assert.equal(await page.locator('#trarDepartmentContext').innerText(), departmentContext);
 }
 
-async function checkTrar(page, touch) {
+async function checkTrar(page, touch, fixedHorizon = false) {
   const module = page.locator('#module-trar');
   const sector = page.locator('#trarSectorPicker');
   const departmentSector = page.locator('#trarDepartmentSectorPicker');
@@ -341,7 +470,7 @@ async function checkTrar(page, touch) {
   assert.match(await legend.innerText(), /%/);
   assert.match(await treemap.locator('[data-code="976"]').getAttribute('aria-label'), /indisponible/i);
 
-  await checkTrarRanking(page, touch);
+  await checkTrarRanking(page, touch, fixedHorizon);
   const mainLines = page.locator('#trarChartSvg :is(.quarterly-series, .trar-reference-series)');
   const mainChart = await mainLines.evaluateAll(lines => lines.map(line => line.getAttribute('d')));
   const mainRate = await page.locator('#trarLatest .delai-level-value').innerText();
@@ -349,8 +478,10 @@ async function checkTrar(page, touch) {
   const btpOption = trarPickerOption(departmentSector, 'btp');
   await btpOption.click();
   assert.equal(await btpOption.getAttribute('aria-selected'), 'true');
-  await departmentHorizon.last().click();
-  assert.equal(await departmentHorizon.last().getAttribute('aria-pressed'), 'true');
+  if (!fixedHorizon) {
+    await departmentHorizon.last().click();
+    assert.equal(await departmentHorizon.last().getAttribute('aria-pressed'), 'true');
+  }
   const parisTile = treemap.locator('[data-code="75"]');
   assert.match(await parisTile.getAttribute('aria-label'), /Paris.*\d.*%/);
   if (touch) await parisTile.tap();
@@ -399,7 +530,8 @@ async function checkTrar(page, touch) {
   assert.equal(await trarPickerOption(sector, 'tous-secteurs').getAttribute('aria-selected'), 'true');
   assert.equal(await trarPickerOption(sector, '01').count(), 0);
   assert.equal(await btpOption.getAttribute('aria-selected'), 'true');
-  assert.equal(await departmentHorizon.last().getAttribute('aria-pressed'), 'true');
+  if (fixedHorizon) assert.equal(await departmentHorizon.count(), 0);
+  else assert.equal(await departmentHorizon.last().getAttribute('aria-pressed'), 'true');
   assert.match(await page.locator('#trarChartLegend').innerText(), /France entière/);
   assert.match(await page.locator('#trarDepartmentChartLegend').innerText(), /Île-de-France/);
   const parisPath = map.locator('[data-code="75"]');
@@ -436,21 +568,103 @@ async function checkEmploymentTooltips(page, touch) {
   await treemapTooltip.waitFor({ state: 'visible' });
   await page.keyboard.press('Escape');
   await treemapTooltip.waitFor({ state: 'hidden' });
+}
 
+async function checkEmploymentDepartments(page, touch) {
+  const prefixes = ['employmentDept', 'auto'];
+  const tooltip = page.locator('#tooltip.is-visible');
+  for (const prefix of prefixes) {
+    const picker = page.locator(`#${prefix}SectorPicker`);
+    await picker.locator('.employment-sector-trigger').click();
+    await picker.getByRole('option', { name: /Population entière/ }).click();
+    await page.locator(`#${prefix}MetricSwitch button`).first().click();
+    const treemap = page.locator(`#${prefix}TreemapSvg`);
+    await treemap.waitFor({ state: 'visible' });
+    assert.equal(await treemap.locator('.trar-department-tile[role="button"]').count(), 101);
+    assert.equal(await treemap.locator('[aria-pressed="true"]').count(), 1);
+    const paris = treemap.locator('[data-code="75"]');
+    assert.match(await paris.getAttribute('aria-label'), /Paris.*\d/);
+    if (touch) await paris.tap();
+    else await paris.press('Enter');
+    assert.equal(await paris.getAttribute('aria-pressed'), 'true');
+    assert.match(await page.locator(`#${prefix}DepartmentChartTitle`).innerText(), /Paris/);
+  }
   await selectDetailScope(page, 'Île-de-France');
-  for (const id of ['employmentDeptMapSvg', 'autoMapSvg']) {
-    const marks = page.locator(`#${id} .path-department`);
-    const mark = touch ? marks.first() : page.locator(`#${id} .path-department[tabindex="0"]`);
-    if (touch) await mark.tap();
-    else await mark.focus();
-    await page.locator('#tooltip.is-visible').waitFor({ state: 'visible' });
+  for (const prefix of prefixes) {
+    const map = page.locator(`#${prefix}MapSvg`);
+    const marks = map.locator('.trar-map-department[role="button"]');
+    const yvelines = map.locator('.trar-map-department[data-code="78"]');
+    const title = page.locator(`#${prefix}DepartmentChartTitle`);
+    const context = page.locator(`#${prefix}DepartmentChartContext`);
+    const chart = page.locator(`#${prefix}DepartmentChartSvg`);
+    const kpis = page.locator(`#${prefix}DepartmentKpis`);
+    const period = page.locator(`#${prefix}HistoryPeriod`);
+    await map.waitFor({ state: 'visible' });
+    assert.equal(await page.locator(`#${prefix}TreemapSvg`).isVisible(), false);
+    assert.equal(await marks.count(), 8);
+    const mark = map.locator('.trar-map-department[tabindex="0"]');
     if (!touch) {
+      await mark.focus();
+      await tooltip.waitFor({ state: 'visible' });
       const focused = await mark.getAttribute('aria-label');
       await page.keyboard.press('ArrowRight');
-      assert.notEqual(await page.locator(`#${id} .path-department:focus`).getAttribute('aria-label'), focused);
+      assert.notEqual(await map.locator('.trar-map-department:focus').getAttribute('aria-label'), focused);
+      await page.keyboard.press('Escape');
+      await tooltip.waitFor({ state: 'hidden' });
+      await yvelines.press('Space');
+      assert.ok(await yvelines.evaluate(node => node === document.activeElement));
+    } else {
+      await yvelines.tap();
     }
-    await page.keyboard.press('Escape');
-    await page.locator('#tooltip.is-visible').waitFor({ state: 'hidden' });
+    assert.equal(await yvelines.getAttribute('aria-pressed'), 'true');
+    assert.equal(await map.locator('.trar-map-department[aria-pressed="true"]').count(), 1);
+    assert.match(await title.innerText(), /Yvelines/);
+    assert.ok(await kpis.locator('.trar-mini-kpi').count() >= 2);
+    assert.equal(await chart.locator('.trar-reference-series').count(), 1);
+    assert.match(await page.locator(`#${prefix}DepartmentChartLegend`).innerText(), /Île-de-France/);
+    const recentPath = await chart.locator('.quarterly-series').first().getAttribute('d');
+    const recentContext = await context.innerText();
+    const initialKpis = await kpis.innerText();
+    assert.match(await period.innerText(), /3 dernières années/);
+    if (touch) await period.tap();
+    else await period.press('Space');
+    assert.match(await period.innerText(), /Série complète/);
+    assert.notEqual(await chart.locator('.quarterly-series').first().getAttribute('d'), recentPath);
+    assert.notEqual(await context.innerText(), recentContext);
+    assert.equal(await kpis.innerText(), initialKpis);
+    assert.equal(await yvelines.getAttribute('aria-pressed'), 'true');
+    await period.click();
+    assert.equal(await context.innerText(), recentContext);
+    if (!touch) {
+      await chart.locator('.quarterly-overlay').hover();
+      const historyTooltip = page.locator(`#${prefix}DepartmentChartTooltip[aria-hidden="false"]`);
+      await historyTooltip.waitFor({ state: 'visible' });
+      assert.match(await historyTooltip.innerText(), /Yvelines.*Île-de-France/is);
+      await page.mouse.move(0, 0);
+    }
+
+    const metric = page.locator(`#${prefix}MetricSwitch button`).last();
+    const previousMark = await yvelines.getAttribute('aria-label');
+    await metric.click();
+    assert.equal(await metric.getAttribute('aria-pressed'), 'true');
+    assert.notEqual(await yvelines.getAttribute('aria-label'), previousMark);
+    const metricContext = await context.innerText();
+    assert.ok(metricContext.includes((await metric.innerText()).trim()));
+    const picker = page.locator(`#${prefix}SectorPicker`);
+    await picker.locator('.employment-sector-trigger').click();
+    const sector = picker.locator('[role="option"][aria-selected="false"]').first();
+    const beforeSectorChange = await yvelines.getAttribute('aria-label');
+    await sector.click();
+    assert.notEqual(await yvelines.getAttribute('aria-label'), beforeSectorChange);
+    assert.notEqual(await context.innerText(), metricContext);
+  }
+  await selectDetailScope(page, 'Mayotte');
+  for (const prefix of prefixes) {
+    const mayotte = page.locator(`#${prefix}MapSvg [data-code="976"]`);
+    assert.match(await mayotte.getAttribute('aria-label'), /indisponible/i);
+    assert.equal(await mayotte.getAttribute('aria-disabled'), 'true');
+    assert.equal(await mayotte.getAttribute('aria-pressed'), 'false');
+    assert.equal(await page.locator(`#${prefix}DepartmentChartSvg .quarterly-series:visible`).count(), 0);
   }
 }
 
@@ -509,8 +723,7 @@ async function checkPair(browser, transport, viewport, filename, origin) {
     for (const code of ['national', '11', '28', '04', '06']) {
       await forBoth(pair, async page => {
         await page.locator('#regionSelect').selectOption(code);
-        await checkMonthlyCards(page, '#indicators',
-          code === '06' ? 'mayotte' : code === 'national' ? code : 'region');
+        await checkMonthlyCards(page, code === '06' ? 'mayotte' : code === 'national' ? code : 'region');
       });
       await snapshot(pair, `${label}-${code}`, code === '06');
       await forBoth(pair, async page => {
@@ -520,14 +733,35 @@ async function checkPair(browser, transport, viewport, filename, origin) {
       await snapshot(pair, `${label}-${code}-tables`);
     }
   } else if (filename === 'barometre_chiffres.html') {
-    for (const [region, scope] of [['France entière', 'national'], ['Île-de-France', 'region'], ['Mayotte', 'mayotte']]) {
+    for (const page of pair) {
+      assert.deepEqual(await page.locator('#cockpitKpis .kpi-card .label').allTextContents(),
+        monthlyIndicators.map(({ title }) => title));
+    }
+    for (const region of Object.keys(monthlyDetails)) {
       await forBoth(pair, async page => {
         await selectDetailScope(page, region);
-        await checkMonthlyCards(page, '#chiffresIndicators', scope);
-        await checkMonthlyArrearsBreakdown(page, region);
+        await checkMonthlyDetail(page, region, touch);
       });
       await snapshot(pair, `${label}-${region}`);
+      if (transport === 'http' && region === 'France entière') {
+        for (const id of ['chiffresPayrollChartSvg', 'trarChartSvg', 'chiffresDpaeChartSvg']) {
+          await snapshot(pair, `${label}-${id}-visual`, true, `#${id}`);
+        }
+      }
+      if (transport === 'http' && region === 'Île-de-France') {
+        await snapshot(pair, `${label}-trarMapSvg-visual`, true, '#trarMapSvg');
+      }
     }
+    await forBoth(pair, async page => {
+      await selectDetailScope(page, 'Pays de la Loire');
+      await checkMonthlyPayrollRanking(page, 'Pays de la Loire');
+    });
+    await snapshot(pair, `${label}-region-ranking`, transport === 'http', '#chiffresPayrollRanking');
+    await forBoth(pair, async page => {
+      await selectDetailScope(page, 'France entière');
+      await checkTrar(page, touch, true);
+    });
+    await snapshot(pair, `${label}-trar`);
     await forBoth(pair, async page => {
       await page.locator('#geoTrigger').click();
       await page.locator('.geo-return-button').click();
@@ -535,7 +769,7 @@ async function checkPair(browser, transport, viewport, filename, origin) {
     });
   } else {
     const employment = filename === 'barometre_emploi.html';
-    const heroKeys = employment ? ['headcount', 'payroll', 'auto'] : ['pcol', 'jobs', 'dpae', 'delai'];
+    const heroKeys = employment ? ['headcount', 'payroll', 'auto'] : ['pcol', 'jobs', 'dpae', 'trar90'];
     for (const page of pair) {
       assert.equal(await page.locator('#stageShell').getAttribute('data-phase'), 'landing');
       assert.equal(await page.locator('#story').isVisible(), false);
@@ -557,7 +791,7 @@ async function checkPair(browser, transport, viewport, filename, origin) {
         }
         if (region === 'Mayotte' && !employment) {
           assert.equal(await page.locator('#heroKpis [data-indicator="pcol"] strong').innerText(), '—');
-          assert.notEqual(await page.locator('#heroKpis [data-indicator="delai"] strong').innerText(), '—');
+          assert.match(await page.locator('#heroKpis [data-indicator="trar90"] strong').innerText(), /^25,28\s+%$/);
           assert.match(await page.locator('#heroKpis [data-indicator="pcol"] .meta').innerText(), /Donnée indisponible/);
         }
       }
@@ -625,9 +859,19 @@ async function checkPair(browser, transport, viewport, filename, origin) {
       await page.locator(filename === 'barometre_emploi.html' ? '#employmentEffectifsChartSvg' : '#pcolChartSvg').scrollIntoViewIfNeeded();
     });
     await snapshot(pair, `${label}-chart`, true, employment ? '#employmentEffectifsChartSvg' : '#pcolChartSvg');
-    if (!employment) await snapshot(pair, `${label}-trar-treemap`, true, '#trarTreemapSvg');
-    await forBoth(pair, page => employment ? checkEmploymentTooltips(page, touch) : checkTrar(page, touch));
-    await snapshot(pair, `${label}-${employment ? 'infobulles' : 'trar'}`);
+    if (employment) {
+      for (const id of ['employmentDeptTreemapSvg', 'autoTreemapSvg']) {
+        await snapshot(pair, `${label}-${id}-visual`, true, `#${id}`);
+      }
+      await forBoth(pair, async page => {
+        await checkEmploymentTooltips(page, touch);
+        await checkEmploymentDepartments(page, touch);
+      });
+    } else {
+      await snapshot(pair, `${label}-trar-treemap`, true, '#trarTreemapSvg');
+      await forBoth(pair, page => checkTrar(page, touch));
+    }
+    await snapshot(pair, `${label}-${employment ? 'departements' : 'trar'}`);
     if (transport === 'http') {
       // The employment department map requires a selected region. Select a
       // populated region before cropping the two department maps.

@@ -1,0 +1,43 @@
+          <section id="module-trar" class="payroll-trar-block" aria-labelledby="trarTitle" hidden>
+            <article class="trar-card snap-card" aria-labelledby="trarTitle">
+              <div class="employment-grid">
+                <div class="employment-main">
+                  <div class="employment-intro">
+                    <div class="employment-title">
+                      <h3 id="trarTitle">__TRAR_TITLE__</h3>
+                      <span id="trarChartScope"></span>
+                    </div>
+                    <div class="employment-controls">
+                      <div class="employment-sector-picker" id="trarSectorPicker"></div>
+                      <div class="trar-panel-controls">
+                        <div class="metric-switch" id="trarMainHorizonSwitch" role="group" aria-label="Échéance du taux de reste à recouvrer"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="employment-chart-shell">
+                    <svg id="trarChartSvg" viewBox="0 0 940 460" role="img" aria-label="Évolution mensuelle du taux de reste à recouvrer"></svg>
+                    <div id="trarChartTooltip" class="employment-tooltip" aria-hidden="true">
+                      <div class="tooltip-overline"></div>
+                      <div class="tooltip-body"></div>
+                    </div>
+                  </div>
+                  <div class="legend-row" id="trarChartLegend"></div>
+                </div>
+                <div class="employment-side employment-dashboard-panel trar-dashboard-panel">
+                  <div class="employment-dashboard-context" aria-label="Périmètre et période du taux affiché">
+                    <span id="trarDashboardScope"></span>
+                    <time id="trarDashboardPeriod"></time>
+                  </div>
+                  <div id="trarLatest"></div>
+                  <section class="delai-top-sectors-block" aria-labelledby="trarTopSectorsTitle">
+                    <div class="delai-top-sectors-head">
+                      <h4 class="delai-top-sectors-title" id="trarTopSectorsTitle">5 taux sectoriels les plus élevés</h4>
+                      <time class="delai-top-sectors-meta" id="trarTopSectorsMeta"></time>
+                    </div>
+                    <div class="delai-top-table-wrapper" id="trarTopSectorsTable"></div>
+                  </section>
+                </div>
+              </div>
+            </article>
+            __TRAR_DEPARTMENT_HTML__
+          </section>

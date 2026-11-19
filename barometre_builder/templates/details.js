@@ -74,7 +74,6 @@ __DETAILS_DOM_SCRIPT__
       let storyRenderHandle = null;
       let storyRenderGeneration = 0;
       let geographySelectorView = null;
-      const rankingHeightFrames = new WeakMap();
       let deferredDataPromise = null;
       let departmentGeographyPromise = null;
       let departmentFocusTimeline = null;
@@ -333,10 +332,6 @@ __DETAILS_DOM_SCRIPT__
           updateIndicatorCard(article, indicator, heroData[indicator.key]);
           return article;
         }));
-      }
-
-      function drawCompositeMap(selection, featureCollection, config) {
-        return map.drawCompositeMap(selection, featureCollection, { ...config, bindDepartmentTooltip });
       }
 
       function syncVideoPlayback() {
@@ -747,23 +742,6 @@ __DETAILS_DOM_SCRIPT__
         target.replaceChildren(empty);
       }
 
-      function syncDepartmentRankingHeight(gridElement) {
-        if (!gridElement || rankingHeightFrames.has(gridElement)) return;
-        rankingHeightFrames.set(gridElement, requestAnimationFrame(() => {
-          rankingHeightFrames.delete(gridElement);
-          const isStacked = window.matchMedia("(max-width: 980px)").matches;
-          const mapPanel = gridElement.querySelector(".map-card");
-          const rankingPanel = gridElement.querySelector(".department-ranking-panel");
-          if (!mapPanel || !rankingPanel || isStacked) {
-            gridElement.style.removeProperty("--department-map-height");
-            return;
-          }
-          const mapHeight = mapPanel.offsetHeight;
-          if (mapHeight > 0) {
-            gridElement.style.setProperty("--department-map-height", `${mapHeight}px`);
-          }
-        }));
-      }
 __CHAPTER_MODULES_SCRIPT__
 
       function initGeographySelector() {

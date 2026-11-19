@@ -179,69 +179,8 @@
               </div>
             </article>
 
-            <article class="employment-block snap-card" aria-label="Carte et classement départemental">
-              <div class="section-grid employment-map-grid">
-                <div class="viz-panel map-card employment-map-panel">
-                  <div class="employment-map-head">
-                    <div class="viz-title">
-                      <strong id="employmentDeptMapTitle">Carte départementale des effectifs privés et de la masse salariale</strong>
-                      <span id="employmentDeptMapMeta"></span>
-                    </div>
-                    <div class="employment-map-controls employment-map-controls--sector">
-                      <div class="employment-sector-picker employment-grand-sector-picker" id="employmentDeptSectorPicker">
-                        <button class="employment-sector-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
-                          <span class="employment-sector-trigger-value">Population entière</span>
-                          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="m5 7.5 5 5 5-5"></path></svg>
-                        </button>
-                        <div class="employment-sector-menu" role="listbox" aria-label="Sélection du grand secteur"></div>
-                      </div>
-                      <div class="metric-switch" id="employmentDeptMetricSwitch"></div>
-                    </div>
-                  </div>
-                  <div class="employment-map-shell" id="employmentDeptMapShell">
-                    <svg id="employmentDeptMapSvg" viewBox="0 0 900 620" role="group" aria-labelledby="employmentDeptMapTitle employmentDeptMapMeta"></svg>
-                  </div>
-                  <div class="map-legend" id="employmentDeptLegend"></div>
-                </div>
-                <div class="viz-panel employment-ranking-panel department-ranking-panel">
-                  <div class="viz-title">
-                    <strong>Classement départemental des effectifs privés et de la masse salariale</strong>
-                    <span id="employmentDeptRankingMeta"></span>
-                  </div>
-                  <div class="ranking-list" id="employmentDeptRanking"></div>
-                </div>
-              </div>
-            </article>
+            __EMPLOYMENT_DEPARTMENT_HTML__
 
-            <article class="employment-block snap-card auto-department-card" aria-label="Carte départementale des travailleurs indépendants">
-              <div class="control-row auto-control-row">
-                <div class="employment-sector-picker auto-sector-picker" id="autoSectorPicker">
-                  <span class="mono employment-select-label">Secteur</span>
-                  <button class="employment-sector-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
-                    <span class="employment-sector-trigger-value">Population entière</span>
-                    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="m5 7.5 5 5 5-5"></path></svg>
-                  </button>
-                  <div class="employment-sector-menu" role="listbox" aria-label="Sélection du secteur d’activité des travailleurs indépendants"></div>
-                </div>
-                <div class="metric-switch" id="autoMetricSwitch"></div>
-              </div>
-              <div class="section-grid department-map-grid">
-                <div class="viz-panel map-card" id="autoMapPanel">
-                  <div class="viz-title">
-                    <strong id="autoMapTitle">Carte départementale des travailleurs indépendants</strong>
-                    <span id="autoMapMeta"></span>
-                  </div>
-                  <svg id="autoMapSvg" viewBox="0 0 900 620" role="group" aria-labelledby="autoMapTitle autoMapMeta"></svg>
-                  <div class="map-legend" id="autoLegend"></div>
-                </div>
-                <div class="viz-panel department-ranking-panel">
-                  <div class="viz-title">
-                    <strong>Classement des travailleurs indépendants</strong>
-                    <span id="autoRankingMeta"></span>
-                  </div>
-                  <div class="ranking-list" id="autoRanking"></div>
-                </div>
-              </div>
-            </article>
+            __AUTO_DEPARTMENT_HTML__
           </div>
         </section>

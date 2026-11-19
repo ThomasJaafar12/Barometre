@@ -14,8 +14,9 @@
         }
 
         const showRank = config.showRank !== false;
+        const interactive = Boolean(config.onSelect);
         let view = sectorRankingViews.get(container);
-        if (!view || view.showRank !== showRank || view.table.parentNode !== container) {
+        if (!view || view.showRank !== showRank || view.interactive !== interactive || view.table.parentNode !== container) {
           const table = document.createElement("table");
           const head = document.createElement("thead");
           const headings = document.createElement("tr");
@@ -28,7 +29,7 @@
           head.append(headings);
           const body = document.createElement("tbody");
           table.append(head, body);
-          view = { table, body, showRank, rows: new Map(), config };
+          view = { table, body, showRank, interactive, rows: new Map(), config };
           sectorRankingViews.set(container, view);
           container.replaceChildren(table);
         }
@@ -46,29 +47,42 @@
             const row = document.createElement("tr");
             const rank = textElement("td", "", "delai-td-rank");
             const labelCell = document.createElement("td");
-            const button = document.createElement("button");
-            button.type = "button";
-            button.className = "sector-ranking-link";
-            button.addEventListener("click", () => view.config.onSelect(key));
-            labelCell.append(button);
+            const label = textElement(interactive ? "button" : "span", "", interactive ? "sector-ranking-link" : "delai-sector-name");
+            if (interactive) {
+              label.type = "button";
+              label.addEventListener("click", () => view.config.onSelect(key));
+            }
+            labelCell.append(label);
             const value = textElement("td", "", "delai-td-mt mono");
             const change = document.createElement("td");
             if (showRank) row.append(rank);
             row.append(labelCell, value, change);
-            entry = { row, rank, button, value, change };
+            entry = { row, rank, label, value, change };
             view.rows.set(key, entry);
           }
-          const { row, rank, button, value, change } = entry;
-          row.className = `delai-top-row${config.selectedKey != null && sector.key === config.selectedKey ? " is-active" : ""}`;
+          const { row, rank, label, value, change } = entry;
+          const isSelected = config.selectedKey != null && key === config.selectedKey;
+          row.className = `delai-top-row${isSelected ? " is-active" : ""}`;
           rankingText(rank, index + 1);
-          button.title = sector.label;
-          rankingText(button, config.formatLabel ? config.formatLabel(sector) : employmentSectorDisplayLabel(sector));
-          button.setAttribute("aria-label", config.selectionLabel ? config.selectionLabel(sector) : `Afficher le secteur ${sector.label}`);
-          if (config.selectedKey != null) button.setAttribute("aria-pressed", String(sector.key === config.selectedKey));
-          else button.removeAttribute("aria-pressed");
+          rankingText(label, config.formatLabel ? config.formatLabel(sector) : employmentSectorDisplayLabel(sector));
+          if (interactive) {
+            label.title = sector.label;
+            label.setAttribute("aria-label", config.selectionLabel ? config.selectionLabel(sector) : `Afficher le secteur ${sector.label}`);
+            if (config.selectedKey != null) label.setAttribute("aria-pressed", String(isSelected));
+            else label.removeAttribute("aria-pressed");
+          } else if (isSelected) {
+            label.setAttribute("aria-current", "true");
+          } else {
+            label.removeAttribute("aria-current");
+          }
           rankingText(value, config.formatValue(sector.value));
-          change.className = `delai-td-yoy mono ${sector.yoy > 0 ? "trend-up" : sector.yoy < 0 ? "trend-down" : "trend-flat"}`;
-          rankingText(change, (config.formatChange || employmentSignedPercent)(sector.yoy));
+          if (config.formatSecondary) {
+            change.className = "delai-td-yoy mono trend-flat";
+            rankingText(change, config.formatSecondary(sector));
+          } else {
+            change.className = `delai-td-yoy mono ${sector.yoy > 0 ? "trend-up" : sector.yoy < 0 ? "trend-down" : "trend-flat"}`;
+            rankingText(change, (config.formatChange || employmentSignedPercent)(sector.yoy));
+          }
           if (view.body.children[index] !== row) view.body.insertBefore(row, view.body.children[index] || null);
         });
         view.rows.forEach((entry, key) => {

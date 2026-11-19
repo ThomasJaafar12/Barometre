@@ -109,7 +109,9 @@ class TopicProjectionTests(unittest.TestCase):
                         self.assertEqual(hero[key], {field: latest.get(field) for field in ("date", "value", "yearlyChange")})
                         brief_series = self.context.brief["monthly"]["scopes"][code][key]
                         brief_points = brief_series["points"]
-                        self.assertEqual(series["points"][-len(brief_points):], brief_points)
+                        shared_points = [{field: point[field] for field in ("date", "value", "yearlyChange")}
+                                         for point in series["points"]]
+                        self.assertEqual(shared_points[-len(brief_points):], brief_points)
                         self.assertEqual(series.get("coverageNote"), brief_series.get("coverageNote"))
                 elif topic == "emploi":
                     points = scope(modules["sector"]["regional"]).get("series", {}).get("population-entiere", {}).get("points", [])
@@ -121,10 +123,12 @@ class TopicProjectionTests(unittest.TestCase):
                 else:
                     pcol = scope(modules["pcol"]).get("modes", {}).get("all", {}).get("population-entiere", [])
                     dpae = scope(modules["dpae"]).get("points", [])
-                    delai = scope(modules["delai"]).get("modes", {}).get("all", {}).get("ensemble", [])
+                    self.assertEqual(list(hero), ["pcol", "jobs", "dpae", "trar90"])
+                    rates = self.context.brief["monthly"]["scopes"][code]["trar90"]["points"]
+                    self.assertEqual(hero["trar90"], rates[-1])
                     for key, series in (
                         ("pcol", {p[0]: p[1] for p in pcol}), ("jobs", {p[0]: p[2] for p in pcol}),
-                        ("dpae", {p["date"]: p["value"] for p in dpae}), ("delai", {p[0]: p[1] for p in delai}),
+                        ("dpae", {p["date"]: p["value"] for p in dpae}),
                     ):
                         date = max(series, default=None)
                         value = series.get(date)
@@ -138,18 +142,24 @@ class TopicProjectionTests(unittest.TestCase):
         self.assertTrue(mayotte["hasData"])
         self.assertTrue(mayotte["hasPartialData"])
         self.assertIsNone(mayotte["hero"]["pcol"]["value"])
-        self.assertGreater(mayotte["hero"]["delai"]["value"], 0)
+        self.assertGreater(mayotte["hero"]["trar90"]["value"], 0)
 
     def test_zero_missing_nonfinite_and_different_periods(self):
         context = example_context()
         context.deferred["modules"]["pcol"]["regions"]["11"]["modes"]["all"]["population-entiere"][-1][1] = 0
         context.deferred["modules"]["dpae"]["regions"]["11"] = {"points": [{"date": "2026-05-01", "value": float("nan")}]}
+        context.deferred["modules"]["trar90"] = {"regions": {"11": {"points": [
+            {"date": "2025-05-01", "value": 0.283},
+            {"date": "2026-05-01", "value": 0},
+            {"date": "2026-06-01", "value": None},
+        ]}}}
         boot, _ = project_details_payloads(context.boot, context.deferred, topic="entreprises")
         region = boot["regions"][0]
         self.assertEqual(region["hero"]["pcol"]["value"], 0)
         self.assertIsNone(region["hero"]["dpae"]["value"])
         self.assertEqual(region["hero"]["dpae"]["date"], "2026-05-01")
         self.assertEqual(region["hero"]["pcol"]["date"], "2025-04-01")
+        self.assertEqual(region["hero"]["trar90"], {"date": "2026-05-01", "value": 0, "yearlyChange": -0.28})
         self.assertTrue(region["hasData"])
 
     def test_monthly_detail_preserves_full_history_when_other_modules_are_missing(self):
@@ -166,6 +176,25 @@ class TopicProjectionTests(unittest.TestCase):
         self.assertEqual(national["dpae"]["points"], [])
         self.assertEqual(boot["nationalHero"]["payrollEarly"], {"value": 0, "date": "2025-12-01", "yearlyChange": None})
         self.assertTrue(all(not region["hasData"] for region in boot["regions"]))
+
+    def test_monthly_detail_compares_calendar_months_and_extracts_only_long_contracts(self):
+        context = example_context()
+        points = [
+            {"date": "2025-12-01", "value": 150, "cdi": 100, "cddlong": 50, "cddcourt": 400},
+            {"date": "2026-01-01", "value": 180, "cdi": 100, "cddlong": 80, "cddcourt": 500},
+            {"date": "2026-03-01", "value": None, "cdi": 0, "cddlong": None, "cddcourt": 300},
+        ]
+        deferred = {"modules": {"dpaeMonthly": {"national": {"points": points}}}}
+        _, projection = project_details_payloads(context.boot, deferred, topic="chiffres")
+        dpae = projection["modules"]["chiffres"]["scopes"]["national"]["dpae"]
+        self.assertEqual(dpae["points"][-1]["date"], "2026-01-01")
+        self.assertAlmostEqual(dpae["points"][-1]["monthlyChange"], 20)
+        self.assertEqual(set(dpae["contracts"]), {"cdi", "cddlong"})
+        cdi = dpae["contracts"]["cdi"]["points"][-1]
+        self.assertEqual((cdi["date"], cdi["value"], cdi["monthlyChange"]), ("2026-03-01", 0, None))
+        cdd = dpae["contracts"]["cddlong"]["points"][-1]
+        self.assertEqual((cdd["date"], cdd["value"]), ("2026-01-01", 80))
+        self.assertAlmostEqual(cdd["monthlyChange"], 60)
 
     def test_monthly_arrears_exclude_pending_months_and_preserve_breakdowns(self):
         trar = self.context.deferred["modules"]["trar"]

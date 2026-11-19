@@ -37,6 +37,35 @@ class CsvLoadingTests(unittest.TestCase):
         )
 
 
+class DepartmentHistoryTests(unittest.TestCase):
+    def test_compact_series_keeps_missing_quarters_and_published_totals(self) -> None:
+        rows = [
+            {"date": "2025-12-31", "department": "1", "sector": "Services", "count": "13", "payroll": "9"},
+            {"date": "2025-09-30", "department": "01", "sector": "Services", "count": "", "payroll": ""},
+            {"date": "2025-06-30", "department": "01", "sector": "Services", "count": "10", "payroll": "8,5"},
+            {"date": "2025-09-30", "department": "01", "sector": "_calage_", "count": "0", "payroll": "10"},
+        ]
+        history = modules.build_department_history(
+            rows,
+            date_column="date",
+            department_column="department",
+            sector_column="sector",
+            sector_ids={"Services": "services"},
+            aggregate_key="population-entiere",
+            metric_columns={"count": "count", "payroll": "payroll"},
+        )
+
+        self.assertEqual(history, {
+            "dates": ["2025-06-30", "2025-09-30", "2025-12-31"],
+            "departments": {
+                "01": {
+                    "population-entiere": {"count": [10, -10, 13], "payroll": [[8.5], [10], -1]},
+                    "services": {"count": [10, None, 3], "payroll": [[8.5], None, [9]]},
+                },
+            },
+        })
+
+
 class VideoManifestTests(unittest.TestCase):
     def test_optimized_territories_take_precedence_and_other_media_fall_back(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

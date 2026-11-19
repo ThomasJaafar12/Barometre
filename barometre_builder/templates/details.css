@@ -612,10 +612,6 @@
       display: grid;
       gap: 18px;
     }
-    .employment-map-grid {
-      grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
-      align-items: start;
-    }
     .employment-main,
     .employment-side {
       position: relative;
@@ -1024,72 +1020,6 @@
       display: grid;
       gap: 12px;
     }
-    .employment-map-panel,
-    .employment-ranking-panel {
-      min-height: 420px;
-    }
-    .department-map-grid {
-      align-items: start;
-    }
-    .department-ranking-panel {
-      align-self: start;
-      max-height: 620px;
-      min-height: 420px;
-      overflow: hidden;
-    }
-    .department-ranking-panel .ranking-list {
-      max-height: 520px;
-      overflow-y: auto;
-      padding-right: 6px;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(255,255,255,0.38) rgba(255,255,255,0.08);
-    }
-    .department-ranking-panel .ranking-list::-webkit-scrollbar {
-      width: 8px;
-    }
-    .department-ranking-panel .ranking-list::-webkit-scrollbar-track {
-      background: rgba(255,255,255,0.08);
-      border-radius: 999px;
-    }
-    .department-ranking-panel .ranking-list::-webkit-scrollbar-thumb {
-      background: rgba(255,255,255,0.36);
-      border-radius: 999px;
-    }
-    .employment-map-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 18px;
-      align-items: flex-start;
-      flex-wrap: wrap;
-    }
-    .employment-map-controls {
-      display: flex;
-      align-items: flex-end;
-      justify-content: flex-end;
-      gap: 12px;
-      flex-wrap: wrap;
-      min-width: 0;
-    }
-    .employment-map-controls .employment-select-wrap {
-      flex: 0 1 340px;
-    }
-    .employment-map-controls .metric-switch {
-      flex: 0 0 auto;
-    }
-    .employment-map-controls--sector {
-      width: 100%;
-      height: 45px;
-      flex: 1 1 100%;
-      align-content: flex-start;
-    }
-    .employment-map-shell {
-      min-height: 320px;
-      display: grid;
-      align-items: center;
-    }
-    .employment-map-shell svg {
-      min-height: 320px;
-    }
     .employment-note-card {
       display: grid;
       gap: 10px;
@@ -1414,9 +1344,6 @@
       .employment-grid {
         grid-template-columns: 1fr;
       }
-      .employment-map-grid {
-        grid-template-columns: 1fr;
-      }
       .employment-treemap-grid {
         grid-template-columns: 1fr;
       }
@@ -1431,10 +1358,6 @@
       .employment-select-wrap {
         width: min(100%, 320px);
         flex: 0 0 auto;
-      }
-      .employment-map-controls {
-        width: 100%;
-        justify-items: stretch;
       }
       .employment-treemap-head {
         display: grid;
@@ -1886,8 +1809,7 @@
     }
 
     .section-grid,
-    .employment-grid,
-    .employment-map-grid {
+    .employment-grid {
       gap: 12px;
     }
 
@@ -2872,12 +2794,6 @@
       stroke-width: 2px;
     }
 
-    #employmentDeptMapSvg .path-department:focus-visible,
-    #autoMapSvg .path-department:focus-visible {
-      stroke: var(--product-ink);
-      stroke-width: 2.8px;
-    }
-
     .map-region-label,
     .inset-label,
     .focus-city-label {
@@ -2912,61 +2828,6 @@
     .sparkline-row .topline {
       color: var(--product-ink);
       gap: 12px;
-    }
-
-    .department-ranking-panel .ranking-list {
-      max-height: 540px;
-    }
-
-    #module-sector .employment-map-grid,
-    .auto-department-card .department-map-grid {
-      align-items: start;
-      grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
-      min-height: 0;
-    }
-
-    #module-sector .employment-map-grid > .viz-panel,
-    .auto-department-card .department-map-grid > .viz-panel {
-      align-self: start;
-      min-height: 0;
-      height: auto;
-    }
-
-    #module-sector .employment-map-panel,
-    .auto-department-card .map-card {
-      display: grid;
-      grid-template-rows: auto auto auto;
-    }
-
-    #module-sector .employment-map-shell {
-      display: block;
-      min-height: 0;
-    }
-
-    #module-sector #employmentDeptMapSvg,
-    .auto-department-card #autoMapSvg {
-      width: 100%;
-      height: auto;
-      aspect-ratio: 900 / 620;
-      display: block;
-      min-height: 0;
-    }
-
-    #module-sector .employment-ranking-panel,
-    .auto-department-card .department-ranking-panel {
-      display: grid;
-      grid-template-rows: auto minmax(0, 1fr);
-      height: var(--department-map-height, auto);
-      max-height: var(--department-map-height, none);
-      min-height: 0;
-      overflow: hidden;
-    }
-
-    #module-sector .employment-ranking-panel .ranking-list,
-    .auto-department-card .department-ranking-panel .ranking-list {
-      min-height: 0;
-      max-height: none;
-      overflow-y: auto;
     }
 
     .empty-state,
@@ -3555,7 +3416,6 @@
 
       .control-row,
       .employment-controls,
-      .employment-map-controls,
       .employment-treemap-head {
         width: 100%;
         justify-content: stretch;
@@ -3590,31 +3450,6 @@
         padding: 14px;
       }
 
-      .department-ranking-panel {
-        max-height: none;
-      }
-
-      .department-ranking-panel .ranking-list {
-        max-height: 460px;
-      }
-
-      #module-sector .employment-map-grid,
-      .auto-department-card .department-map-grid {
-        grid-template-columns: 1fr;
-        min-height: 0;
-      }
-
-      #module-sector .employment-map-grid > .viz-panel,
-      .auto-department-card .department-map-grid > .viz-panel {
-        height: auto;
-        min-height: 360px;
-      }
-
-      #module-sector .employment-ranking-panel .ranking-list,
-      .auto-department-card .department-ranking-panel .ranking-list {
-        max-height: 460px;
-      }
-
       .deck-control-bar,
       body.deck-ready:not([data-active-slide="hero"]) .deck-control-bar {
         top: 8px;
@@ -3644,7 +3479,6 @@
       .snap-card,
       .section-grid,
       .employment-grid,
-      .employment-map-grid,
       .employment-treemap-grid,
       .viz-panel,
       .employment-main,
@@ -3659,7 +3493,6 @@
       }
 
       .employment-chart-shell,
-      .employment-map-shell,
       .map-card {
         overflow-x: auto;
         overscroll-behavior-inline: contain;
@@ -4256,11 +4089,6 @@
       z-index: 50;
     }
 
-    .story .employment-map-grid .employment-map-panel.has-open-sector-picker {
-      position: relative;
-      z-index: 50;
-    }
-
     .employment-sector-picker {
       --sector-picker-text: #24364A;
       --sector-picker-muted: #60748A;
@@ -4544,23 +4372,6 @@
       color: #251153;
     }
 
-    .auto-department-card .auto-control-row {
-      position: relative;
-      z-index: 30;
-      justify-content: flex-start;
-    }
-
-    .auto-sector-picker {
-      width: min(100%, 320px);
-      flex: 0 1 320px;
-    }
-
-    .auto-sector-picker .employment-sector-menu {
-      right: auto;
-      left: 0;
-      width: min(940px, calc(100vw - 80px));
-    }
-
     @media (max-width: 980px) {
       .employment-sector-picker {
         width: min(100%, 320px);
@@ -4591,10 +4402,6 @@
     }
 
     @media (max-width: 620px) {
-      .employment-map-controls--sector {
-        height: 99px;
-      }
-
       .employment-sector-picker {
         width: 100%;
         flex-basis: auto;
@@ -4640,17 +4447,6 @@
       .employment-grand-sector-picker.is-open .employment-sector-menu {
         animation: none;
       }
-
-      .auto-sector-picker .employment-sector-menu {
-        right: 50%;
-        left: auto;
-        width: calc(100vw - 48px);
-        transform: translateX(50%);
-      }
-
-      .auto-sector-picker.is-open .employment-sector-menu {
-        animation: none;
-      }
     }
 
     .page-links { position: fixed; top: 0; right: 30px; z-index: 1000; display: flex; gap: 16px; padding: 2px 10px; background: #F8FAFC; color: #0B1D3A; font: 500 11px/16px Inter, sans-serif; }
@@ -4668,22 +4464,27 @@
       grid-column: 1 / -1;
     }
 
-    /* Taux de reste à recouvrer */
-    .payroll-trar-block {
+    /* Taux de reste à recouvrer et cartes départementales */
+    .payroll-trar-block,
+    .trar-card {
       --trar-font: "Inter", system-ui, sans-serif;
       --trar-display-font: "Plus Jakarta Sans", var(--trar-font);
       --dashboard-blue: #004B9B;
       --dashboard-muted: #64748B;
       --dashboard-red: #DC2626;
       --dashboard-green: #059669;
-      display: grid;
-      gap: 24px;
-      margin-top: 32px;
       font-family: var(--trar-font);
     }
 
+    .payroll-trar-block {
+      display: grid;
+      gap: 24px;
+      margin-top: 32px;
+    }
+
     .payroll-trar-block[hidden],
-    .payroll-trar-block [hidden] { display: none; }
+    .trar-card [hidden],
+    #module-trar .metric-switch[hidden] { display: none; }
 
     .trar-card {
       min-width: 0;
@@ -4712,14 +4513,14 @@
 
     #module-trar .employment-intro { gap: 14px; }
 
-    #module-trar .employment-title :is(h2, h3, h4) {
+    :is(#module-trar, .trar-dept-panel) .employment-title :is(h2, h3, h4) {
       margin: 0;
       color: #0B1E36;
       font: 700 clamp(1.15rem, 1.45vw, 1.42rem)/1.28 var(--trar-display-font);
       letter-spacing: -0.025em;
     }
 
-    #module-trar .employment-title span {
+    :is(#module-trar, .trar-dept-panel) .employment-title span {
       display: block;
       margin-top: 3px;
       color: #64748B;
@@ -4733,7 +4534,7 @@
       gap: 12px 14px;
     }
 
-    #module-trar .metric-switch {
+    :is(#module-trar, .trar-dept-panel) .metric-switch {
       display: inline-flex;
       flex-wrap: wrap;
       width: auto;
@@ -4743,7 +4544,7 @@
       border-radius: 10px;
     }
 
-    #module-trar .metric-button {
+    :is(#module-trar, .trar-dept-panel) .metric-button {
       gap: 7px;
       min-height: 36px;
       padding: 7px 13px;
@@ -4752,9 +4553,9 @@
       font: 600 0.82rem/1.2 var(--trar-font);
     }
 
-    #module-trar .metric-button:hover { background: rgba(255, 255, 255, 0.7); }
+    :is(#module-trar, .trar-dept-panel) .metric-button:hover { background: rgba(255, 255, 255, 0.7); }
 
-    #module-trar .metric-button.is-active {
+    :is(#module-trar, .trar-dept-panel) .metric-button.is-active {
       color: #FFFFFF;
       background: #0B1D3A;
       border-color: #0B1D3A;
@@ -4767,7 +4568,7 @@
       border-radius: 50%;
     }
 
-    #module-trar .employment-sector-picker {
+    :is(#module-trar, .trar-dept-panel) .employment-sector-picker {
       --sector-picker-active: #0EA5A8;
       --sector-picker-highlight: #00816D;
       gap: 4px;
@@ -4775,7 +4576,7 @@
       flex: 0 1 310px;
     }
 
-    #module-trar .employment-select-label {
+    :is(#module-trar, .trar-dept-panel) .employment-select-label {
       color: #64748B;
       font: 600 11px/1.2 var(--trar-font);
       letter-spacing: normal;
@@ -4812,7 +4613,7 @@
       white-space: nowrap;
     }
 
-    #module-trar .employment-grand-sector-picker {
+    :is(#module-trar, .trar-dept-panel) .employment-grand-sector-picker {
       --sector-picker-active: #7000FF;
       width: 220px;
       max-width: 100%;
@@ -4820,16 +4621,16 @@
       flex: none;
     }
 
-    #module-trar .employment-grand-sector-picker .employment-sector-trigger {
+    :is(#module-trar, .trar-dept-panel) .employment-grand-sector-picker .employment-sector-trigger {
       min-height: 46px;
     }
 
-    #module-trar .employment-grand-sector-picker .employment-sector-menu {
+    :is(#module-trar, .trar-dept-panel) .employment-grand-sector-picker .employment-sector-menu {
       width: min(380px, calc(100vw - 60px));
       padding: 20px 22px;
     }
 
-    #module-trar .employment-chart-shell {
+    :is(#module-trar, .trar-dept-panel) .employment-chart-shell {
       width: 100%;
       padding: 0;
       overflow: visible;
@@ -4839,18 +4640,18 @@
       box-shadow: none;
     }
 
-    #module-trar .employment-tooltip {
+    :is(#module-trar, .trar-dept-panel) .employment-tooltip {
       min-width: min(196px, calc(100% - 24px));
       max-width: min(275px, calc(100% - 24px));
     }
 
-    #module-trar .tooltip-row {
+    :is(#module-trar, .trar-dept-panel) .tooltip-row {
       display: flex;
       justify-content: space-between;
       gap: 10px;
     }
 
-    #module-trar .legend-chip {
+    :is(#module-trar, .trar-dept-panel) .legend-chip {
       gap: 7px;
       color: #475569;
       font-size: 0.82rem;
@@ -4960,6 +4761,20 @@
     #module-trar .delai-top-row.is-active { background-color: rgba(0, 75, 155, 0.08); }
     #module-trar .sector-ranking-link { white-space: normal; overflow-wrap: anywhere; }
 
+    .trar-card:has(.employment-sector-picker.is-open) {
+      z-index: 50;
+    }
+
+    :is(#module-trar, .trar-dept-panel) .auto-sector-picker {
+      position: static;
+      width: min(100%, 260px);
+      flex: none;
+    }
+
+    :is(#module-trar, .trar-dept-panel) .auto-sector-picker .employment-sector-menu {
+      width: min(940px, 100%);
+    }
+
     .trar-dept-panel {
       padding: 24px;
       display: grid;
@@ -4981,6 +4796,10 @@
       min-width: 0;
     }
 
+    .trar-panel-head .employment-title span {
+      max-width: none;
+    }
+
     .trar-panel-controls {
       display: flex;
       align-items: flex-end;
@@ -4991,6 +4810,10 @@
     .trar-panel-head .trar-panel-controls {
       flex: none;
       max-width: 100%;
+    }
+
+    .trar-panel-head .trar-panel-controls:has(.auto-sector-picker) {
+      flex-basis: 100%;
     }
 
     .trar-split-grid {
@@ -5289,99 +5112,101 @@
     }
 
     @media (max-width: 720px) {
-      #module-trar :is(.employment-main, .trar-dept-panel, .trar-dashboard-panel) { padding: 16px; }
+      #module-trar :is(.employment-main, .trar-dashboard-panel),
+      .trar-dept-panel { padding: 16px; }
       .trar-map-column, .trar-history-column { padding: 12px; }
 
-      #module-trar :is(.trar-panel-controls, .employment-sector-picker, .metric-switch) {
+      :is(#module-trar, .trar-dept-panel) :is(.trar-panel-controls, .employment-sector-picker, .metric-switch) {
         width: 100%;
         flex-basis: auto;
       }
 
-      #module-trar .metric-switch {
+      :is(#module-trar, .trar-dept-panel) .metric-switch {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-auto-columns: minmax(0, 1fr);
+        grid-auto-flow: column;
       }
 
-      #module-trar .metric-button {
+      :is(#module-trar, .trar-dept-panel) .metric-button {
         gap: 4px;
         padding-inline: 4px;
         text-align: center;
         white-space: normal;
       }
 
-      #module-trar .employment-sector-menu {
+      :is(#module-trar, .trar-dept-panel) .employment-sector-menu {
         right: auto;
         left: 0;
         width: min(100%, 380px);
         padding: 16px;
         transform: none;
       }
+
+      :is(#module-trar, .trar-dept-panel) .auto-sector-picker,
+      :is(#module-trar, .trar-dept-panel) .auto-sector-picker .employment-sector-menu { width: 100%; }
     }
 
     @media (max-width: 420px) {
-      #module-trar .metric-button {
+      :is(#module-trar, .trar-dept-panel) .metric-button {
         flex-direction: column;
         font-size: 0.75rem;
       }
     }
 
-    .chiffres-arrears {
-      margin-top: 28px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: white;
-      padding: 0 clamp(16px, 2.4vw, 32px);
-    }
-
-    .chiffres-arrears > summary {
-      padding: 16px 0;
-      color: #154389;
-      cursor: pointer;
-      font-weight: 700;
-      line-height: 1.5;
-    }
-
-    .chiffres-arrears-controls {
+    #module-chiffres {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
-      margin: 4px 0 16px;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 24px;
     }
 
-    .chiffres-arrears-controls label {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 13px;
-      font-weight: 600;
+    #module-chiffres .payroll-trar-block { margin-top: 0; }
+
+    .chiffres-payroll-line { color: var(--employment-chart-ink, #0B1E36); }
+
+    .chiffres-payroll-ranking { --ranking-value-width: 72px; }
+    .chiffres-payroll-ranking .delai-top-sectors-title { margin: 0; }
+    .chiffres-payroll-ranking .delai-th-yoy { width: 72px; }
+    .chiffres-payroll-ranking .delai-top-table td { padding-block: 6px; }
+
+    .chiffres-payroll-ranking .delai-top-table-wrapper {
+      max-block-size: 25rem;
+      overflow: auto;
     }
 
-    .chiffres-arrears-controls select {
-      width: 100%;
-      min-width: 0;
-      min-height: 44px;
-      padding: 6px 12px;
-      border: 1px solid #94A3B8;
-      border-radius: 6px;
-      background: white;
-      color: #0F172A;
-      font: inherit;
-    }
-
-    .chiffres-arrears :is(summary, select):focus-visible {
-      outline: 2px solid #154389;
+    .chiffres-payroll-ranking .delai-top-table-wrapper:focus-visible {
+      outline: 2px solid var(--dashboard-blue, #004B9B);
       outline-offset: 3px;
     }
 
-    #chiffresArrearsHistory .indicator {
-      margin-bottom: clamp(16px, 2.4vw, 32px);
+    .chiffres-payroll-ranking thead {
+      position: sticky;
+      top: 0;
+      background: #FFFFFF;
     }
 
-    #chiffresArrearsHistory .indicator-number { display: none; }
+    .chiffres-payroll-ranking .delai-top-row { cursor: auto; }
+    .chiffres-payroll-ranking .delai-top-row.is-active { background: rgba(0, 75, 155, 0.08); }
+    .chiffres-payroll-ranking .delai-sector-name { white-space: normal; overflow-wrap: anywhere; }
 
-    @media (min-width: 1200px) {
-      #chiffresIndicators { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    @media (max-width: 360px) {
+      .chiffres-payroll-ranking { padding-inline: 12px; --ranking-value-width: 61px; }
+      .chiffres-payroll-ranking .delai-th-yoy { width: 64px; }
+      .chiffres-payroll-ranking .delai-top-table { font-size: 0.75rem; }
+      .chiffres-payroll-ranking .delai-top-table th { font-size: 0.625rem; letter-spacing: 0; }
+      .chiffres-payroll-ranking .delai-top-table :is(th, td) { padding-inline: 3px; }
     }
 
-    @media (max-width: 640px) {
-      .chiffres-arrears-controls { grid-template-columns: minmax(0, 1fr); }
+    .employment-point-hit.is-viz-tooltip-active {
+      fill: rgba(0, 75, 155, 0.12);
+      outline: none;
+    }
+
+    @media (max-width: 560px) {
+      .story #module-chiffres > .employment-block .employment-main,
+      .story #module-chiffres > .employment-block .employment-dashboard-panel {
+        padding: 16px;
+      }
+      #chiffresDpaeModeSwitch:has(> :nth-child(3)) > :first-child {
+        grid-column: 1 / -1;
+      }
     }

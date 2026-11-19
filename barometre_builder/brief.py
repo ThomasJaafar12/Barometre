@@ -5,6 +5,7 @@ import math
 
 
 HISTORY_YEARS = 10
+TRAR90_LABEL = "Taux de reste à recouvrer à 90 jours"
 
 
 INDICATORS = (
@@ -17,7 +18,7 @@ INDICATORS = (
      "explanation": "Cet indicateur permet de suivre l’emploi salarié. Il ne décrit pas l’ensemble des emplois publics ou des travailleurs indépendants.",
      "source": "Urssaf · Effectifs salariés du secteur privé, corrigés des variations saisonnières."},
     {"key": "dpae", "label": "Déclarations préalables à l’embauche", "unit": "declarations", "frequency": "month",
-     "definition": "Les déclarations envoyées par les employeurs avant une embauche, pour les CDI et les CDD, courts ou longs.",
+     "definition": "Les déclarations envoyées par les employeurs avant une embauche, pour les CDI, les CDD +30J et les CDD -30J.",
      "explanation": "Une personne peut faire l’objet de plusieurs déclarations. Les DPAE signalent des intentions d’embauche, pas le nombre de créations nettes d’emplois.",
      "source": "Urssaf · Fichier mensuel DPAE fourni, tous contrats confondus."},
     {"key": "pcol", "label": "Procédures collectives", "unit": "procedures", "frequency": "quarter",
@@ -28,15 +29,16 @@ INDICATORS = (
 
 
 MONTHLY_INDICATORS = (
-    {"key": "payrollEarly", "label": "Masse salariale précoce", "unit": "euros", "frequency": "month",
+    {"key": "payrollEarly", "label": "Masse salariale", "unit": "euros", "frequency": "month",
      "definition": "La somme des rémunérations brutes versées par les employeurs du secteur privé au cours du mois.",
      "explanation": "Le total mensuel varie avec les effectifs et les montants versés, notamment les primes. Les données sont brutes.",
      "source": "Urssaf · Masse salariale mensuelle brute."},
-    {"key": "trar90", "label": "Taux d’impayés 90 jours après l’échéance", "unit": "percent", "frequency": "month",
+    {"key": "trar90", "label": TRAR90_LABEL, "unit": "percent", "frequency": "month",
      "definition": "La part des cotisations dues qui reste à recouvrer 90 jours après leur échéance.",
      "explanation": "L’évolution sur un an est exprimée en points de pourcentage. Un passage de 1 % à 1,2 % correspond à une hausse de 0,2 point.",
      "source": "Urssaf · Taux de reste à recouvrer à 90 jours, corrigé des variations saisonnières."},
     {"key": "dpae", "label": "Déclarations préalables à l’embauche", "unit": "declarations", "frequency": "month",
+     "showAxisNote": False,
      "definition": "Les déclarations envoyées par les employeurs avant une embauche en CDI ou en CDD de plus d’un mois.",
      "explanation": "Ces déclarations mesurent les intentions d’embauche. Une même personne peut faire l’objet de plusieurs déclarations.",
      "source": "Urssaf · Déclarations mensuelles en CDI ou en CDD de plus d’un mois."},
@@ -55,7 +57,7 @@ def percent_change(value, previous):
 
 def indicator_series(
     points: list[dict], frequency: str, *, history_years: int | None = HISTORY_YEARS,
-    percentage_points: bool = False, trim_trailing_missing: bool = False,
+    percentage_points: bool = False, trim_trailing_missing: bool = False, include_monthly_change: bool = False,
 ) -> dict:
     ordered = sorted(points, key=lambda point: point["date"])
     values = {point["date"]: finite_value(point["value"]) for point in ordered}
@@ -68,7 +70,12 @@ def indicator_series(
             change = round(value - previous, 2) if value is not None and previous is not None else None
         else:
             change = percent_change(value, previous)
-        enriched.append({"date": date, "value": value, "yearlyChange": change})
+        enriched_point = {"date": date, "value": value, "yearlyChange": change}
+        if include_monthly_change:
+            year, month = int(date[:4]), int(date[5:7])
+            previous_month = f"{year - 1:04d}-12-01" if month == 1 else f"{year:04d}-{month - 1:02d}-01"
+            enriched_point["monthlyChange"] = percent_change(value, values.get(previous_month))
+        enriched.append(enriched_point)
     if trim_trailing_missing and enriched and enriched[-1]["value"] is None:
         latest = next((index for index in range(len(enriched) - 2, -1, -1)
                        if enriched[index]["value"] is not None), len(enriched) - 1)
@@ -79,7 +86,9 @@ def indicator_series(
     return {"points": enriched}
 
 
-def build_monthly_payload(boot: dict, deferred: dict, *, history_years: int | None = HISTORY_YEARS) -> dict:
+def build_monthly_payload(
+    boot: dict, deferred: dict, *, history_years: int | None = HISTORY_YEARS, detailed: bool = False,
+) -> dict:
     modules = deferred["modules"]
     sources = {key: modules.get(module, {}) for key, module in (
         ("payrollEarly", "payrollEarly"), ("trar90", "trar90"), ("dpae", "dpaeMonthly"),
@@ -91,12 +100,22 @@ def build_monthly_payload(boot: dict, deferred: dict, *, history_years: int | No
             key = indicator["key"]
             source = sources[key]
             scope = source.get("national", {}) if code == "national" else source.get("regions", {}).get(code, {})
+            points = scope.get("points", [])
             series[key] = indicator_series(
-                scope.get("points", []), indicator["frequency"], history_years=history_years,
+                points, indicator["frequency"], history_years=history_years,
                 percentage_points=indicator["unit"] == "percent", trim_trailing_missing=True,
+                include_monthly_change=detailed and key != "trar90",
             )
             if scope.get("coverageNote"):
                 series[key]["coverageNote"] = scope["coverageNote"]
+            if detailed and key == "dpae":
+                series[key]["contracts"] = {
+                    contract: indicator_series(
+                        [{"date": point["date"], "value": point.get(contract)} for point in points],
+                        "month", history_years=history_years, trim_trailing_missing=True, include_monthly_change=True,
+                    )
+                    for contract in ("cdi", "cddlong")
+                }
         return series
 
     return {
